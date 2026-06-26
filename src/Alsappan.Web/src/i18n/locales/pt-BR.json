@@ -198,7 +198,83 @@
       "title": "Veículos"
     }
   },
+  "shell": {
+    "actions": {
+      "newRecord": "Novo registro",
+      "refresh": "Atualizar",
+      "retry": "Tentar novamente"
+    },
+    "areaLabel": "Área administrativa",
+    "auth": {
+      "email": "E-mail",
+      "loginSubtitle": "Acesse sua organização",
+      "loginTitle": "Entrar",
+      "password": "Senha",
+      "protectedRedirect": "Entre para continuar",
+      "signOut": "Sair",
+      "submit": "Entrar",
+      "userFallback": "Usuário"
+    },
+    "brand": {
+      "name": "Alsappan",
+      "subtitle": "Gestão de imóveis"
+    },
+    "locale": {
+      "enUS": "Inglês (EUA)",
+      "label": "Idioma",
+      "ptBR": "Português (Brasil)",
+      "toggle": "Alternar idioma"
+    },
+    "navigation": {
+      "admin": "Administração"
+    },
+    "states": {
+      "archived": "Arquivado",
+      "empty": "Nenhum registro",
+      "error": "Erro ao carregar",
+      "forbidden": "Acesso negado",
+      "loading": "Carregando",
+      "notFound": "Não encontrado",
+      "optimistic": "Salvando alterações"
+    },
+    "theme": {
+      "dark": "Escuro",
+      "label": "Tema",
+      "light": "Claro",
+      "toggle": "Alternar tema"
+    },
+    "topbar": {
+      "closeNavigation": "Fechar navegação",
+      "collapse": "Recolher",
+      "collapseSidebar": "Recolher menu lateral",
+      "expand": "Expandir",
+      "expandSidebar": "Expandir menu lateral",
+      "menu": {
+        "account": "Conta",
+        "settings": "Configurações",
+        "signOut": "Sair"
+      },
+      "notifications": "Notificações",
+      "openNavigation": "Abrir navegação",
+      "organizationLabel": "Organização",
+      "profile": "Perfil",
+      "searchPlaceholder": "Buscar",
+      "searchLabel": "Buscar",
+      "themeToggle": "Alternar tema",
+      "unreadNotifications": "Notificações não lidas: {{count}}"
+    }
+  },
   "validation": {
+    "branding": {
+      "colorContrast": "Escolha cores com contraste suficiente.",
+      "colorHex": "Use uma cor hexadecimal válida.",
+      "logoAltRequired": "Informe o texto alternativo do logo.",
+      "logoDimension": "Use dimensões entre 1 e 4096 px.",
+      "logoMimeType": "Use PNG, JPG, WebP ou SVG.",
+      "logoSize": "Use um logo de até 2 MB.",
+      "logoUrl": "Use uma URL válida para o logo.",
+      "previewUrl": "Use uma URL de prévia válida."
+    },
     "currencyCode": "Informe uma moeda ISO válida com três letras.",
     "dateRange": "A data final deve ser igual ou posterior à data inicial.",
     "email": "Informe um e-mail válido.",
