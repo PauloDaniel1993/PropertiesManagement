@@ -30,21 +30,21 @@
 
 ## 3. Backend Platform Core
 
-- [ ] 3.1 Configure dependency injection, configuration binding, logging, health checks, CORS, and request localization
-- [ ] 3.2 Create the EF Core DbContext, migration setup, schema naming conventions, and design-time migration factory
-- [ ] 3.3 Implement active organization context resolution from authenticated organization membership
-- [ ] 3.4 Implement soft delete and mandatory tenant-scoped query filtering conventions for organization-owned entities
-- [ ] 3.5 Implement authentication token services, refresh session persistence, and secure cookie/header strategy
-- [ ] 3.6 Implement role and permission policy services for backend endpoint authorization
-- [ ] 3.7 Implement audit writer infrastructure for synchronous security and mutation audit records
-- [ ] 3.8 Implement outbox table, outbox writer, and background processor skeleton
-- [ ] 3.9 Implement timeline projection infrastructure consuming domain/application events
-- [ ] 3.10 Implement notification dispatch infrastructure consuming domain/application events
-- [ ] 3.11 Implement file storage abstraction with local filesystem provider for development
-- [ ] 3.12 Implement database seed runner for organizations, memberships, roles, permissions, locales, statuses, and catalogs
-- [ ] 3.13 Add backend integration test fixture with real PostgreSQL or containerized database
-- [ ] 3.14 Add smoke tests for health checks, localization, Problem Details, auth rejection, and database connectivity
-- [ ] 3.15 Add tenant isolation integration tests for cross-organization read, write, search, audit, notification, storage, and background processing paths
+- [x] 3.1 Configure dependency injection, configuration binding, logging, health checks, CORS, and request localization
+- [x] 3.2 Create the EF Core DbContext, migration setup, schema naming conventions, and design-time migration factory
+- [x] 3.3 Implement active organization context resolution from authenticated organization membership
+- [x] 3.4 Implement soft delete and mandatory tenant-scoped query filtering conventions for organization-owned entities
+- [x] 3.5 Implement authentication token services, refresh session persistence, and secure cookie/header strategy
+- [x] 3.6 Implement role and permission policy services for backend endpoint authorization
+- [x] 3.7 Implement audit writer infrastructure for synchronous security and mutation audit records
+- [x] 3.8 Implement outbox table, outbox writer, and background processor skeleton
+- [x] 3.9 Implement timeline projection infrastructure consuming domain/application events
+- [x] 3.10 Implement notification dispatch infrastructure consuming domain/application events
+- [x] 3.11 Implement file storage abstraction with local filesystem provider for development
+- [x] 3.12 Implement database seed runner for organizations, memberships, roles, permissions, locales, statuses, and catalogs
+- [x] 3.13 Add backend integration test fixture with real PostgreSQL or containerized database
+- [x] 3.14 Add smoke tests for health checks, localization, Problem Details, auth rejection, and database connectivity
+- [x] 3.15 Add tenant isolation integration tests for cross-organization read, write, search, audit, notification, storage, and background processing paths
 
 ## 4. Frontend Platform Shell
 

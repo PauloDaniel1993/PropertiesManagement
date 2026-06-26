@@ -40,7 +40,7 @@ pnpm-debug.log*
 lerna-debug.log*
 *.tmp
 *.temp
-uploads/
-storage/
+/uploads/
+/storage/
 .tmp/
 .playwright-cli/
