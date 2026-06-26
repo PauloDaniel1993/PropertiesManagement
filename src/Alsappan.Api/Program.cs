@@ -1,15 +1,20 @@
+using Alsappan.Api.Configuration;
 using Alsappan.Api.Contracts;
 using Alsappan.Api.Errors;
 using Alsappan.Api.OpenApi;
+using Alsappan.Application.Common.Configuration;
+using Alsappan.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApiPlatform(builder.Configuration);
+builder.Services.AddInfrastructure();
 builder.Services.AddOpenApi(ApiConventions.CurrentVersion, options =>
 {
   options.AddDocumentTransformer<AlsappanOpenApiDocumentTransformer>();
 });
-builder.Services.AddHealthChecks();
 builder.Services.AddSingleton<ProblemDetailsMessageCatalog>();
 builder.Services.AddSingleton<ApiProblemDetailsFactory>();
 builder.Services.AddProblemDetails(options =>
@@ -46,6 +51,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
+app.UseCors(ApiPlatformServiceCollectionExtensions.CorsPolicyName);
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapHealthChecks("/health")
     .WithName("System_Health")
@@ -53,17 +62,27 @@ app.MapHealthChecks("/health")
 
 var v1 = app.MapGroup(ApiConventions.VersionPrefix);
 
-v1.MapGet("/system/info", (IHostEnvironment environment) =>
+v1.MapGet("/system/info", (IHostEnvironment environment, IOptions<AlsappanOptions> options) =>
     Results.Ok(new SystemInfoResponse(
         "Alsappan",
         environment.EnvironmentName,
-        ApiConventions.SupportedCultures.ToArray())))
+        options.Value.Localization.DefaultCulture,
+        options.Value.Localization.SupportedCultures.ToArray())))
     .WithName("System_GetInfo")
     .WithTags("System")
     .WithSummary("Returns API system metadata.")
     .WithDescription("Returns the application name, current environment, and supported cultures.")
     .Produces<SystemInfoResponse>()
     .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError);
+
+v1.MapGet("/system/protected", () => Results.Ok(new ProtectedSystemResponse("authenticated")))
+    .RequireAuthorization("AuthenticatedUser")
+    .WithName("System_GetProtected")
+    .WithTags("System")
+    .WithSummary("Returns protected API smoke-test metadata.")
+    .Produces<ProtectedSystemResponse>()
+    .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+    .Produces<ProblemDetails>(StatusCodes.Status403Forbidden);
 
 app.Run();
 
@@ -74,4 +93,7 @@ public partial class Program;
 internal sealed record SystemInfoResponse(
     string Application,
     string Environment,
+    string DefaultCulture,
     string[] SupportedCultures);
+
+internal sealed record ProtectedSystemResponse(string Status);
