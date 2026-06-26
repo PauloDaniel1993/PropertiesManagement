@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Alsappan.Api/Alsappan.Api.csproj" />
+    <Project Path="src/Alsappan.Application/Alsappan.Application.csproj" />
+    <Project Path="src/Alsappan.Domain/Alsappan.Domain.csproj" />
+    <Project Path="src/Alsappan.Infrastructure/Alsappan.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Alsappan.Api.Tests/Alsappan.Api.Tests.csproj" />
+    <Project Path="tests/Alsappan.Application.Tests/Alsappan.Application.Tests.csproj" />
+    <Project Path="tests/Alsappan.Domain.Tests/Alsappan.Domain.Tests.csproj" />
+    <Project Path="tests/Alsappan.Infrastructure.Tests/Alsappan.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

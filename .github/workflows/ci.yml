@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: alsappan
+          POSTGRES_USER: alsappan
+          POSTGRES_PASSWORD: alsappan_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U alsappan -d alsappan"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Restore .NET
+        run: dotnet restore Alsappan.slnx
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: dotnet format Alsappan.slnx --verify-no-changes
+
+      - name: Build backend
+        run: dotnet build Alsappan.slnx --no-restore
+
+      - name: Test backend
+        run: dotnet test Alsappan.slnx --no-build
+
+      - name: Lint frontend
+        run: npm run lint --workspace src/Alsappan.Web
+
+      - name: Test frontend
+        run: npm run test --workspace src/Alsappan.Web
+
+      - name: Build frontend
+        run: npm run build --workspace src/Alsappan.Web
+
+      - name: Validate OpenSpec
+        run: npx --yes openspec validate build-alsappan-property-management-platform

@@ -1,0 +1,11 @@
+@Alsappan.Api_HostAddress = http://localhost:5290
+
+GET {{Alsappan.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{Alsappan.Api_HostAddress}}/v1/system/info
+Accept: application/json
+
+###

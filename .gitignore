@@ -2,6 +2,7 @@
 bin/
 obj/
 dist/
+dist-ssr/
 build/
 coverage/
 TestResults/
@@ -14,6 +15,7 @@ packages/
 .env
 .env.*
 !.env.example
+!**/.env.example
 appsettings.Development.local.json
 appsettings.*.local.json
 
@@ -21,6 +23,7 @@ appsettings.*.local.json
 .vs/
 .vscode/
 .idea/
+.DS_Store
 *.user
 *.suo
 *.userosscache
@@ -30,7 +33,14 @@ Desktop.ini
 
 # Logs and temporary files
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 *.tmp
 *.temp
 uploads/
 storage/
+.tmp/
+.playwright-cli/

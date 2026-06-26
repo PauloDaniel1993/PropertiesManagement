@@ -1,17 +1,17 @@
 ## 1. Repository and Project Foundation
 
-- [ ] 1.1 Initialize the Git repository and add a .gitignore for .NET, Node, local env files, build outputs, and temporary uploads
-- [ ] 1.2 Create the .NET 10 solution structure with Api, Application, Domain, Infrastructure, and test projects
-- [ ] 1.3 Create the React TypeScript frontend project under the agreed web project folder with Zustand included for client state management
-- [ ] 1.4 Add shared formatting configuration for C#, TypeScript, JSON, Markdown, and YAML
-- [ ] 1.5 Add backend linting, analyzers, nullable reference types, warnings policy, and consistent test settings
-- [ ] 1.6 Add frontend linting, formatting, type checking, and test runner configuration
-- [ ] 1.7 Add Docker Compose for PostgreSQL and local development dependencies
-- [ ] 1.8 Add environment variable templates for backend, frontend, database, auth, file storage, and localization
-- [ ] 1.9 Add local development scripts for restoring, building, testing, running API, running web, and applying migrations
-- [ ] 1.10 Add a repository README with setup steps, project structure, and implementation conventions
-- [ ] 1.11 Add CI workflow placeholders for backend build/test, frontend build/test, OpenAPI validation, and formatting checks
-- [ ] 1.12 Add initial seed data plan for organizations, memberships, roles, permissions, locales, statuses, and catalog values
+- [x] 1.1 Initialize the Git repository and add a .gitignore for .NET, Node, local env files, build outputs, and temporary uploads
+- [x] 1.2 Create the .NET 10 solution structure with Api, Application, Domain, Infrastructure, and test projects
+- [x] 1.3 Create the React TypeScript frontend project under the agreed web project folder with Zustand included for client state management
+- [x] 1.4 Add shared formatting configuration for C#, TypeScript, JSON, Markdown, and YAML
+- [x] 1.5 Add backend linting, analyzers, nullable reference types, warnings policy, and consistent test settings
+- [x] 1.6 Add frontend linting, formatting, type checking, and test runner configuration
+- [x] 1.7 Add Docker Compose for PostgreSQL and local development dependencies
+- [x] 1.8 Add environment variable templates for backend, frontend, database, auth, file storage, and localization
+- [x] 1.9 Add local development scripts for restoring, building, testing, running API, running web, and applying migrations
+- [x] 1.10 Add a repository README with setup steps, project structure, and implementation conventions
+- [x] 1.11 Add CI workflow placeholders for backend build/test, frontend build/test, OpenAPI validation, and formatting checks
+- [x] 1.12 Add initial seed data plan for organizations, memberships, roles, permissions, locales, statuses, and catalog values
 
 ## 2. Shared Product and API Contracts
 
