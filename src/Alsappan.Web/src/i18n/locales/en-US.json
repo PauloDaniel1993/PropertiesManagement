@@ -198,7 +198,83 @@
       "title": "Vehicles"
     }
   },
+  "shell": {
+    "actions": {
+      "newRecord": "New record",
+      "refresh": "Refresh",
+      "retry": "Try again"
+    },
+    "areaLabel": "Admin area",
+    "auth": {
+      "email": "Email",
+      "loginSubtitle": "Access your organization",
+      "loginTitle": "Sign in",
+      "password": "Password",
+      "protectedRedirect": "Sign in to continue",
+      "signOut": "Sign out",
+      "submit": "Sign in",
+      "userFallback": "User"
+    },
+    "brand": {
+      "name": "Alsappan",
+      "subtitle": "Property management"
+    },
+    "locale": {
+      "enUS": "English (US)",
+      "label": "Language",
+      "ptBR": "Portuguese (Brazil)",
+      "toggle": "Toggle language"
+    },
+    "navigation": {
+      "admin": "Administration"
+    },
+    "states": {
+      "archived": "Archived",
+      "empty": "No records",
+      "error": "Unable to load",
+      "forbidden": "Access denied",
+      "loading": "Loading",
+      "notFound": "Not found",
+      "optimistic": "Saving changes"
+    },
+    "theme": {
+      "dark": "Dark",
+      "label": "Theme",
+      "light": "Light",
+      "toggle": "Toggle theme"
+    },
+    "topbar": {
+      "closeNavigation": "Close navigation",
+      "collapse": "Collapse",
+      "collapseSidebar": "Collapse sidebar",
+      "expand": "Expand",
+      "expandSidebar": "Expand sidebar",
+      "menu": {
+        "account": "Account",
+        "settings": "Settings",
+        "signOut": "Sign out"
+      },
+      "notifications": "Notifications",
+      "openNavigation": "Open navigation",
+      "organizationLabel": "Organization",
+      "profile": "Profile",
+      "searchPlaceholder": "Search",
+      "searchLabel": "Search",
+      "themeToggle": "Toggle theme",
+      "unreadNotifications": "Unread notifications: {{count}}"
+    }
+  },
   "validation": {
+    "branding": {
+      "colorContrast": "Choose colors with enough contrast.",
+      "colorHex": "Use a valid hex color.",
+      "logoAltRequired": "Add alternative text for the logo.",
+      "logoDimension": "Use dimensions between 1 and 4096 px.",
+      "logoMimeType": "Use PNG, JPG, WebP, or SVG.",
+      "logoSize": "Use a logo up to 2 MB.",
+      "logoUrl": "Use a valid logo URL.",
+      "previewUrl": "Use a valid preview URL."
+    },
     "currencyCode": "Enter a valid three-letter ISO currency.",
     "dateRange": "The end date must be the same as or after the start date.",
     "email": "Enter a valid email address.",

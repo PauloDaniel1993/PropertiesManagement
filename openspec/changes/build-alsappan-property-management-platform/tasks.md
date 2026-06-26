@@ -48,23 +48,23 @@
 
 ## 4. Frontend Platform Shell
 
-- [ ] 4.1 Configure app routing with public login routes and protected authenticated routes
-- [ ] 4.2 Add the authenticated admin shell layout with sidebar, top bar, content region, active organization controls, and responsive behavior
-- [ ] 4.3 Add localized sidebar menu labels and icons for all menu items shown in the screenshot
-- [ ] 4.4 Add active menu state, route highlighting, collapsed navigation behavior, and mobile navigation behavior
-- [ ] 4.5 Add top-bar search entry point, theme toggle, notification button, and user avatar/profile menu
-- [ ] 4.6 Add `pt-BR` and `en-US` locale resources and locale provider with persisted user preference
-- [ ] 4.7 Add locale-aware formatting helpers for dates, times, money, numbers, and pluralization
-- [ ] 4.8 Add theme tokens, light/dark mode support, status colors, spacing, typography, and table density defaults
-- [ ] 4.9 Add shared page header, primary action, search input, filter bar, data table, pagination, badge, and row action components
-- [ ] 4.10 Add shared form controls, validation message rendering, dialogs/drawers, detail sections, tabs, and relationship panels
-- [ ] 4.11 Add shared loading, empty, error, forbidden, not found, archived, and optimistic refresh states
-- [ ] 4.12 Add API client provider, auth token handling, query cache, retry policy, and global error handling
-- [ ] 4.13 Add frontend tests for shell rendering, menu navigation, locale switching, theme switching, and protected route behavior
-- [ ] 4.14 Add responsive screenshot or Playwright checks for desktop, tablet, and mobile shell layouts
-- [ ] 4.15 Create Zustand stores for auth/session view state, active organization, shell state, theme, locale, persisted preferences, filters, and resident portal UI state
-- [ ] 4.16 Add default Alsappan design tokens and white-label token application for organization-specific branding
-- [ ] 4.17 Add frontend validation for organization brand colors, logo previews, contrast-safe states, and fallback to the default design
+- [x] 4.1 Configure app routing with public login routes and protected authenticated routes
+- [x] 4.2 Add the authenticated admin shell layout with sidebar, top bar, content region, active organization controls, and responsive behavior
+- [x] 4.3 Add localized sidebar menu labels and icons for all menu items shown in the screenshot
+- [x] 4.4 Add active menu state, route highlighting, collapsed navigation behavior, and mobile navigation behavior
+- [x] 4.5 Add top-bar search entry point, theme toggle, notification button, and user avatar/profile menu
+- [x] 4.6 Add `pt-BR` and `en-US` locale resources and locale provider with persisted user preference
+- [x] 4.7 Add locale-aware formatting helpers for dates, times, money, numbers, and pluralization
+- [x] 4.8 Add theme tokens, light/dark mode support, status colors, spacing, typography, and table density defaults
+- [x] 4.9 Add shared page header, primary action, search input, filter bar, data table, pagination, badge, and row action components
+- [x] 4.10 Add shared form controls, validation message rendering, dialogs/drawers, detail sections, tabs, and relationship panels
+- [x] 4.11 Add shared loading, empty, error, forbidden, not found, archived, and optimistic refresh states
+- [x] 4.12 Add API client provider, auth token handling, query cache, retry policy, and global error handling
+- [x] 4.13 Add frontend tests for shell rendering, menu navigation, locale switching, theme switching, and protected route behavior
+- [x] 4.14 Add responsive screenshot or Playwright checks for desktop, tablet, and mobile shell layouts
+- [x] 4.15 Create Zustand stores for auth/session view state, active organization, shell state, theme, locale, persisted preferences, filters, and resident portal UI state
+- [x] 4.16 Add default Alsappan design tokens and white-label token application for organization-specific branding
+- [x] 4.17 Add frontend validation for organization brand colors, logo previews, contrast-safe states, and fallback to the default design
 
 ## 5. Identity and Administrators
 

@@ -6,6 +6,7 @@ dist-ssr/
 build/
 coverage/
 TestResults/
+output/
 
 # Dependencies
 node_modules/

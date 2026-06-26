@@ -1,13 +1,16 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import type { PropsWithChildren } from 'react'
+import { ApiClientProvider } from '../lib/api/ApiClientProvider'
 import { queryClient } from '../lib/queryClient'
 import '../i18n'
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>{children}</BrowserRouter>
+      <ApiClientProvider>
+        <BrowserRouter>{children}</BrowserRouter>
+      </ApiClientProvider>
     </QueryClientProvider>
   )
 }
