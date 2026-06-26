@@ -15,18 +15,18 @@
 
 ## 2. Shared Product and API Contracts
 
-- [ ] 2.1 Create a domain glossary mapping Portuguese UI terms to English code identifiers
-- [ ] 2.2 Define route names, menu labels, and default `pt-BR` copy for every visible menu item
-- [ ] 2.3 Define common REST API conventions for route versioning, pagination, sorting, filtering, and errors
-- [ ] 2.4 Implement Problem Details response helpers with localized validation and authorization messages
-- [ ] 2.5 Implement common DTOs for paged results, list filters, select options, status labels, and audit metadata
-- [ ] 2.6 Implement common entity metadata for tenant-scoped organization, created/updated/deleted audit fields, and concurrency tokens
-- [ ] 2.7 Implement value object conventions for IDs, money, dates, date ranges, addresses, and localized catalog labels
-- [ ] 2.8 Configure OpenAPI generation and document endpoint naming, tags, auth schemes, and error contracts
-- [ ] 2.9 Generate or validate a typed frontend API client from the backend OpenAPI contract
-- [ ] 2.10 Create shared backend validation patterns and localized message resources
-- [ ] 2.11 Create shared frontend validation patterns aligned with backend DTOs
-- [ ] 2.12 Define the module event envelope used by audit, timeline, notifications, dashboard projections, resident portal events, and tenant-scoped background processing
+- [x] 2.1 Create a domain glossary mapping Portuguese UI terms to English code identifiers
+- [x] 2.2 Define route names, menu labels, and default `pt-BR` copy for every visible menu item
+- [x] 2.3 Define common REST API conventions for route versioning, pagination, sorting, filtering, and errors
+- [x] 2.4 Implement Problem Details response helpers with localized validation and authorization messages
+- [x] 2.5 Implement common DTOs for paged results, list filters, select options, status labels, and audit metadata
+- [x] 2.6 Implement common entity metadata for tenant-scoped organization, created/updated/deleted audit fields, and concurrency tokens
+- [x] 2.7 Implement value object conventions for IDs, money, dates, date ranges, addresses, and localized catalog labels
+- [x] 2.8 Configure OpenAPI generation and document endpoint naming, tags, auth schemes, and error contracts
+- [x] 2.9 Generate or validate a typed frontend API client from the backend OpenAPI contract
+- [x] 2.10 Create shared backend validation patterns and localized message resources
+- [x] 2.11 Create shared frontend validation patterns aligned with backend DTOs
+- [x] 2.12 Define the module event envelope used by audit, timeline, notifications, dashboard projections, resident portal events, and tenant-scoped background processing
 
 ## 3. Backend Platform Core
 

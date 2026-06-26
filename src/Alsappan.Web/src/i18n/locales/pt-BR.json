@@ -5,15 +5,207 @@
     "light": "Tema claro"
   },
   "app": {
-    "eyebrow": "Fundacao do produto",
+    "eyebrow": "Fundação do produto",
     "foundationLabel": "Tecnologias configuradas",
-    "subtitle": "A base inicial esta pronta para o painel administrativo, portal do morador, multi-tenant, white label e internacionalizacao.",
-    "title": "Alsappan Gestao de Imoveis"
+    "subtitle": "A base inicial está pronta para o painel administrativo, portal do morador, multi-tenant, white label e internacionalização.",
+    "title": "Alsappan Gestão de Imóveis"
   },
   "foundation": {
     "dotnet": ".NET 10 API",
     "i18n": "pt-BR e en-US",
     "postgres": "PostgreSQL local",
     "react": "React + Zustand"
+  },
+  "navigation": {
+    "items": {
+      "administrators": {
+        "label": "Administradores"
+      },
+      "audit": {
+        "label": "Auditoria"
+      },
+      "contracts": {
+        "label": "Contratos"
+      },
+      "dashboard": {
+        "label": "Dashboard"
+      },
+      "documents": {
+        "label": "Documentos"
+      },
+      "inspections": {
+        "label": "Vistorias"
+      },
+      "notifications": {
+        "label": "Notificações"
+      },
+      "occurrences": {
+        "label": "Ocorrências"
+      },
+      "payments": {
+        "label": "Pagamentos"
+      },
+      "pets": {
+        "label": "Pets"
+      },
+      "properties": {
+        "label": "Imóveis"
+      },
+      "residents": {
+        "label": "Moradores"
+      },
+      "settings": {
+        "label": "Configurações"
+      },
+      "timeline": {
+        "label": "Timeline"
+      },
+      "utilityAccounts": {
+        "label": "Contas de Consumo"
+      },
+      "vehicles": {
+        "label": "Veículos"
+      }
+    }
+  },
+  "pages": {
+    "administrators": {
+      "description": "Gerencie usuários administrativos, convites, papéis e status de acesso.",
+      "empty": {
+        "description": "Convide o primeiro usuário administrativo quando a identidade estiver habilitada.",
+        "title": "Nenhum administrador cadastrado"
+      },
+      "title": "Administradores"
+    },
+    "audit": {
+      "description": "Consulte eventos imutáveis de segurança, autorização e alteração de dados.",
+      "empty": {
+        "description": "Os eventos de auditoria aparecerão conforme ações sensíveis forem executadas.",
+        "title": "Nenhum evento de auditoria"
+      },
+      "title": "Auditoria"
+    },
+    "contracts": {
+      "description": "Controle contratos de locação, moradores vinculados, vigência e termos financeiros.",
+      "empty": {
+        "description": "Crie contratos depois de cadastrar imóveis e moradores.",
+        "title": "Nenhum contrato cadastrado"
+      },
+      "title": "Contratos"
+    },
+    "dashboard": {
+      "description": "Acompanhe ocupação, pagamentos vencidos, contratos próximos do fim e atividades recentes.",
+      "empty": {
+        "description": "Os indicadores serão preenchidos conforme os módulos forem usados.",
+        "title": "Ainda não há dados operacionais"
+      },
+      "title": "Dashboard"
+    },
+    "documents": {
+      "description": "Organize documentos, versões, metadados e vínculos com registros do sistema.",
+      "empty": {
+        "description": "Faça upload de documentos quando o armazenamento estiver configurado.",
+        "title": "Nenhum documento cadastrado"
+      },
+      "title": "Documentos"
+    },
+    "inspections": {
+      "description": "Agende vistorias, registre checklist, fotos e dados prontos para relatório.",
+      "empty": {
+        "description": "Agende a primeira vistoria a partir de um imóvel ou contrato.",
+        "title": "Nenhuma vistoria agendada"
+      },
+      "title": "Vistorias"
+    },
+    "notifications": {
+      "description": "Veja notificações, contagem de não lidas, preferências e links para registros.",
+      "empty": {
+        "description": "Novas notificações aparecerão aqui quando eventos relevantes forem criados.",
+        "title": "Nenhuma notificação"
+      },
+      "title": "Notificações"
+    },
+    "occurrences": {
+      "description": "Acompanhe ocorrências, manutenção, reclamações, responsáveis, comentários e status.",
+      "empty": {
+        "description": "Registre ocorrências quando houver solicitações ou incidentes.",
+        "title": "Nenhuma ocorrência registrada"
+      },
+      "title": "Ocorrências"
+    },
+    "payments": {
+      "description": "Controle cobranças, vencimentos, recebimentos, recibos e conciliação.",
+      "empty": {
+        "description": "Crie cobranças a partir de contratos ativos ou contas de consumo.",
+        "title": "Nenhum pagamento cadastrado"
+      },
+      "title": "Pagamentos"
+    },
+    "pets": {
+      "description": "Cadastre pets vinculados a moradores, imóveis, contratos e documentos.",
+      "empty": {
+        "description": "Os pets cadastrados pelos moradores ou administradores aparecerão aqui.",
+        "title": "Nenhum pet cadastrado"
+      },
+      "title": "Pets"
+    },
+    "properties": {
+      "description": "Cadastre, consulte, altere e arquive imóveis com endereço, status, aluguel sugerido e garagem.",
+      "empty": {
+        "description": "Cadastre o primeiro imóvel para começar a operação.",
+        "title": "Nenhum imóvel cadastrado"
+      },
+      "title": "Imóveis"
+    },
+    "residents": {
+      "description": "Gerencie moradores, contatos, dados sensíveis, vínculos e acesso ao portal.",
+      "empty": {
+        "description": "Cadastre moradores para vinculá-los a contratos e imóveis.",
+        "title": "Nenhum morador cadastrado"
+      },
+      "title": "Moradores"
+    },
+    "settings": {
+      "description": "Configure organização, localização, catálogos, notificações, segurança e preferências.",
+      "empty": {
+        "description": "As configurações padrão serão criadas com a organização inicial.",
+        "title": "Configurações ainda não carregadas"
+      },
+      "title": "Configurações"
+    },
+    "timeline": {
+      "description": "Veja a linha do tempo de eventos de negócio por entidade, usuário e período.",
+      "empty": {
+        "description": "Eventos significativos aparecerão aqui conforme os módulos forem utilizados.",
+        "title": "Nenhum evento na timeline"
+      },
+      "title": "Timeline"
+    },
+    "utilityAccounts": {
+      "description": "Controle contas de consumo, responsáveis, vencimentos, pagamentos e documentos.",
+      "empty": {
+        "description": "Cadastre contas de consumo para acompanhar despesas vinculadas aos imóveis.",
+        "title": "Nenhuma conta de consumo cadastrada"
+      },
+      "title": "Contas de Consumo"
+    },
+    "vehicles": {
+      "description": "Cadastre veículos, placas, autorização e alocação de garagem.",
+      "empty": {
+        "description": "Veículos vinculados a moradores e imóveis aparecerão aqui.",
+        "title": "Nenhum veículo cadastrado"
+      },
+      "title": "Veículos"
+    }
+  },
+  "validation": {
+    "currencyCode": "Informe uma moeda ISO válida com três letras.",
+    "dateRange": "A data final deve ser igual ou posterior à data inicial.",
+    "email": "Informe um e-mail válido.",
+    "invalidDate": "Informe uma data válida no formato AAAA-MM-DD.",
+    "invalidId": "Informe um identificador válido.",
+    "maxLength": "O campo excede o tamanho máximo permitido.",
+    "minValue": "O valor deve ser maior ou igual ao mínimo permitido.",
+    "required": "Campo obrigatório."
   }
 }

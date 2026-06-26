@@ -12,7 +12,7 @@ describe('App foundation', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: /Alsappan Gestao de Imoveis/i,
+        name: /Alsappan Gest\u00e3o de Im\u00f3veis/i,
       }),
     ).toBeInTheDocument()
   })

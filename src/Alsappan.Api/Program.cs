@@ -1,25 +1,69 @@
+using Alsappan.Api.Contracts;
+using Alsappan.Api.Errors;
+using Alsappan.Api.OpenApi;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(ApiConventions.CurrentVersion, options =>
+{
+  options.AddDocumentTransformer<AlsappanOpenApiDocumentTransformer>();
+});
 builder.Services.AddHealthChecks();
+builder.Services.AddSingleton<ProblemDetailsMessageCatalog>();
+builder.Services.AddSingleton<ApiProblemDetailsFactory>();
+builder.Services.AddProblemDetails(options =>
+{
+  options.CustomizeProblemDetails = context =>
+  {
+    var factory = context.HttpContext.RequestServices.GetRequiredService<ApiProblemDetailsFactory>();
+    var code = context.ProblemDetails.Status switch
+    {
+      StatusCodes.Status401Unauthorized => ApiProblemCode.Unauthorized,
+      StatusCodes.Status403Forbidden => ApiProblemCode.Forbidden,
+      StatusCodes.Status404NotFound => ApiProblemCode.NotFound,
+      StatusCodes.Status409Conflict => ApiProblemCode.Conflict,
+      StatusCodes.Status400BadRequest => ApiProblemCode.Validation,
+      _ => ApiProblemCode.Unexpected
+    };
+
+    var localized = factory.Create(context.HttpContext, code, context.ProblemDetails.Status ?? StatusCodes.Status500InternalServerError);
+    context.ProblemDetails.Title ??= localized.Title;
+    context.ProblemDetails.Detail ??= localized.Detail;
+    context.ProblemDetails.Type ??= localized.Type;
+    context.ProblemDetails.Instance ??= localized.Instance;
+    context.ProblemDetails.Extensions[ApiConventions.ErrorCodeExtension] = localized.Extensions[ApiConventions.ErrorCodeExtension];
+    context.ProblemDetails.Extensions[ApiConventions.TraceIdExtension] = localized.Extensions[ApiConventions.TraceIdExtension];
+  };
+});
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-  app.MapOpenApi();
+  app.MapOpenApi("/openapi/{documentName}.json");
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health")
+    .WithName("System_Health")
+    .WithTags("System");
 
-app.MapGet("/v1/system/info", (IHostEnvironment environment) =>
+var v1 = app.MapGroup(ApiConventions.VersionPrefix);
+
+v1.MapGet("/system/info", (IHostEnvironment environment) =>
     Results.Ok(new SystemInfoResponse(
         "Alsappan",
         environment.EnvironmentName,
-        ["pt-BR", "en-US"])))
-    .WithName("GetSystemInfo");
+        ApiConventions.SupportedCultures.ToArray())))
+    .WithName("System_GetInfo")
+    .WithTags("System")
+    .WithSummary("Returns API system metadata.")
+    .WithDescription("Returns the application name, current environment, and supported cultures.")
+    .Produces<SystemInfoResponse>()
+    .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError);
 
 app.Run();
 
