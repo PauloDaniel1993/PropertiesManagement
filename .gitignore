@@ -1,0 +1,36 @@
+# Build outputs
+bin/
+obj/
+dist/
+build/
+coverage/
+TestResults/
+
+# Dependencies
+node_modules/
+packages/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+appsettings.Development.local.json
+appsettings.*.local.json
+
+# IDE and OS files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+Thumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+uploads/
+storage/
