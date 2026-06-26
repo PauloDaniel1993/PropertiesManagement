@@ -1,0 +1,44 @@
+{
+  "name": "alsappan-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.101.1",
+    "i18next": "^26.3.3",
+    "lucide-react": "^1.21.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-hook-form": "^7.80.0",
+    "react-i18next": "^17.0.8",
+    "react-router-dom": "^7.18.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "jsdom": "^29.1.1",
+    "oxlint": "^1.69.0",
+    "prettier": "^3.8.5",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "actions": {
+    "dark": "Tema escuro",
+    "language": "Mudar para {{locale}}",
+    "light": "Tema claro"
+  },
+  "app": {
+    "eyebrow": "Fundacao do produto",
+    "foundationLabel": "Tecnologias configuradas",
+    "subtitle": "A base inicial esta pronta para o painel administrativo, portal do morador, multi-tenant, white label e internacionalizacao.",
+    "title": "Alsappan Gestao de Imoveis"
+  },
+  "foundation": {
+    "dotnet": ".NET 10 API",
+    "i18n": "pt-BR e en-US",
+    "postgres": "PostgreSQL local",
+    "react": "React + Zustand"
+  }
+}
