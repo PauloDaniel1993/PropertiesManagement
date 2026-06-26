@@ -15,5 +15,197 @@
     "i18n": "pt-BR and en-US",
     "postgres": "Local PostgreSQL",
     "react": "React + Zustand"
+  },
+  "navigation": {
+    "items": {
+      "administrators": {
+        "label": "Administrators"
+      },
+      "audit": {
+        "label": "Audit"
+      },
+      "contracts": {
+        "label": "Contracts"
+      },
+      "dashboard": {
+        "label": "Dashboard"
+      },
+      "documents": {
+        "label": "Documents"
+      },
+      "inspections": {
+        "label": "Inspections"
+      },
+      "notifications": {
+        "label": "Notifications"
+      },
+      "occurrences": {
+        "label": "Occurrences"
+      },
+      "payments": {
+        "label": "Payments"
+      },
+      "pets": {
+        "label": "Pets"
+      },
+      "properties": {
+        "label": "Properties"
+      },
+      "residents": {
+        "label": "Residents"
+      },
+      "settings": {
+        "label": "Settings"
+      },
+      "timeline": {
+        "label": "Timeline"
+      },
+      "utilityAccounts": {
+        "label": "Utility Accounts"
+      },
+      "vehicles": {
+        "label": "Vehicles"
+      }
+    }
+  },
+  "pages": {
+    "administrators": {
+      "description": "Manage administrative users, invitations, roles, and access status.",
+      "empty": {
+        "description": "Invite the first administrative user when identity is enabled.",
+        "title": "No administrators registered"
+      },
+      "title": "Administrators"
+    },
+    "audit": {
+      "description": "Review immutable security, authorization, and data mutation events.",
+      "empty": {
+        "description": "Audit events will appear as sensitive actions are executed.",
+        "title": "No audit events"
+      },
+      "title": "Audit"
+    },
+    "contracts": {
+      "description": "Control lease contracts, linked residents, date ranges, and financial terms.",
+      "empty": {
+        "description": "Create contracts after properties and residents are registered.",
+        "title": "No contracts registered"
+      },
+      "title": "Contracts"
+    },
+    "dashboard": {
+      "description": "Track occupancy, overdue payments, ending contracts, and recent activity.",
+      "empty": {
+        "description": "Indicators will be populated as modules are used.",
+        "title": "No operational data yet"
+      },
+      "title": "Dashboard"
+    },
+    "documents": {
+      "description": "Organize documents, versions, metadata, and links to system records.",
+      "empty": {
+        "description": "Upload documents when storage is configured.",
+        "title": "No documents registered"
+      },
+      "title": "Documents"
+    },
+    "inspections": {
+      "description": "Schedule inspections, capture checklists, photos, and report-ready data.",
+      "empty": {
+        "description": "Schedule the first inspection from a property or contract.",
+        "title": "No inspections scheduled"
+      },
+      "title": "Inspections"
+    },
+    "notifications": {
+      "description": "View notifications, unread counts, preferences, and record links.",
+      "empty": {
+        "description": "New notifications will appear here when relevant events are created.",
+        "title": "No notifications"
+      },
+      "title": "Notifications"
+    },
+    "occurrences": {
+      "description": "Track occurrences, maintenance, complaints, assignees, comments, and status.",
+      "empty": {
+        "description": "Register occurrences when requests or incidents happen.",
+        "title": "No occurrences registered"
+      },
+      "title": "Occurrences"
+    },
+    "payments": {
+      "description": "Control charges, due dates, settlements, receipts, and reconciliation.",
+      "empty": {
+        "description": "Create charges from active contracts or utility accounts.",
+        "title": "No payments registered"
+      },
+      "title": "Payments"
+    },
+    "pets": {
+      "description": "Register pets linked to residents, properties, contracts, and documents.",
+      "empty": {
+        "description": "Pets registered by residents or administrators will appear here.",
+        "title": "No pets registered"
+      },
+      "title": "Pets"
+    },
+    "properties": {
+      "description": "Create, search, update, and archive properties with address, status, suggested rent, and garage data.",
+      "empty": {
+        "description": "Register the first property to start operations.",
+        "title": "No properties registered"
+      },
+      "title": "Properties"
+    },
+    "residents": {
+      "description": "Manage residents, contacts, sensitive data, links, and portal access.",
+      "empty": {
+        "description": "Register residents to link them to contracts and properties.",
+        "title": "No residents registered"
+      },
+      "title": "Residents"
+    },
+    "settings": {
+      "description": "Configure organization, localization, catalogs, notifications, security, and preferences.",
+      "empty": {
+        "description": "Default settings will be created with the first organization.",
+        "title": "Settings are not loaded yet"
+      },
+      "title": "Settings"
+    },
+    "timeline": {
+      "description": "View business events by entity, user, and date range.",
+      "empty": {
+        "description": "Meaningful events will appear here as modules are used.",
+        "title": "No timeline events"
+      },
+      "title": "Timeline"
+    },
+    "utilityAccounts": {
+      "description": "Control utility accounts, responsible parties, due dates, payments, and documents.",
+      "empty": {
+        "description": "Register utility accounts to track expenses linked to properties.",
+        "title": "No utility accounts registered"
+      },
+      "title": "Utility Accounts"
+    },
+    "vehicles": {
+      "description": "Register vehicles, plates, authorization, and garage allocation.",
+      "empty": {
+        "description": "Vehicles linked to residents and properties will appear here.",
+        "title": "No vehicles registered"
+      },
+      "title": "Vehicles"
+    }
+  },
+  "validation": {
+    "currencyCode": "Enter a valid three-letter ISO currency.",
+    "dateRange": "The end date must be the same as or after the start date.",
+    "email": "Enter a valid email address.",
+    "invalidDate": "Enter a valid date in YYYY-MM-DD format.",
+    "invalidId": "Enter a valid identifier.",
+    "maxLength": "The field exceeds the maximum allowed length.",
+    "minValue": "The value must be greater than or equal to the minimum allowed.",
+    "required": "Required field."
   }
 }
