@@ -12,6 +12,12 @@
 - [ ] 1.10 Add a repository README with setup steps, project structure, and implementation conventions
 - [ ] 1.11 Add CI workflow placeholders for backend build/test, frontend build/test, OpenAPI validation, and formatting checks
 - [ ] 1.12 Add initial seed data plan for organizations, memberships, roles, permissions, locales, statuses, and catalog values
+- [ ] 1.13 Document Git Flow branch rules for `main`, `develop`, `feature/*`, `release/*`, and `hotfix/*`
+- [ ] 1.14 Configure repository guidance so feature/functionality work starts from `develop` on `feature/*` branches
+- [ ] 1.15 Add pull request template requiring scope, validation, screenshots for UI changes, manual Chrome testing when applicable, and review checklist
+- [ ] 1.16 Add release checklist for `release/*` branches targeting `main`
+- [ ] 1.17 Add hotfix checklist for `hotfix/*` branches from `main` and back-merge into `develop`
+- [ ] 1.18 Add README guidance that completed features/functionality require a PR and wait for review before merge
 
 ## 2. Shared Product and API Contracts
 
@@ -63,6 +69,8 @@
 - [ ] 4.13 Add frontend tests for shell rendering, menu navigation, locale switching, theme switching, and protected route behavior
 - [ ] 4.14 Add responsive screenshot or Playwright checks for desktop, tablet, and mobile shell layouts
 - [ ] 4.15 Create Zustand stores for auth/session view state, active organization, shell state, theme, locale, persisted preferences, filters, and resident portal UI state
+- [ ] 4.16 Add default Alsappan design tokens and white-label token application for organization-specific branding
+- [ ] 4.17 Add frontend validation for organization brand colors, logo previews, contrast-safe states, and fallback to the default design
 
 ## 5. Identity and Administrators
 
@@ -155,6 +163,13 @@
 - [ ] 10.10 Build charge create/edit and payment settlement forms with receipt document attachment
 - [ ] 10.11 Build payment detail page with transactions, balance history, linked documents, timeline, and audit links
 - [ ] 10.12 Add tests for charge lifecycle, partial payments, overdue status, receipt links, permissions, localization, and dashboard impact
+- [ ] 10.13 Define payment provider interfaces for payment instructions, provider references, status mapping, mock events, and reconciliation callbacks
+- [ ] 10.14 Implement mocked boleto provider returning placeholder barcode, linha digitavel, due date, amount, payer summary, and provider reference
+- [ ] 10.15 Implement mocked Pix provider returning placeholder QR payload, copy-and-paste code, expiration, amount, payer summary, and provider reference
+- [ ] 10.16 Implement mocked PayPal provider returning placeholder payment intent ID, approval URL, status, amount, payer summary, and provider reference
+- [ ] 10.17 Add payment instruction endpoints and DTOs for boleto, Pix, and PayPal mock provider responses
+- [ ] 10.18 Add resident portal payment instruction display for mocked boleto, Pix, and PayPal
+- [ ] 10.19 Add tests for mocked provider instruction generation, mock event settlement mapping, tenant isolation, resident visibility, and future-provider contract stability
 
 ## 11. Contas de Consumo Module
 
@@ -278,15 +293,17 @@
 ## 20. Configuracoes Module
 
 - [ ] 20.1 Model organization settings, tenant isolation defaults, localization settings, resident portal settings, security settings, notification settings, and domain catalog settings
-- [ ] 20.2 Add settings migrations and seed defaults for organization, locale, security, notification, and catalogs
+- [ ] 20.2 Add settings migrations and seed defaults for organization, white-label branding, locale, security, notification, and catalogs
 - [ ] 20.3 Implement organization profile settings endpoints with audit events
 - [ ] 20.4 Implement locale enablement, default locale, user locale preference, and fallback behavior endpoints
 - [ ] 20.5 Implement domain catalog endpoints for property types, occurrence types, inspection types, document categories, utility types, and other configurable labels
 - [ ] 20.6 Implement security settings endpoints for session timeout, password rules, and MFA policy placeholders
 - [ ] 20.7 Implement notification settings endpoints for categories and channels
 - [ ] 20.8 Build Configuracoes page with tabs for organization, tenant behavior, resident portal, localization, catalogs, notifications, security, and profile preferences
-- [ ] 20.9 Add localized forms for editing settings and catalog labels
-- [ ] 20.10 Add tests for settings permissions, audit events, tenant-specific settings, resident portal settings, locale behavior, catalog updates, validation, and frontend tab navigation
+- [ ] 20.9 Add localized forms for editing settings, white-label branding, and catalog labels
+- [ ] 20.10 Add tests for settings permissions, audit events, tenant-specific settings, resident portal settings, white-label branding, locale behavior, catalog updates, validation, and frontend tab navigation
+- [ ] 20.11 Add backend validation for brand asset type, size, dimensions, allowed color values, and contrast-safe color combinations
+- [ ] 20.12 Add organization branding endpoints for logo upload/removal, brand token update, default design reset, and support/contact metadata
 
 ## 21. Cross-Module Relationship Integration
 
@@ -327,6 +344,8 @@
 - [ ] 23.11 Add E2E test for resident portal login, resident-scoped data visibility, resident-created occurrence, and cross-resident access denial
 - [ ] 23.12 Add E2E test for cross-organization isolation in admin lists, details, global search, dashboard, audit, notifications, and file downloads
 - [ ] 23.13 Run manual Chrome browser smoke testing for the admin shell, resident portal, locale switching, organization switching, core CRUD flows, and permission-denied states when UI implementation is available
+- [ ] 23.14 Add E2E test for mocked boleto, Pix, and PayPal payment instruction display in admin and resident flows
+- [ ] 23.15 Add E2E test for white-label branding defaults, organization branding changes, contrast validation, and resident portal branding
 
 ## 24. Deployment and Operational Readiness
 
@@ -337,6 +356,6 @@
 - [ ] 24.5 Add health checks for API, database, storage, background worker, and localization resource loading
 - [ ] 24.6 Add backup and restore assumptions for PostgreSQL and file storage
 - [ ] 24.7 Add basic performance checks for large lists, indexed filters, dashboard queries, and global search
-- [ ] 24.8 Add security review checklist for auth, tenant isolation, resident portal policies, permissions, upload restrictions, audit, sensitive data masking, and dependency scanning
+- [ ] 24.8 Add security review checklist for auth, tenant isolation, resident portal policies, payment provider mock boundaries, permissions, white-label asset validation, upload restrictions, audit, sensitive data masking, and dependency scanning
 - [ ] 24.9 Run full local validation from clean checkout instructions and update README gaps
 - [ ] 24.10 Run final OpenSpec validation/status check before implementation starts
