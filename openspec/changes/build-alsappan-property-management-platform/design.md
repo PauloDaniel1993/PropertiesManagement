@@ -30,6 +30,9 @@ The application must use Brazilian Portuguese (`pt-BR`) by default while support
 - Deliver an authenticated web application for operational property management.
 - Support multiple organizations with strict tenant isolation from the first release.
 - Support resident/tenant login through a resident portal with self-service visibility and selected request flows.
+- Support white-label branding per organization with a complete default Alsappan design.
+- Prepare boleto, Pix, and PayPal payment provider contracts while keeping providers mocked for the first implementation.
+- Use Git Flow with PR review gates for completed features/functionality.
 - Make every menu item implementable as an independent vertical capability with clear API, UI, data, permission, audit, notification, and timeline needs.
 - Use React for the frontend and .NET 10 for the backend.
 - Use Zustand for frontend client state such as shell state, active organization, auth/session view state, user preferences, filters, and optimistic local UI state.
@@ -43,7 +46,7 @@ The application must use Brazilian Portuguese (`pt-BR`) by default while support
 
 - Native mobile apps are out of scope for the first implementation.
 - Public marketing pages are out of scope; the first screen is the authenticated product.
-- Full accounting, bank integration, boleto/Pix issuance, WhatsApp delivery, OCR, electronic signature, and AI-based document extraction are not required for the first pass unless explicitly chosen later.
+- Full accounting, real bank/payment provider integration, WhatsApp delivery, OCR, electronic signature, and AI-based document extraction are not required for the first pass unless explicitly chosen later.
 - Multi-company SaaS billing is not required in the first pass, but multi-tenant data isolation and organization membership are required.
 - Replacing OpenSpec with another planning workflow is out of scope.
 
@@ -73,7 +76,38 @@ Alternatives considered:
 - Microservices from day one: too much operational complexity for a new repository.
 - Backend-for-frontend only with server-rendered React: less natural because the desired API surface is module-heavy and likely to serve future clients.
 
-### 2. Frontend Stack
+### 2. Delivery Workflow and Git Flow
+
+Use Git Flow for delivery and require PR review for each completed feature/functionality.
+
+Branch model:
+
+- `main`: production-ready releases only.
+- `develop`: integration branch for reviewed feature work.
+- `feature/*`: feature/functionality branches created from `develop`.
+- `release/*`: release stabilization branches created from `develop`.
+- `hotfix/*`: urgent production fixes created from `main` and merged back into `main` and `develop`.
+
+PR model:
+
+- Feature PRs target `develop`.
+- Release PRs target `main` after stabilization.
+- Hotfix PRs target `main`, then the fix is reconciled into `develop`.
+- Completed feature/functionality work waits for review before merge.
+- Manual Chrome smoke testing is performed when UI implementation exists and belongs in the PR validation notes.
+
+Rationale:
+
+- The user explicitly requested Git Flow and PR-per-feature review.
+- Git Flow keeps production-ready `main` separate from ongoing integrated development.
+- Feature PRs provide a clean review unit and help parallelize work by module.
+
+Alternatives considered:
+
+- Trunk-based development: faster, but conflicts with the requested PR-per-feature review flow.
+- Long-lived module branches: harder to integrate and review incrementally.
+
+### 3. Frontend Stack
 
 Use React with TypeScript, a Vite-style SPA setup, route-level code splitting, Zustand for client state, a data fetching cache for server state, and schema-backed forms.
 
@@ -100,7 +134,31 @@ Alternatives considered:
 - Redux-first global state: unnecessary for server-state-heavy pages where query caching is a better default.
 - Context-only state: acceptable for tiny apps, but too diffuse for a multi-module authenticated shell, organization switching, resident portal state, and persistent preferences.
 
-### 3. Backend API Style
+### 4. White-Label Branding
+
+Implement white-label branding through organization-scoped brand settings and CSS/design tokens, with a complete default Alsappan design.
+
+Recommended model:
+
+- Default brand tokens ship with the application and are used when an organization has no custom branding.
+- Organization settings can override display name, logo, favicon later if needed, primary color, accent color, support URL/email, and optional login/portal copy.
+- Branding is loaded during session bootstrap after active organization is known.
+- Frontend applies branding through CSS variables and tokenized components, not ad hoc per-page styles.
+- Backend validates uploaded brand assets, allowed file types, dimensions, size, and color contrast thresholds.
+- Admin shell and resident portal share tokens while keeping role-specific navigation.
+
+Rationale:
+
+- The user wants a white-label solution with a default design.
+- Token-based branding keeps the UI consistent and prevents custom branding from breaking layout or accessibility.
+- Organization-scoped branding aligns naturally with multi-tenancy.
+
+Alternatives considered:
+
+- Fully custom per-tenant themes: too much surface area for the first implementation.
+- Hardcoded Alsappan-only branding: conflicts with the white-label requirement.
+
+### 5. Backend API Style
 
 Expose versioned REST endpoints under `/v1`, with consistent list, detail, create, update, delete/archive, status transition, document attachment, timeline, and audit patterns.
 
@@ -126,7 +184,7 @@ Alternatives considered:
 - GraphQL: attractive for complex dashboards, but adds query governance complexity before the domain is stable.
 - RPC endpoints only: fast initially, but harder to standardize across many menu modules.
 
-### 4. Database and Persistence
+### 6. Database and Persistence
 
 Use PostgreSQL with EF Core migrations and first-class organization scoping.
 
@@ -153,7 +211,7 @@ Alternatives considered:
 - SQL Server: also viable for .NET; choose it if deployment hosting or team familiarity strongly favors Microsoft SQL Server.
 - NoSQL-first: poor fit for contracts, payments, reporting, and audit consistency.
 
-### 5. Identity, Roles, and Permissions
+### 7. Identity, Roles, and Permissions
 
 Implement first-party authentication with secure password storage, JWT access tokens, refresh sessions, organization memberships, role-based authorization, and explicit permission policies.
 
@@ -179,7 +237,7 @@ Alternatives considered:
 - External identity provider from day one: defer unless enterprise SSO is required.
 - Role-only model: simpler but becomes brittle once module-specific permissions appear.
 
-### 6. Multi-Tenancy and Organization Isolation
+### 8. Multi-Tenancy and Organization Isolation
 
 Treat multi-tenancy as a first-class product requirement, not only a future-proofing field.
 
@@ -204,7 +262,7 @@ Alternatives considered:
 - Single organization first with `organization_id` reserved: rejected because it would leave permission, settings, and testing assumptions under-specified.
 - Separate database per organization: stronger isolation but more operational complexity; consider later if compliance or scale requires it.
 
-### 7. Localization and Brazilian Defaults
+### 9. Localization and Brazilian Defaults
 
 Use `pt-BR` as the default locale and fallback. Support additional locales through deterministic resource keys and backend locale negotiation.
 
@@ -228,7 +286,7 @@ Alternatives considered:
 - Hardcoded Portuguese for MVP: faster, but expensive to undo.
 - Translating database values directly: creates reporting and consistency problems.
 
-### 8. UI Information Architecture
+### 10. UI Information Architecture
 
 The authenticated admin shell is the root product frame for administrators and staff. Residents use a separate resident portal shell with a smaller permission surface.
 
@@ -288,7 +346,7 @@ The resident portal pattern:
 - Shows only the resident's linked property, contracts, payments, documents, occurrences, inspections, notifications, and profile actions.
 - Allows resident-created occurrences and document uploads only when enabled by organization settings.
 
-### 9. Domain Model Boundaries
+### 11. Domain Model Boundaries
 
 Core modules and high-level ownership:
 
@@ -306,7 +364,7 @@ Core modules and high-level ownership:
 - Audit is immutable security/compliance history derived from commands and sensitive reads.
 - Settings own configurable catalogs, locales, organization profile, tenant-specific defaults, resident portal options, notification preferences, and security settings.
 
-### 10. Domain Events, Timeline, Notifications, and Audit
+### 12. Domain Events, Timeline, Notifications, and Audit
 
 Use domain/application events as the shared backbone for cross-cutting records.
 
@@ -334,7 +392,7 @@ Rationale:
 - Avoids each module hand-writing notification/timeline logic inconsistently.
 - Keeps audit reliable even if asynchronous notification delivery fails.
 
-### 11. Document Storage
+### 13. Document Storage
 
 Use a storage abstraction with local development storage and a production provider.
 
@@ -346,7 +404,34 @@ Recommended first implementation:
 - Antivirus/malware scanning hook as a future integration point.
 - File access is authorized per linked entity and permission.
 
-### 12. Search and Filtering
+### 14. Payment Provider Contracts
+
+Prepare provider contracts for boleto, Pix, and PayPal, but use mocked providers in the first implementation.
+
+Recommended implementation:
+
+- Define a `PaymentProvider` abstraction in the backend application layer.
+- Supported provider codes for the first implementation: `mock-boleto`, `mock-pix`, and `mock-paypal`.
+- Provider outputs are stored as structured payment instruction metadata linked to charges.
+- Boleto mock returns placeholder barcode, linha digitavel, due date, amount, payer summary, and provider reference.
+- Pix mock returns placeholder QR payload, copy-and-paste code, expiration, amount, payer summary, and provider reference.
+- PayPal mock returns placeholder payment intent ID, approval URL, status, amount, payer summary, and provider reference.
+- Mock provider events use the same reconciliation path intended for future real webhooks/callbacks.
+- Frontend renders payment instructions using provider-specific components fed by a common contract.
+- Real provider credentials and external calls remain disabled until a future integration change.
+
+Rationale:
+
+- The user wants the interface contract ready for boleto, Pix, and PayPal while keeping integrations mocked.
+- Early contracts let UI, payment state transitions, resident portal visibility, and tests be designed now.
+- Mock providers reduce external dependency risk during core product buildout.
+
+Alternatives considered:
+
+- No payment provider contract in MVP: too little preparation for later online payment.
+- Real provider integration now: unnecessary scope and vendor decision pressure before the core platform exists.
+
+### 15. Search and Filtering
 
 Implement module-level list search first, then global search.
 
@@ -364,7 +449,7 @@ Rationale:
 
 - The screenshot shows both top-bar search and module search. Module search is required for initial usability; global search can build on indexed module fields.
 
-### 13. Testing Strategy
+### 16. Testing Strategy
 
 Backend:
 
@@ -383,44 +468,49 @@ Contract:
 - OpenAPI validation in CI.
 - Generated or checked API client types.
 
-### 14. Implementation Phases
+### 17. Implementation Phases
 
 1. Foundation
-   - Repository structure, solution, React app, formatting, linting, CI, Docker Compose for database, environment config.
+   - Repository structure, Git Flow branches, solution, React app, formatting, linting, CI, Docker Compose for database, environment config.
 2. Platform Shell
-   - Auth shell, admin sidebar/topbar, resident portal shell, theme, locale, route guards, common table/form/status components, Zustand stores.
+   - Auth shell, admin sidebar/topbar, resident portal shell, white-label theme, default design, locale, route guards, common table/form/status components, Zustand stores.
 3. Backend Core
    - Identity, multi-tenancy, authorization, persistence, migrations, common API conventions, audit, outbox, timeline base.
 4. Core Domain Vertical Slices
    - Properties, residents, contracts, documents.
 5. Financial/Operational Modules
-   - Payments, utility accounts, occurrences, inspections.
+   - Payments, mocked boleto/Pix/PayPal provider contracts, utility accounts, occurrences, inspections.
 6. Associated Entity Modules
    - Pets, vehicles.
 7. Administrative Modules
    - Administrators, settings, notifications, audit, dashboard, global search.
 8. Hardening
-   - Accessibility, localization completeness, tenant isolation checks, resident portal checks, performance, security review, backup/restore assumptions, e2e coverage.
+   - PR review process, accessibility, localization completeness, tenant isolation checks, resident portal checks, payment mock checks, white-label contrast checks, performance, security review, backup/restore assumptions, e2e coverage.
 
-### 15. Dependency Tree
+### 18. Dependency Tree
 
 ```mermaid
 graph TD
   A["Repository foundation"] --> B["Backend platform core"]
   A --> C["Frontend platform shell"]
+  A --> AA["Git Flow and PR review process"]
   B --> D["Identity and permissions"]
   B --> E["Persistence and migrations"]
   B --> F["Audit, outbox, timeline base"]
   C --> G["i18n, Zustand, theme, layout, route guards"]
+  C --> AB["Default design and white-label branding"]
   D --> Y["Multi-tenancy and active organization"]
   E --> Y
   D --> H["Administrators"]
   D --> I["Settings"]
+  Y --> AB
+  I --> AB
   Y --> J["Properties"]
   Y --> K["Residents"]
   J --> L["Contracts"]
   K --> L
   L --> M["Payments"]
+  M --> AC["Mock boleto, Pix, and PayPal contracts"]
   J --> N["Utility accounts"]
   L --> N
   J --> O["Documents"]
@@ -441,6 +531,7 @@ graph TD
   K --> Z
   L --> Z
   M --> Z
+  AC --> Z
   O --> Z
   R --> Z
   S --> Z
@@ -452,6 +543,7 @@ graph TD
   R --> W
   S --> W
   G --> X["All module pages"]
+  AB --> X
   D --> X
   Y --> X
 ```
@@ -459,10 +551,11 @@ graph TD
 Parallelization guidance:
 
 - Foundation is the first shared blocker.
+- Git Flow setup can be done immediately after foundation and must guide every implementation branch.
 - Backend platform core and frontend platform shell can proceed in parallel once repository structure exists.
 - After identity, persistence, active organization context, and common API conventions exist, properties and residents can start in parallel.
 - Contracts depend on properties and residents.
-- Payments depend on contracts.
+- Payments depend on contracts; mocked boleto, Pix, and PayPal contracts depend on the payment module contract but can be built before real provider selection.
 - Utility accounts can start after properties, with contract linkage added later.
 - Documents can start after storage and authorization, then add links to entities incrementally.
 - Pets and vehicles depend on residents and properties but not contracts.
@@ -470,7 +563,8 @@ Parallelization guidance:
 - Inspections depend on properties and optionally contracts.
 - Dashboard depends on enough module metrics to be meaningful.
 - Timeline, notifications, and audit UI depend on event/audit foundation but can integrate module events incrementally.
-- Resident portal depends on identity, multi-tenancy, residents, and enough linked modules to show useful self-service data; it can begin with profile/property/contract visibility and expand into payments, documents, occurrences, inspections, and notifications.
+- White-label branding depends on frontend shell, settings, and active organization context; it can be implemented before most vertical modules.
+- Resident portal depends on identity, multi-tenancy, residents, and enough linked modules to show useful self-service data; it can begin with profile/property/contract visibility and expand into payments, mocked payment instructions, documents, occurrences, inspections, and notifications.
 
 ## Risks / Trade-offs
 
@@ -478,7 +572,8 @@ Parallelization guidance:
 - [Risk] Localization is postponed and hardcoded strings spread through the UI. -> Mitigation: require locale keys from the first shell component and block hardcoded production copy in review.
 - [Risk] Domain terms vary between Portuguese and English in code. -> Mitigation: use English code identifiers and Portuguese UI strings; maintain a domain glossary.
 - [Risk] Audit and timeline diverge. -> Mitigation: define event/audit interfaces early and require all mutating use cases to emit structured records.
-- [Risk] Payments scope expands into full financial automation. -> Mitigation: first implement receivables/status/reconciliation records; defer bank integrations and boleto/Pix issuance unless prioritized.
+- [Risk] Payments scope expands into full financial automation. -> Mitigation: implement provider interfaces and deterministic mocked boleto, Pix, and PayPal behavior first; defer real provider credentials, external calls, and settlement automation.
+- [Risk] White-label customization breaks usability or accessibility. -> Mitigation: constrain customization through validated tokens, contrast checks, asset limits, and a complete default design.
 - [Risk] Document uploads create security exposure. -> Mitigation: enforce file type/size restrictions, authorization checks, private storage, signed URLs, and a malware scanning extension point.
 - [Risk] Multi-tenant isolation leaks data between organizations. -> Mitigation: enforce active organization context in backend policies, query filters, indexes, tests, audit records, background jobs, and storage paths.
 - [Risk] Resident portal permissions become too broad because residents share identity infrastructure with administrators. -> Mitigation: use resident-specific policies, resident record links, separate portal routes, and dedicated resident portal tests.
@@ -524,125 +619,128 @@ The user resolved the first product branch: the system is multi-tenant, resident
 5. Should menu names remain exactly as shown in the screenshot?
    Recommended: yes for `pt-BR`, using accents in UI labels: `Imóveis`, `Veículos`, `Ocorrências`, `Notificações`, `Configurações`.
 
+6. Should the product be white label?
+   Decision: yes; each organization can customize branding while the application ships with a complete default design.
+
 ### Localization
 
-6. Which languages are required at launch besides Brazilian Portuguese?
+7. Which languages are required at launch besides Brazilian Portuguese?
    Decision: ship `pt-BR` and `en-US`; prepare the resource structure for more languages.
 
-7. Should URLs be localized?
+8. Should URLs be localized?
    Decision: no; keep stable ASCII route slugs and localize labels/content.
 
-8. Should backend validation messages be localized?
+9. Should backend validation messages be localized?
    Decision: yes, based on user preference with `Accept-Language` fallback.
 
-9. Should currency support only BRL?
+10. Should currency support only BRL?
    Decision: default to BRL and store currency code per monetary field for future expansion.
 
 ### Security and Access
 
-10. Should authentication be username/password, external provider, or both?
+11. Should authentication be username/password, external provider, or both?
     Recommended: start with email/password plus refresh tokens; leave external provider integration for later.
 
-11. Should MFA be required?
+12. Should MFA be required?
     Recommended: optional in settings for administrators; not required for MVP.
 
-12. Should permissions be role-only or granular?
+13. Should permissions be role-only or granular?
     Recommended: roles backed by granular permissions.
 
-13. Should audit logs be exportable?
+14. Should audit logs be exportable?
     Recommended: UI filters first; CSV export can be added after access policies are final.
 
 ### Property Model
 
-14. What property types are needed?
+15. What property types are needed?
     Recommended: apartment, house, commercial room, land, and other.
 
-15. Should a property support multiple units?
+16. Should a property support multiple units?
     Recommended: model a property as the rentable unit first; add building/complex grouping later.
 
-16. How should status work?
+17. How should status work?
     Recommended: `Disponivel`, `Reservado`, `Alugado`, `Manutencao`, `Inativo`, `Arquivado`.
 
-17. Should garage spaces be structured?
+18. Should garage spaces be structured?
     Recommended: yes; store count and optional identifiers instead of free text only.
 
 ### Contracts and Residents
 
-18. Can one contract have multiple residents?
+19. Can one contract have multiple residents?
     Recommended: yes, with one primary responsible resident.
 
-19. Can one resident have multiple active contracts?
+20. Can one resident have multiple active contracts?
     Recommended: allow it at the data level but warn in the UI.
 
-20. What contract statuses are required?
+21. What contract statuses are required?
     Recommended: draft, active, ending soon, ended, terminated, cancelled, archived.
 
-21. Should rent adjustments/indexers be modeled?
+22. Should rent adjustments/indexers be modeled?
     Recommended: store adjustment date and indexer text/code; automate calculations later.
 
 ### Payments and Utilities
 
-22. Are payments only records, or must the system issue invoices/boletos/Pix?
-    Recommended: first release records charges, due dates, settlement, receipts, penalties, and discounts; integrations later.
+23. Are payments only records, or must the system prepare boleto, Pix, and PayPal?
+    Decision: prepare boleto, Pix, and PayPal provider interface contracts with mocked providers; real integrations remain out of scope for the first implementation.
 
-23. Should partial payments be supported?
+24. Should partial payments be supported?
     Recommended: yes, through payment transactions linked to a charge.
 
-24. Which utility account types are required?
+25. Which utility account types are required?
     Recommended: electricity, water, gas, internet, condominium fee, IPTU, insurance, other.
 
-25. Who is responsible for utility accounts?
+26. Who is responsible for utility accounts?
     Recommended: property, resident/contract, or owner/organization.
 
 ### Documents
 
-26. Which file types are allowed?
+27. Which file types are allowed?
     Recommended: PDF, images, DOCX, XLSX, and plain text; restrict executable/archive uploads initially.
 
-27. Should documents support versions?
+28. Should documents support versions?
     Recommended: yes, metadata-level versioning from day one.
 
-28. Should documents be linked to multiple entities?
+29. Should documents be linked to multiple entities?
     Recommended: yes; use a generic document link table.
 
 ### Operations
 
-29. Are occurrences maintenance tickets, complaints, incidents, or all of them?
+30. Are occurrences maintenance tickets, complaints, incidents, or all of them?
     Recommended: all of them, differentiated by type and priority.
 
-30. Should occurrences have comments?
+31. Should occurrences have comments?
     Recommended: yes, with attachments and status history.
 
-31. Should inspections generate a PDF report?
+32. Should inspections generate a PDF report?
     Recommended: yes eventually; first pass stores structured checklist data and attachments, then report generation.
 
-32. Should inspections support signatures?
+33. Should inspections support signatures?
     Recommended: model signature slots, but allow completion without digital signature integration at first.
 
 ### Notifications, Timeline, and Dashboard
 
-33. Which notification channels are required?
+34. Which notification channels are required?
     Recommended: in-app first; email later; WhatsApp only after provider selection.
 
-34. Should users configure notification preferences?
+35. Should users configure notification preferences?
     Recommended: yes, for categories and channels.
 
-35. What dashboard metrics matter most?
+36. What dashboard metrics matter most?
     Recommended: occupancy, overdue payments, upcoming contract expirations, open occurrences, pending inspections, recent activity.
 
-36. Should timeline include every change or only meaningful events?
+37. Should timeline include every change or only meaningful events?
     Recommended: only meaningful business events; audit holds exhaustive technical changes.
 
 ### Technical and Delivery
 
-37. Which database should be used?
+38. Which database should be used?
     Recommended: PostgreSQL unless hosting constraints require SQL Server.
 
-38. Should deployment target Docker, cloud app service, VPS, or something else?
+39. Should deployment target Docker, cloud app service, VPS, or something else?
     Recommended: container-ready from day one; final target can be chosen later.
 
-39. Should tests be required before implementation merges?
+40. Should tests be required before implementation merges?
     Recommended: yes; backend unit/integration tests and frontend component/e2e smoke tests.
 
-40. Should the first implementation build every module fully or deliver vertical MVPs?
+41. Should the first implementation build every module fully or deliver vertical MVPs?
     Recommended: build foundation plus complete properties/residents/contracts/documents first, then expand remaining modules in parallel.
