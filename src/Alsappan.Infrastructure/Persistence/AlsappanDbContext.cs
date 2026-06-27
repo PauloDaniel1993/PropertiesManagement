@@ -6,6 +6,7 @@ using Alsappan.Domain.Documents;
 using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
+using Alsappan.Domain.Payments;
 using Alsappan.Domain.Properties;
 using Alsappan.Domain.Residents;
 using Alsappan.Infrastructure.Audit;
@@ -113,6 +114,12 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<DocumentLink> DocumentLinks => Set<DocumentLink>();
 
   public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
+
+  public DbSet<PaymentCharge> PaymentCharges => Set<PaymentCharge>();
+
+  public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
+
+  public DbSet<PaymentReceiptLink> PaymentReceiptLinks => Set<PaymentReceiptLink>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 
