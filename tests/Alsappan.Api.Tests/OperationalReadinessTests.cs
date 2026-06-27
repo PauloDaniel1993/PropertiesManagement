@@ -49,17 +49,46 @@ public sealed class OperationalReadinessTests : IClassFixture<WebApplicationFact
 
     Assert.True(response.StatusCode is HttpStatusCode.OK or HttpStatusCode.ServiceUnavailable);
 
-    using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+    var responseBody = await response.Content.ReadAsStringAsync();
+    Assert.DoesNotContain("Host=localhost", responseBody, StringComparison.OrdinalIgnoreCase);
+    Assert.DoesNotContain("Password=alsappan", responseBody, StringComparison.OrdinalIgnoreCase);
+    Assert.DoesNotContain("Port=1", responseBody, StringComparison.OrdinalIgnoreCase);
+    Assert.DoesNotContain("alsappan-health", responseBody, StringComparison.OrdinalIgnoreCase);
+
+    using var payload = JsonDocument.Parse(responseBody);
     var checks = payload.RootElement.GetProperty("checks");
 
     Assert.True(checks.TryGetProperty("api", out _));
-    Assert.True(checks.TryGetProperty("database", out _));
+    Assert.True(checks.TryGetProperty("database", out var database));
     Assert.True(checks.TryGetProperty("storage", out var storage));
     Assert.True(checks.TryGetProperty("background-worker", out var backgroundWorker));
     Assert.True(checks.TryGetProperty("localization", out var localization));
+    if (database.TryGetProperty("error", out var databaseError) &&
+      databaseError.ValueKind is not JsonValueKind.Null)
+    {
+      Assert.Equal("Component check failed.", databaseError.GetString());
+    }
+
     Assert.Equal("Healthy", storage.GetProperty("status").GetString());
     Assert.Equal("Healthy", backgroundWorker.GetProperty("status").GetString());
     Assert.Equal("Healthy", localization.GetProperty("status").GetString());
+  }
+
+  [Fact]
+  public void CorsAllowedOriginsAcceptsCommaSeparatedScalarOverride()
+  {
+    var configuration = new ConfigurationBuilder()
+      .AddInMemoryCollection(new Dictionary<string, string?>
+      {
+        ["Alsappan:Cors:AllowedOrigins"] = "https://app.example.com, https://admin.example.com",
+        ["Alsappan:Cors:AllowedOrigins:0"] = "http://localhost:5173",
+        ["Alsappan:Cors:AllowedOrigins:1"] = "https://localhost:5173"
+      })
+      .Build();
+
+    var origins = ApiPlatformServiceCollectionExtensions.GetAllowedOrigins(configuration);
+
+    Assert.Equal(["https://app.example.com", "https://admin.example.com"], origins);
   }
 
   [Fact]

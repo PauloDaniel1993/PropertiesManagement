@@ -14,24 +14,24 @@ This runbook captures the first production-ready deployment slice for Alsappan. 
 
 All production values must be supplied through environment variables or a secret store. Do not bake secrets into images.
 
-| Area | Variable | Purpose |
-| --- | --- | --- |
-| API | `ASPNETCORE_ENVIRONMENT=Production` | Enables production runtime behavior. |
-| Database | `ALSAPPAN_DATABASE__CONNECTIONSTRING` | PostgreSQL connection string used by EF Core and readiness checks. |
-| Database | `ALSAPPAN_DATABASE__SCHEMA` | Database schema, default `app`. |
-| Auth | `ALSAPPAN_AUTH__ISSUER` | JWT issuer expected by the API. |
-| Auth | `ALSAPPAN_AUTH__AUDIENCE` | JWT audience used by the web client. |
-| Auth | `ALSAPPAN_AUTH__SIGNINGKEY` | Symmetric signing key. Use at least 32 high-entropy characters and rotate through secret management. |
-| Auth | `ALSAPPAN_AUTH__ACCESSTOKENMINUTES` | Access token lifetime, default `15`. |
-| Auth | `ALSAPPAN_AUTH__REFRESHTOKENDAYS` | Refresh session lifetime, default `30`. |
-| Auth | `ALSAPPAN_AUTH__REFRESHCOOKIENAME` | Refresh cookie name, default `__Host-alsappan-refresh`. |
-| Multi-tenancy | `X-Alsappan-Organization-Id` request header | Active organization selector used by authenticated API calls. |
-| Resident portal | Auth/session variables above plus organization resident settings | Resident sessions use the same API host and tenant context but resident-specific policies. |
-| Storage | `ALSAPPAN_STORAGE__LOCALPATH` | Mounted private storage path for document binaries. |
-| Localization | `ALSAPPAN_LOCALIZATION__DEFAULTCULTURE` | Default culture, expected `pt-BR`. |
-| Localization | `ALSAPPAN_LOCALIZATION__SUPPORTEDCULTURES` | Comma-separated supported cultures, currently `pt-BR,en-US`. |
-| CORS | `ALSAPPAN_CORS__ALLOWEDORIGINS` | Exact allowed web origins. Never use `*` with credentials. |
-| Web | `VITE_API_BASE_URL` | API base URL embedded at web build time. |
+| Area            | Variable                                                         | Purpose                                                                                                                                                     |
+| --------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API             | `ASPNETCORE_ENVIRONMENT=Production`                              | Enables production runtime behavior.                                                                                                                        |
+| Database        | `ALSAPPAN_DATABASE__CONNECTIONSTRING`                            | PostgreSQL connection string used by EF Core and readiness checks.                                                                                          |
+| Database        | `ALSAPPAN_DATABASE__SCHEMA`                                      | Database schema, default `app`.                                                                                                                             |
+| Auth            | `ALSAPPAN_AUTH__ISSUER`                                          | JWT issuer expected by the API.                                                                                                                             |
+| Auth            | `ALSAPPAN_AUTH__AUDIENCE`                                        | JWT audience used by the web client.                                                                                                                        |
+| Auth            | `ALSAPPAN_AUTH__SIGNINGKEY`                                      | Symmetric signing key. Use at least 32 high-entropy characters and rotate through secret management.                                                        |
+| Auth            | `ALSAPPAN_AUTH__ACCESSTOKENMINUTES`                              | Access token lifetime, default `15`.                                                                                                                        |
+| Auth            | `ALSAPPAN_AUTH__REFRESHTOKENDAYS`                                | Refresh session lifetime, default `30`.                                                                                                                     |
+| Auth            | `ALSAPPAN_AUTH__REFRESHCOOKIENAME`                               | Refresh cookie name, default `__Host-alsappan-refresh`.                                                                                                     |
+| Multi-tenancy   | `X-Alsappan-Organization-Id` request header                      | Active organization selector used by authenticated API calls.                                                                                               |
+| Resident portal | Auth/session variables above plus organization resident settings | Resident sessions use the same API host and tenant context but resident-specific policies.                                                                  |
+| Storage         | `ALSAPPAN_STORAGE__LOCALPATH`                                    | Mounted private storage path for document binaries.                                                                                                         |
+| Localization    | `ALSAPPAN_LOCALIZATION__DEFAULTCULTURE`                          | Default culture, expected `pt-BR`.                                                                                                                          |
+| Localization    | `ALSAPPAN_LOCALIZATION__SUPPORTEDCULTURES`                       | Comma-separated supported cultures, currently `pt-BR,en-US`.                                                                                                |
+| CORS            | `ALSAPPAN_CORS__ALLOWEDORIGINS`                                  | Comma-separated exact allowed web origins. Indexed variables such as `ALSAPPAN_CORS__ALLOWEDORIGINS__0` are also supported. Never use `*` with credentials. |
+| Web             | `VITE_API_BASE_URL`                                              | API base URL embedded at web build time.                                                                                                                    |
 
 ## Docker Artifacts
 
@@ -87,7 +87,7 @@ The API exposes two health endpoints:
 - `GET /health`: liveness check for the API process.
 - `GET /health/ready`: readiness check for API, PostgreSQL, file storage, background worker wiring, and localization resources.
 
-Readiness JSON includes each check name, status, duration, description, tags, and an error message when a component is unhealthy. Use `/health` for container liveness and `/health/ready` for load-balancer readiness.
+Readiness JSON includes each check name, status, duration, description, tags, and a sanitized error marker when a component throws during health evaluation. It must not expose connection strings, hostnames, filesystem paths, or raw exception messages. Use `/health` for container liveness and `/health/ready` for load-balancer readiness.
 
 The web container exposes `GET /health` through nginx and returns `ok`.
 

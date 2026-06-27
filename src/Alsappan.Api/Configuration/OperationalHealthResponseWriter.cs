@@ -27,7 +27,7 @@ internal static class OperationalHealthResponseWriter
             status = entry.Value.Status.ToString(),
             description = entry.Value.Description,
             durationMilliseconds = entry.Value.Duration.TotalMilliseconds,
-            error = entry.Value.Exception?.Message,
+            error = entry.Value.Exception is null ? null : "Component check failed.",
             tags = entry.Value.Tags.OrderBy(tag => tag, StringComparer.Ordinal).ToArray()
           },
           StringComparer.Ordinal)
