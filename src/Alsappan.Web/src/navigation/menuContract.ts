@@ -104,7 +104,7 @@ const adminMenuItemDefinitions = [
     iconId: 'receipt-text',
     id: 'utilityAccounts',
     path: '/contas-de-consumo',
-    requiredPermission: 'utilityAccounts.read',
+    requiredPermission: 'utility-accounts.read',
   },
   {
     iconId: 'folder-open',
