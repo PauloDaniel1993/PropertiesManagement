@@ -49,8 +49,8 @@ public sealed class ProblemDetailsContractTests
       });
 
     Assert.Equal("Requisi\u00e7\u00e3o inv\u00e1lida", problem.Title);
-    Assert.Equal("Campo obrigatorio.", problem.Errors["name"][0]);
-    Assert.Equal("Informe um imovel valido.", problem.Errors["propertyId"][0]);
+    Assert.Equal("Campo obrigatório.", problem.Errors["name"][0]);
+    Assert.Equal("Informe um imóvel válido.", problem.Errors["propertyId"][0]);
   }
 
   [Fact]

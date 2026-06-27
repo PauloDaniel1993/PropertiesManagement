@@ -28,7 +28,7 @@ public sealed class ValidationContractTests
   {
     var messages = new LocalizedValidationMessages();
 
-    Assert.Equal("Campo obrigatorio.", messages.Resolve(ValidationMessageKeys.Required, null));
+    Assert.Equal("Campo obrigatório.", messages.Resolve(ValidationMessageKeys.Required, null));
     Assert.Equal("Required field.", messages.Resolve(ValidationMessageKeys.Required, "en-US"));
   }
 
@@ -78,6 +78,7 @@ public sealed class ValidationContractTests
     yield return new object[] { "validation.documentCategory" };
     yield return new object[] { "validation.documentLink" };
     yield return new object[] { "validation.documentLinkAccess" };
+    yield return new object[] { "validation.documentLinks" };
     yield return new object[] { "validation.dueDay" };
     yield return new object[] { "validation.duplicate" };
     yield return new object[] { "validation.email" };
@@ -99,6 +100,7 @@ public sealed class ValidationContractTests
     yield return new object[] { "validation.minValue" };
     yield return new object[] { "validation.money" };
     yield return new object[] { "validation.moneyPositive" };
+    yield return new object[] { "validation.multipart" };
     yield return new object[] { "validation.occurrenceLink" };
     yield return new object[] { "validation.occurrencePriority" };
     yield return new object[] { "validation.occurrenceStatus" };
