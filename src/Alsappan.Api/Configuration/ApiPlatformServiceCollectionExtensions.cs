@@ -1,8 +1,10 @@
 using System.Globalization;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Alsappan.Api.Errors;
 using Alsappan.Application.Common.Auth;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Application.Common.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,6 +17,8 @@ namespace Alsappan.Api.Configuration;
 internal static class ApiPlatformServiceCollectionExtensions
 {
   public const string CorsPolicyName = "AlsappanWeb";
+
+  private static readonly JsonSerializerOptions ClaimJsonOptions = new(JsonSerializerDefaults.Web);
 
   public static IServiceCollection AddApiPlatform(
     this IServiceCollection services,
@@ -93,6 +97,11 @@ internal static class ApiPlatformServiceCollectionExtensions
     services.AddAuthorization(options =>
     {
       options.AddPolicy("AuthenticatedUser", policy => policy.RequireAuthenticatedUser());
+      options.AddPolicy(
+        "AdminUser",
+        policy => policy
+          .RequireAuthenticatedUser()
+          .RequireAssertion(context => !HasActiveResidentMembership(context.User)));
     });
 
     services.AddHealthChecks()
@@ -100,6 +109,38 @@ internal static class ApiPlatformServiceCollectionExtensions
 
     return services;
   }
+
+  private static bool HasActiveResidentMembership(ClaimsPrincipal principal)
+  {
+    foreach (var claim in principal.FindAll(AuthClaimTypes.Membership))
+    {
+      OrganizationMembershipClaimDto? membership;
+
+      try
+      {
+        membership = JsonSerializer.Deserialize<OrganizationMembershipClaimDto>(claim.Value, ClaimJsonOptions);
+      }
+      catch (JsonException)
+      {
+        continue;
+      }
+
+      if (membership?.IsActive == true && membership.RoleCodes.Any(IsResidentRole))
+      {
+        return true;
+      }
+    }
+
+    return principal.FindAll(AuthClaimTypes.OrganizationRole)
+      .Concat(principal.FindAll(ClaimTypes.Role))
+      .Concat(principal.FindAll("role"))
+      .Select(claim => claim.Value)
+      .Any(IsResidentRole);
+  }
+
+  private static bool IsResidentRole(string roleCode) =>
+    !string.IsNullOrWhiteSpace(roleCode) &&
+    string.Equals(RoleCodes.Normalize(roleCode), RoleCodes.ResidentUser, StringComparison.OrdinalIgnoreCase);
 
   private static Task WriteProblemDetailsAsync(HttpContext httpContext, string code, int statusCode)
   {

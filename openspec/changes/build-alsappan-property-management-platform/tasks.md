@@ -209,17 +209,17 @@
 
 ## 14. Ocorrencias Module
 
-- [ ] 14.1 Model occurrences with type, priority, status, description, linked entities, assigned user, due date, resolution data, and lifecycle metadata
-- [ ] 14.2 Model occurrence comments, attachments, status history, priority history, and assignment history
-- [ ] 14.3 Add occurrence type, priority, and status catalogs with localized labels
-- [ ] 14.4 Add occurrence migrations, indexes for status, priority, assignee, property, resident, date, and organization scoping
-- [ ] 14.5 Implement occurrence create, list, detail, update, assign, change priority, change status, resolve, cancel, archive, and restore use cases
-- [ ] 14.6 Implement occurrence comment and attachment use cases with document integration
-- [ ] 14.7 Implement occurrence API endpoints with filters for type, priority, status, assignee, property, resident, date range, and unresolved state
-- [ ] 14.8 Emit occurrence audit, timeline, notification, and dashboard projection events
-- [ ] 14.9 Build Ocorrencias list page with priority/status filters, assignee filters, unresolved shortcuts, and row actions
-- [ ] 14.10 Build occurrence create/edit/detail workflow with comments, attachments, assignments, status changes, and resolution notes
-- [ ] 14.11 Add tests for occurrence workflow, comments, attachments, assignment notifications, permissions, localization, and dashboard impact
+- [x] 14.1 Model occurrences with type, priority, status, description, linked entities, assigned user, due date, resolution data, and lifecycle metadata
+- [x] 14.2 Model occurrence comments, attachments, status history, priority history, and assignment history
+- [x] 14.3 Add occurrence type, priority, and status catalogs with localized labels
+- [x] 14.4 Add occurrence migrations, indexes for status, priority, assignee, property, resident, date, and organization scoping
+- [x] 14.5 Implement occurrence create, list, detail, update, assign, change priority, change status, resolve, cancel, archive, and restore use cases
+- [x] 14.6 Implement occurrence comment and attachment use cases with document integration
+- [x] 14.7 Implement occurrence API endpoints with filters for type, priority, status, assignee, property, resident, date range, and unresolved state
+- [x] 14.8 Emit occurrence audit, timeline, notification, and dashboard projection events
+- [x] 14.9 Build Ocorrencias list page with priority/status filters, assignee filters, unresolved shortcuts, and row actions
+- [x] 14.10 Build occurrence create/edit/detail workflow with comments, attachments, assignments, status changes, and resolution notes
+- [x] 14.11 Add tests for occurrence workflow, comments, attachments, assignment notifications, permissions, localization, and dashboard impact
 
 ## 15. Vistorias Module
 
