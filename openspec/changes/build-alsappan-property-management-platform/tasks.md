@@ -325,7 +325,7 @@
 
 ## 23. End-to-End Testing and Quality Gates
 
-- [ ] 23.1 Add demo seed data covering properties, residents, contracts, payments, utilities, documents, pets, vehicles, occurrences, inspections, notifications, timeline, and audit
+- [x] 23.1 Add demo seed data covering properties, residents, contracts, payments, utilities, documents, pets, vehicles, occurrences, inspections, notifications, timeline, and audit
 - [ ] 23.2 Add E2E test for login, active organization switching, shell navigation, locale switch, and logout
 - [ ] 23.3 Add E2E test for creating a property, resident, contract, and linked document
 - [ ] 23.4 Add E2E test for creating and settling a payment with receipt document
