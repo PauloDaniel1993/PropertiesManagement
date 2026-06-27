@@ -178,10 +178,10 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
 function buildUtilityAccountSession(options: { canReadDocuments?: boolean } = {}): AuthSessionDto {
   const canReadDocuments = options.canReadDocuments ?? true
   const organizationPermissions = [
-    'utilityAccounts.read',
-    'utilityAccounts.write',
-    'utilityAccounts.manage',
-    'utilityAccounts.archive',
+    'utility-accounts.read',
+    'utility-accounts.write',
+    'utility-accounts.manage',
+    'utility-accounts.archive',
     ...(canReadDocuments ? ['documents.read'] : []),
   ]
 

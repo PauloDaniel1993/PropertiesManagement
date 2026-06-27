@@ -71,6 +71,9 @@ export function AdminShell() {
     ? (notificationUnreadCountQuery.data?.count ?? 0)
     : 0
   const notificationPreviewItems = notificationPreviewQuery.data?.items ?? []
+  const visibleMenuItems = adminMenuItems.filter((item) =>
+    hasAnyPermission([item.requiredPermission], user),
+  )
 
   function handleLocaleToggle() {
     setLocale(nextLocale)
@@ -113,7 +116,7 @@ export function AdminShell() {
         </div>
 
         <nav aria-label={t('shell.navigation.admin')} className="admin-sidebar__nav">
-          {adminMenuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const Icon = menuIconComponents[item.iconId]
 
             return (

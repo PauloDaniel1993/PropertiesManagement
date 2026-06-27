@@ -266,9 +266,9 @@ export function UtilityAccountsListPage() {
   const storedFilters = useFiltersStore((state) => state.filtersByScope[utilityAccountFilterScope])
   const setStoredFilters = useFiltersStore((state) => state.setFilters)
   const copy = getUtilityAccountCopy(locale)
-  const canWriteUtilities = hasAnyPermission(['utilityAccounts.write'], authUser)
-  const canManageUtilities = hasAnyPermission(['utilityAccounts.manage'], authUser)
-  const canArchiveUtilities = hasAnyPermission(['utilityAccounts.archive'], authUser)
+  const canWriteUtilities = hasAnyPermission(['utility-accounts.write'], authUser)
+  const canManageUtilities = hasAnyPermission(['utility-accounts.manage'], authUser)
+  const canArchiveUtilities = hasAnyPermission(['utility-accounts.archive'], authUser)
   const canReadDocuments = hasAnyPermission(['documents.read'], authUser)
   const filters = useMemo(() => normalizeUtilityAccountFilters(storedFilters), [storedFilters])
   const apiFilters = useMemo(

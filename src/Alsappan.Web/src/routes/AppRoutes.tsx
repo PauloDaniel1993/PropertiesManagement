@@ -3,7 +3,12 @@ import { defaultAuthenticatedRoute } from '../navigation/menuContract'
 import { IdentityLoginPage, AuthSessionBootstrap } from '../features/identity'
 import { ModulePlaceholderPage } from '../pages/ModulePlaceholderPage'
 import { modulePageRoutes } from '../pages/modulePageRoutes'
-import { RequireActiveOrganization, RequireAdminRoute, RequireAuthenticated } from './guards'
+import {
+  RequireActiveOrganization,
+  RequireAdminRoute,
+  RequireAuthenticated,
+  RequirePermission,
+} from './guards'
 import { AdminShell } from '../shell/AdminShell'
 import { getModulePageComponent } from './modulePageRouteRegistry'
 
@@ -31,7 +36,11 @@ export function AppRoutes() {
 
             return (
               <Route
-                element={ModulePage ? <ModulePage /> : <ModulePlaceholderPage item={route.item} />}
+                element={
+                  <RequirePermission permissions={[route.item.requiredPermission]}>
+                    {ModulePage ? <ModulePage /> : <ModulePlaceholderPage item={route.item} />}
+                  </RequirePermission>
+                }
                 key={route.item.id}
                 path={route.pathSegment}
               />

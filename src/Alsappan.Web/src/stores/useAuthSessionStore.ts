@@ -48,12 +48,12 @@ export const demoAuthSessionUser: AuthSessionUser = {
       id: 'demo-alsappan',
       locale: 'pt-BR',
       name: 'Alsappan',
-      permissionCodes: ['administrators.read', 'administrators.write'],
+      permissionCodes: ['*'],
       roleCodes: ['Administrador'],
       slug: 'alsappan',
     },
   ],
-  permissions: ['administrators.read', 'administrators.write'],
+  permissions: ['*'],
   roles: ['administrator'],
 }
 
