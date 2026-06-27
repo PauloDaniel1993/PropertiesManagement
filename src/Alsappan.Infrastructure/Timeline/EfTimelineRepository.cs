@@ -229,11 +229,11 @@ public sealed class EfTimelineRepository : ITimelineRepository
       return query;
     }
 
-    var relatedJsonFilter = BuildRelatedJsonFilter(entityType, entityId) ??
-      throw new InvalidOperationException("Entity timeline prefilter requires an entity type and id.");
+    var relatedJsonFilter = BuildRelatedJsonFilter(entityType) ??
+      throw new InvalidOperationException("Entity timeline prefilter requires an entity type.");
 
     return query.Where(entry =>
-      (entry.SubjectEntityType == entityType && entry.SubjectEntityId == entityId) ||
+      (entry.SubjectEntityType == entityType && EF.Functions.ILike(entry.SubjectEntityId, entityId)) ||
       EF.Functions.JsonContains(entry.RelatedEntitiesJson, relatedJsonFilter));
   }
 
@@ -247,7 +247,7 @@ public sealed class EfTimelineRepository : ITimelineRepository
       return query;
     }
 
-    var relatedJsonFilter = BuildRelatedJsonFilter(relatedEntityType, relatedEntityId);
+    var relatedJsonFilter = BuildRelatedJsonFilter(relatedEntityType);
 
     return relatedJsonFilter is null
       ? query
@@ -314,18 +314,13 @@ public sealed class EfTimelineRepository : ITimelineRepository
   private bool SupportsPostgresJsonContains() =>
     dbContext.Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true;
 
-  private static string? BuildRelatedJsonFilter(string? entityType, string? entityId)
+  private static string? BuildRelatedJsonFilter(string? entityType)
   {
     var filter = new Dictionary<string, string>(StringComparer.Ordinal);
 
     if (!string.IsNullOrWhiteSpace(entityType))
     {
       filter["entityType"] = TimelineCatalog.NormalizeEntityType(entityType);
-    }
-
-    if (!string.IsNullOrWhiteSpace(entityId))
-    {
-      filter["entityId"] = entityId.Trim();
     }
 
     return filter.Count == 0

@@ -84,7 +84,7 @@ public sealed class EfTimelineRepositoryTests
 
     var page = await repository.ListEntityAsync(
       "property",
-      propertyId,
+      propertyId.ToUpperInvariant(),
       new TimelineEntityListRequestDto(),
       organizationId,
       new HashSet<string>(["payment", "property"], StringComparer.OrdinalIgnoreCase));
