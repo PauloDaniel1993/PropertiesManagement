@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { defaultAuthenticatedRoute } from '../navigation/menuContract'
 import { IdentityLoginPage, AuthSessionBootstrap } from '../features/identity'
 import { AdministratorsPage } from '../pages/AdministratorsPage'
+import { PropertiesPage } from '../pages/PropertiesPage'
 import { ModulePlaceholderPage } from '../pages/ModulePlaceholderPage'
 import { modulePageRoutes } from '../pages/modulePageRoutes'
 import { RequireActiveOrganization, RequireAdminRoute, RequireAuthenticated } from './guards'
@@ -31,6 +32,8 @@ export function AppRoutes() {
               element={
                 route.item.id === 'administrators' ? (
                   <AdministratorsPage />
+                ) : route.item.id === 'properties' ? (
+                  <PropertiesPage />
                 ) : (
                   <ModulePlaceholderPage item={route.item} />
                 )

@@ -86,16 +86,16 @@
 
 ## 6. Imoveis Module
 
-- [ ] 6.1 Model properties with name, description, address, status, suggested rent, currency, garage data, notes, and lifecycle metadata
-- [ ] 6.2 Add property statuses and property types to seed catalogs with localized labels
-- [ ] 6.3 Add property migrations, indexes for search/filter fields, and organization scoping
-- [ ] 6.4 Implement property create, list, detail, update, archive, restore, and status transition use cases
-- [ ] 6.5 Implement property API endpoints with pagination, sorting, text search, and structured filters
-- [ ] 6.6 Emit property audit, timeline, and outbox events for all mutating actions
-- [ ] 6.7 Build Imoveis list page matching the screenshot pattern with search, columns, badges, and icon row actions
-- [ ] 6.8 Build property create/edit form with address, rent, garage, status, and notes sections
-- [ ] 6.9 Build property detail page with tabs or sections for contracts, residents, payments, utilities, documents, pets, vehicles, occurrences, inspections, timeline, and audit links
-- [ ] 6.10 Add frontend and backend tests for property CRUD, search, status labels, permissions, localization, and archived state
+- [x] 6.1 Model properties with name, description, address, status, suggested rent, currency, garage data, notes, and lifecycle metadata
+- [x] 6.2 Add property statuses and property types to seed catalogs with localized labels
+- [x] 6.3 Add property migrations, indexes for search/filter fields, and organization scoping
+- [x] 6.4 Implement property create, list, detail, update, archive, restore, and status transition use cases
+- [x] 6.5 Implement property API endpoints with pagination, sorting, text search, and structured filters
+- [x] 6.6 Emit property audit, timeline, and outbox events for all mutating actions
+- [x] 6.7 Build Imoveis list page matching the screenshot pattern with search, columns, badges, and icon row actions
+- [x] 6.8 Build property create/edit form with address, rent, garage, status, and notes sections
+- [x] 6.9 Build property detail page with tabs or sections for contracts, residents, payments, utilities, documents, pets, vehicles, occurrences, inspections, timeline, and audit links
+- [x] 6.10 Add frontend and backend tests for property CRUD, search, status labels, permissions, localization, and archived state
 
 ## 7. Moradores Module
 

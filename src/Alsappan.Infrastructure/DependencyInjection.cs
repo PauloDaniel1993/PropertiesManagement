@@ -11,6 +11,8 @@ using Alsappan.Application.Identity.Auth;
 using Alsappan.Application.Identity.Repositories;
 using Alsappan.Application.Identity.Security;
 using Alsappan.Application.Identity.Sessions;
+using Alsappan.Application.Properties;
+using Alsappan.Application.Properties.Repositories;
 using Alsappan.Infrastructure.Audit;
 using Alsappan.Infrastructure.Auth;
 using Alsappan.Infrastructure.Authorization;
@@ -18,6 +20,7 @@ using Alsappan.Infrastructure.Identity;
 using Alsappan.Infrastructure.Notifications;
 using Alsappan.Infrastructure.Outbox;
 using Alsappan.Infrastructure.Persistence;
+using Alsappan.Infrastructure.Properties;
 using Alsappan.Infrastructure.Seeding;
 using Alsappan.Infrastructure.Storage;
 using Alsappan.Infrastructure.Tenancy;
@@ -63,6 +66,8 @@ public static class InfrastructureServiceCollectionExtensions
     services.AddScoped<IPasswordHashService, Pbkdf2PasswordHashService>();
     services.AddScoped<IIdentityAuthService, IdentityAuthService>();
     services.AddScoped<IAdministratorService, AdministratorService>();
+    services.AddScoped<IPropertyRepository, EfPropertyRepository>();
+    services.AddScoped<IPropertyService, PropertyService>();
 
     services.AddScoped<IAuditWriter, EfAuditWriter>();
     services.AddScoped<IModuleEventOutboxWriter, EfModuleEventOutboxWriter>();
