@@ -1030,6 +1030,10 @@ public sealed partial class SettingsService : ISettingsService
     {
       yield return new ValidationFailure(nameof(request.Slug), ValidationMessageKeys.Required);
     }
+    else if (request.Slug.Trim().Length > 96)
+    {
+      yield return new ValidationFailure(nameof(request.Slug), ValidationMessageKeys.MaxLength);
+    }
     else if (!request.Slug.Trim().Any(char.IsLetterOrDigit))
     {
       yield return new ValidationFailure(nameof(request.Slug), "validation.slug");
@@ -1039,10 +1043,18 @@ public sealed partial class SettingsService : ISettingsService
     {
       yield return new ValidationFailure(nameof(request.Name), ValidationMessageKeys.Required);
     }
+    else if (request.Name.Trim().Length > 180)
+    {
+      yield return new ValidationFailure(nameof(request.Name), ValidationMessageKeys.MaxLength);
+    }
 
     if (string.IsNullOrWhiteSpace(request.DisplayName))
     {
       yield return new ValidationFailure(nameof(request.DisplayName), ValidationMessageKeys.Required);
+    }
+    else if (request.DisplayName.Trim().Length > 180)
+    {
+      yield return new ValidationFailure(nameof(request.DisplayName), ValidationMessageKeys.MaxLength);
     }
 
     if (string.IsNullOrWhiteSpace(request.CurrencyCode) ||
@@ -1221,6 +1233,10 @@ public sealed partial class SettingsService : ISettingsService
       {
         yield return new ValidationFailure($"Items[{index}].Code", ValidationMessageKeys.Required);
       }
+      else if (item.Code.Trim().Length > 96)
+      {
+        yield return new ValidationFailure($"Items[{index}].Code", ValidationMessageKeys.MaxLength);
+      }
       else if (!seen.Add(SettingsCode.NormalizeCode(item.Code)))
       {
         yield return new ValidationFailure($"Items[{index}].Code", "validation.duplicate");
@@ -1319,6 +1335,10 @@ public sealed partial class SettingsService : ISettingsService
     if (!IsValidAbsoluteUrl(request.SupportUrl))
     {
       yield return new ValidationFailure(nameof(request.SupportUrl), "validation.url");
+    }
+    else if (request.SupportUrl?.Trim().Length > 400)
+    {
+      yield return new ValidationFailure(nameof(request.SupportUrl), ValidationMessageKeys.MaxLength);
     }
 
     if (!string.IsNullOrWhiteSpace(request.SupportEmail) &&

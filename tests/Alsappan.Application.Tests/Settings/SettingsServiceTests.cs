@@ -79,9 +79,9 @@ public sealed class SettingsServiceTests
 
     var result = await fixture.Service.UpdateOrganizationProfileAsync(
       new OrganizationProfileUpdateRequestDto(
-        "---",
-        "Nova Organizacao",
-        "Nova Organizacao LTDA",
+        new string('a', 97),
+        new string('n', 181),
+        new string('d', 181),
         "12$",
         new string('a', 97),
         "suporte@example.com",
@@ -91,6 +91,8 @@ public sealed class SettingsServiceTests
 
     Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
     Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.Slug), result.Errors!.Keys);
+    Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.Name), result.Errors.Keys);
+    Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.DisplayName), result.Errors.Keys);
     Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.CurrencyCode), result.Errors.Keys);
     Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.TimeZone), result.Errors.Keys);
     Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.ContactPhone), result.Errors.Keys);
@@ -166,7 +168,7 @@ public sealed class SettingsServiceTests
       new DomainCatalogUpdateRequestDto(
       [
         new(
-          "loft",
+          new string('c', 97),
           new Dictionary<string, string>
           {
             ["pt-BR"] = new string('a', 121),
@@ -175,6 +177,7 @@ public sealed class SettingsServiceTests
       ]));
 
     Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("Items[0].Code", result.Errors!.Keys);
     Assert.Contains("Items[0].Labels.pt-BR", result.Errors!.Keys);
   }
 
@@ -274,7 +277,7 @@ public sealed class SettingsServiceTests
         "#ffffff",
         "suporte@example.com",
         null,
-        "https://example.com",
+        "https://example.com/" + new string('a', 381),
         settings.ConcurrencyToken.Value));
 
     Assert.Equal(ApplicationOperationFailure.Validation, lowContrast.Failure);
@@ -285,6 +288,7 @@ public sealed class SettingsServiceTests
     Assert.Contains(nameof(BrandLogoUploadRequestDto.ContentType), svgLogo.Errors!.Keys);
     Assert.Equal(ApplicationOperationFailure.Validation, invalidColor.Failure);
     Assert.Contains(nameof(OrganizationBrandingUpdateRequestDto.PrimaryColor), invalidColor.Errors!.Keys);
+    Assert.Contains(nameof(OrganizationBrandingUpdateRequestDto.SupportUrl), invalidColor.Errors.Keys);
   }
 
   [Fact]
