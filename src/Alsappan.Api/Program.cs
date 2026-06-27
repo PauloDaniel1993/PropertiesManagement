@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApiPlatform(builder.Configuration);
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Environment.EnvironmentName, builder.Configuration);
 builder.Services.AddOpenApi(ApiConventions.CurrentVersion, options =>
 {
   options.AddDocumentTransformer<AlsappanOpenApiDocumentTransformer>();
