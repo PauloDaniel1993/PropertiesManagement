@@ -20,4 +20,19 @@ public sealed class AuditCatalogTests
     Assert.Equal("Property created", AuditCatalog.GetActionLabel("property.created", "en-US"));
     Assert.Equal("unknown event", AuditCatalog.GetActionLabel("unknown.event", "en-US"));
   }
+
+  [Theory]
+  [InlineData("auth.login.succeeded", "Login realizado", "Login completed")]
+  [InlineData("auth.token.refreshed", "Sessao renovada", "Session refreshed")]
+  [InlineData("administrators.invited", "Administrador convidado", "Administrator invited")]
+  [InlineData("administrators.role.changed", "Permissoes do administrador alteradas", "Administrator access changed")]
+  [InlineData("property.status.rented", "Imovel alugado", "Property rented")]
+  public void GetActionLabelReturnsLabelsForEmittedAuditActions(
+    string action,
+    string ptBr,
+    string enUs)
+  {
+    Assert.Equal(ptBr, AuditCatalog.GetActionLabel(action, "pt-BR"));
+    Assert.Equal(enUs, AuditCatalog.GetActionLabel(action, "en-US"));
+  }
 }

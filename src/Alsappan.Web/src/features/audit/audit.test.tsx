@@ -51,7 +51,7 @@ function createQueryClient() {
   })
 }
 
-function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
+function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = ['/']) {
   const apiClient = new ApiClient({
     baseUrl: 'https://api.alsappan.test',
     fetchImpl,
@@ -60,7 +60,7 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <ApiClientContext.Provider value={apiClient}>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </ApiClientContext.Provider>
     </QueryClientProvider>,
   )
@@ -145,5 +145,27 @@ describe('audit UI', () => {
 
     expect(await screen.findByText('Audit')).toBeInTheDocument()
     expect(screen.getByRole('searchbox', { name: 'Search audit' })).toBeInTheDocument()
+  })
+
+  it('applies entity filters from detail page links', async () => {
+    const fetchImpl = createAuditFetch()
+
+    renderWithApi(<AuditListPage />, fetchImpl, ['/auditoria?propertyId=property-a'])
+
+    expect(await screen.findByText('Imovel criado')).toBeInTheDocument()
+
+    await waitFor(() =>
+      expect(
+        vi.mocked(fetchImpl).mock.calls.some(([input]) => {
+          const url = String(input)
+
+          return (
+            url.includes('/v1/audit?') &&
+            url.includes('entityType=property') &&
+            url.includes('entityId=property-a')
+          )
+        }),
+      ).toBe(true),
+    )
   })
 })

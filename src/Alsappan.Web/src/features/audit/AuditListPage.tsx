@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Eye } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import {
   DataTable,
   EmptyState,
@@ -100,6 +101,27 @@ function toFilterSet(filters: AuditListFilters): FilterSet {
   return nextFilters
 }
 
+function getRouteEntityFilters(searchParams: URLSearchParams): Partial<AuditListFilters> {
+  const entityType = searchParams.get('entityType')?.trim()
+  const entityId = searchParams.get('entityId')?.trim()
+
+  if (entityType && entityId) {
+    return { entityId, entityType }
+  }
+
+  const propertyId = searchParams.get('propertyId')?.trim()
+  if (propertyId) {
+    return { entityId: propertyId, entityType: 'property' }
+  }
+
+  const residentId = searchParams.get('residentId')?.trim()
+  if (residentId) {
+    return { entityId: residentId, entityType: 'resident' }
+  }
+
+  return {}
+}
+
 function getBadgeTone(tone: string | undefined): StatusBadgeTone {
   if (
     tone === 'danger' ||
@@ -135,11 +157,24 @@ function formatDictionary(values: Record<string, string>, empty: string) {
 
 export function AuditListPage() {
   const apiClient = useApiClient()
+  const [searchParams] = useSearchParams()
   const locale = useAppPreferencesStore((state) => state.locale)
   const storedFilters = useFiltersStore((state) => state.filtersByScope[auditFilterScope])
   const setStoredFilters = useFiltersStore((state) => state.setFilters)
   const copy = getAuditCopy(locale)
-  const filters = useMemo(() => normalizeFilters(storedFilters), [storedFilters])
+  const persistedFilters = useMemo(() => normalizeFilters(storedFilters), [storedFilters])
+  const routeSearch = searchParams.toString()
+  const routeEntityFilters = useMemo(
+    () => getRouteEntityFilters(new URLSearchParams(routeSearch)),
+    [routeSearch],
+  )
+  const filters = useMemo(
+    () => ({
+      ...persistedFilters,
+      ...routeEntityFilters,
+    }),
+    [persistedFilters, routeEntityFilters],
+  )
   const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null)
   const auditQuery = useQuery({
     queryFn: () => listAuditEntries(apiClient, filters, locale),
@@ -185,6 +220,7 @@ export function AuditListPage() {
       auditFilterScope,
       toFilterSet({
         ...filters,
+        ...persistedFilters,
         ...nextFilters,
         page: nextFilters.page ?? 1,
       }),
