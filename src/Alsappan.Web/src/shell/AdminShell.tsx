@@ -202,7 +202,6 @@ export function AdminShell() {
               <summary
                 aria-controls="notification-menu-content"
                 aria-expanded={isNotificationMenuOpen}
-                aria-haspopup="menu"
                 aria-label={t('shell.topbar.unreadNotifications', {
                   count: unreadNotificationCount,
                 })}
@@ -219,11 +218,7 @@ export function AdminShell() {
                   </span>
                 ) : null}
               </summary>
-              <div
-                id="notification-menu-content"
-                className="notification-menu__content"
-                role="menu"
-              >
+              <div id="notification-menu-content" className="notification-menu__content">
                 <div className="notification-menu__header">
                   <strong>{t('shell.topbar.notifications')}</strong>
                   <small>
@@ -246,7 +241,6 @@ export function AdminShell() {
                     <button
                       key={notification.id}
                       onClick={() => navigate(notification.deepLink ?? '/notificacoes')}
-                      role="menuitem"
                       type="button"
                     >
                       <strong>{notification.title}</strong>
@@ -258,7 +252,6 @@ export function AdminShell() {
                 <button
                   className="notification-menu__all"
                   onClick={() => navigate('/notificacoes')}
-                  role="menuitem"
                   type="button"
                 >
                   {t('shell.topbar.viewNotifications')}
@@ -272,22 +265,21 @@ export function AdminShell() {
               <summary
                 aria-controls="profile-menu-content"
                 aria-expanded={isProfileMenuOpen}
-                aria-haspopup="menu"
                 aria-label={t('shell.topbar.profile')}
               >
                 <UserCircle aria-hidden="true" size={20} />
                 <span>{user?.displayName ?? t('shell.auth.userFallback')}</span>
               </summary>
-              <div id="profile-menu-content" className="profile-menu__content" role="menu">
-                <button role="menuitem" type="button">
+              <div id="profile-menu-content" className="profile-menu__content">
+                <button type="button">
                   <UserCircle aria-hidden="true" size={18} />
                   {t('shell.topbar.menu.account')}
                 </button>
-                <button role="menuitem" type="button">
+                <button type="button">
                   <Settings aria-hidden="true" size={18} />
                   {t('shell.topbar.menu.settings')}
                 </button>
-                <button onClick={() => void handleSignOut()} role="menuitem" type="button">
+                <button onClick={() => void handleSignOut()} type="button">
                   <LogOut aria-hidden="true" size={18} />
                   {t('shell.topbar.menu.signOut')}
                 </button>

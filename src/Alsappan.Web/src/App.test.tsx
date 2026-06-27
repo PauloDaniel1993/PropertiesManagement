@@ -95,7 +95,8 @@ describe('App shell routing', () => {
     await user.click(profileMenu)
 
     expect(profileMenu).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('menuitem', { name: 'Sair' })).toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
   })
 
   it('hides sidebar items without active organization permissions', async () => {
