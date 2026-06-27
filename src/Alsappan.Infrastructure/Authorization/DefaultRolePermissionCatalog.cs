@@ -53,6 +53,7 @@ public sealed class DefaultRolePermissionCatalog : IRolePermissionCatalog
         .. ForModules(AllOrganizationModules, PermissionActions.Read),
         .. ForModules(OperationalModules, PermissionActions.Write, PermissionActions.Archive),
         PermissionCodes.Manage(PermissionModules.Notifications),
+        PermissionCodes.Write(PermissionModules.Settings),
         PermissionCodes.Manage(PermissionModules.Settings)
       ],
       [RoleCodes.OrganizationStaff] =
