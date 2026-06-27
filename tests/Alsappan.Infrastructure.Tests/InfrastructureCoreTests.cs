@@ -1,9 +1,12 @@
 using Alsappan.Application.Common.Audit;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Application.Common.Seeding;
 using Alsappan.Domain.Common.Events;
 using Alsappan.Domain.Common.Identifiers;
+using Alsappan.Domain.Identity;
 using Alsappan.Infrastructure.Audit;
+using Alsappan.Infrastructure.Authorization;
 using Alsappan.Infrastructure.Notifications;
 using Alsappan.Infrastructure.Outbox;
 using Alsappan.Infrastructure.Persistence;
@@ -45,8 +48,10 @@ public sealed class InfrastructureCoreTests
 
     await using (var setup = CreateContext(organizationId, databaseName))
     {
+      AddActiveMember(setup, organizationId, UserId.New(), [RoleCodes.OrganizationAdmin]);
       var outboxWriter = new EfModuleEventOutboxWriter(setup);
       await outboxWriter.EnqueueAsync(CreateEnvelope(organizationId));
+      await setup.SaveChangesAsync();
     }
 
     await using (var processorContext = CreateContext(organizationId, databaseName))
@@ -54,7 +59,7 @@ public sealed class InfrastructureCoreTests
       var dispatcher = new ModuleEventDispatcher(
         new EfAuditWriter(processorContext),
         new EfTimelineProjectionWriter(processorContext),
-        new EfNotificationDispatcher(processorContext));
+        new EfNotificationDispatcher(processorContext, new DefaultRolePermissionCatalog()));
       var processor = new OutboxProcessor(processorContext, dispatcher);
 
       var result = await processor.ProcessPendingAsync();
@@ -116,6 +121,28 @@ public sealed class InfrastructureCoreTests
       ModuleEventConsumer.Audit | ModuleEventConsumer.Timeline | ModuleEventConsumer.Notifications,
       new Dictionary<string, string> { ["status"] = "available" },
       correlationId: "request-1");
+
+  private static void AddActiveMember(
+    AlsappanDbContext context,
+    OrganizationId organizationId,
+    UserId userId,
+    IReadOnlyList<string> roleCodes)
+  {
+    var now = DateTimeOffset.UtcNow;
+    context.IdentityUsers.Add(IdentityUser.Create(
+      userId,
+      $"{userId.Value:N}@example.com",
+      "Notification recipient",
+      UserAccountType.Admin,
+      now,
+      status: UserStatus.Active));
+    context.IdentityMemberships.Add(IdentityMembership.Create(
+      EntityId.New(),
+      organizationId,
+      userId,
+      roleCodes,
+      now));
+  }
 
   private sealed class TestSeedContributor : IDatabaseSeedContributor
   {

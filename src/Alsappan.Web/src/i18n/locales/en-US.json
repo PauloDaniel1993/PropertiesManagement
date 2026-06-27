@@ -254,14 +254,18 @@
         "settings": "Settings",
         "signOut": "Sign out"
       },
+      "noUnreadNotifications": "No unread notifications",
       "notifications": "Notifications",
+      "notificationsForbidden": "You do not have permission to view notifications.",
+      "notificationsLoading": "Loading notifications",
       "openNavigation": "Open navigation",
       "organizationLabel": "Organization",
       "profile": "Profile",
       "searchPlaceholder": "Search",
       "searchLabel": "Search",
       "themeToggle": "Toggle theme",
-      "unreadNotifications": "Unread notifications: {{count}}"
+      "unreadNotifications": "Unread notifications: {{count}}",
+      "viewNotifications": "View all"
     }
   },
   "validation": {

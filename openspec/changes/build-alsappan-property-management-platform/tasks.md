@@ -239,16 +239,16 @@
 
 ## 16. Notificacoes Module
 
-- [ ] 16.1 Model notifications with recipient, category, event type, message payload, deep link, read state, channel, and delivery status
-- [ ] 16.2 Model notification preferences by user, category, and supported channel
-- [ ] 16.3 Add notification category and channel catalogs with localized labels
-- [ ] 16.4 Add notification migrations and indexes for recipient, unread state, category, timestamp, and organization scoping
-- [ ] 16.5 Implement notification creation from outbox/domain events using recipient and preference rules
-- [ ] 16.6 Implement notification list, unread count, mark read, mark all read, archive, and preference endpoints
-- [ ] 16.7 Implement localized notification rendering from canonical event payloads
-- [ ] 16.8 Integrate top-bar notification badge and popover with unread count and latest notifications
-- [ ] 16.9 Build Notificacoes page with filters, read/unread actions, deep links, and preferences entry point
-- [ ] 16.10 Add tests for event-triggered notifications, unread counts, read state, preferences, localization, permissions, and deep links
+- [x] 16.1 Model notifications with recipient, category, event type, message payload, deep link, read state, channel, and delivery status
+- [x] 16.2 Model notification preferences by user, category, and supported channel
+- [x] 16.3 Add notification category and channel catalogs with localized labels
+- [x] 16.4 Add notification migrations and indexes for recipient, unread state, category, timestamp, and organization scoping
+- [x] 16.5 Implement notification creation from outbox/domain events using recipient and preference rules
+- [x] 16.6 Implement notification list, unread count, mark read, mark all read, archive, and preference endpoints
+- [x] 16.7 Implement localized notification rendering from canonical event payloads
+- [x] 16.8 Integrate top-bar notification badge and popover with unread count and latest notifications
+- [x] 16.9 Build Notificacoes page with filters, read/unread actions, deep links, and preferences entry point
+- [x] 16.10 Add tests for event-triggered notifications, unread counts, read state, preferences, localization, permissions, and deep links
 
 ## 17. Timeline Module
 

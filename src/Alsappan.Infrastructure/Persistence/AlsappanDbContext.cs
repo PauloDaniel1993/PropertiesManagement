@@ -95,6 +95,9 @@ public sealed class AlsappanDbContext : DbContext
 
   public DbSet<NotificationRecord> NotificationRecords => Set<NotificationRecord>();
 
+  public DbSet<NotificationPreferenceRecord> NotificationPreferenceRecords =>
+    Set<NotificationPreferenceRecord>();
+
   public DbSet<RentalProperty> Properties => Set<RentalProperty>();
 
   public DbSet<Resident> Residents => Set<Resident>();

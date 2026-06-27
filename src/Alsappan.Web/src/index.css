@@ -409,16 +409,19 @@ p {
   gap: 8px;
 }
 
-.admin-topbar__actions button {
+.admin-topbar__actions button,
+.admin-topbar__actions summary.notification-button {
   width: 42px;
   min-width: 42px;
   padding: 0;
 }
 
+.notification-menu,
 .profile-menu {
   position: relative;
 }
 
+.notification-button,
 .profile-menu summary {
   display: inline-flex;
   min-height: 42px;
@@ -435,6 +438,7 @@ p {
   padding: 0 12px;
 }
 
+.notification-button::-webkit-details-marker,
 .profile-menu summary::-webkit-details-marker {
   display: none;
 }
@@ -473,6 +477,72 @@ p {
 
 .notification-button {
   position: relative;
+}
+
+.notification-menu__content {
+  position: absolute;
+  z-index: 8;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: min(330px, calc(100vw - 24px));
+  gap: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  padding: 8px;
+}
+
+.notification-menu__header {
+  display: grid;
+  gap: 2px;
+  padding: 4px 6px 8px;
+}
+
+.notification-menu__header small,
+.notification-menu__content p,
+.notification-menu__content button span {
+  color: var(--color-text-muted);
+}
+
+.notification-menu__content p {
+  margin: 4px 6px;
+  font-size: 0.9rem;
+}
+
+.profile-menu__content button,
+.notification-menu__content button {
+  width: 100%;
+  min-width: 0;
+}
+
+.notification-menu__content button {
+  display: grid;
+  height: auto;
+  min-height: 0;
+  justify-content: stretch;
+  gap: 3px;
+  border-color: transparent;
+  background: transparent;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.notification-menu__content button:hover {
+  background: var(--color-surface-muted);
+}
+
+.notification-menu__content button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-menu__all {
+  border-top-color: var(--color-border) !important;
+  background: var(--color-surface-muted) !important;
+  font-weight: 800;
 }
 
 .notification-button span {
@@ -654,7 +724,8 @@ p {
     gap: 5px;
   }
 
-  .admin-topbar__actions button {
+  .admin-topbar__actions button,
+  .admin-topbar__actions summary.notification-button {
     width: 38px;
     min-width: 38px;
   }

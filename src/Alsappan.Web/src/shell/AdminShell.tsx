@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   Bell,
   Building2,
@@ -16,10 +17,13 @@ import {
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { OrganizationSwitcher } from '../features/identity'
+import { hasAnyPermission } from '../features/identity/session'
 import { useApiClient } from '../lib/api/ApiClientContext'
 import { logoutAuthSession } from '../lib/api/identity'
+import { getNotificationUnreadCount, listNotifications } from '../lib/api/notifications'
 import { adminMenuItems, findAdminMenuItemByPath } from '../navigation/menuContract'
 import { menuIconComponents } from '../navigation/menuIcons'
+import { useActiveOrganizationStore } from '../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../stores/useAuthSessionStore'
 import { useShellStore } from '../stores/useShellStore'
@@ -30,6 +34,7 @@ export function AdminShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const activeItem = findAdminMenuItemByPath(location.pathname)
+  const activeOrganizationId = useActiveOrganizationStore((state) => state.activeOrganizationId)
   const { locale, setLocale, theme, toggleTheme } = useAppPreferencesStore()
   const user = useAuthSessionStore((state) => state.user)
   const refreshToken = useAuthSessionStore((state) => state.refreshToken)
@@ -42,6 +47,30 @@ export function AdminShell() {
     toggleSidebarCollapsed,
   } = useShellStore()
   const nextLocale = locale === 'pt-BR' ? 'en-US' : 'pt-BR'
+  const canReadNotifications = hasAnyPermission(['notifications.read'], user)
+  const notificationUnreadCountQuery = useQuery({
+    enabled: canReadNotifications,
+    queryFn: () => getNotificationUnreadCount(apiClient),
+    queryKey: ['notifications', activeOrganizationId, 'unread-count'],
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  })
+  const notificationPreviewQuery = useQuery({
+    enabled: canReadNotifications,
+    queryFn: () =>
+      listNotifications(apiClient, {
+        isRead: false,
+        locale,
+        page: 1,
+        pageSize: 5,
+      }),
+    queryKey: ['notifications', activeOrganizationId, 'topbar-preview', locale],
+    staleTime: 30_000,
+  })
+  const unreadNotificationCount = canReadNotifications
+    ? (notificationUnreadCountQuery.data?.count ?? 0)
+    : 0
+  const notificationPreviewItems = notificationPreviewQuery.data?.items ?? []
 
   function handleLocaleToggle() {
     setLocale(nextLocale)
@@ -152,14 +181,66 @@ export function AdminShell() {
             <button aria-label={t('shell.theme.toggle')} onClick={toggleTheme} type="button">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button
-              aria-label={t('shell.topbar.notifications')}
-              className="notification-button"
-              type="button"
-            >
-              <Bell size={18} />
-              <span aria-label={t('shell.topbar.unreadNotifications')}>3</span>
-            </button>
+            <details className="notification-menu">
+              <summary
+                aria-label={t('shell.topbar.unreadNotifications', {
+                  count: unreadNotificationCount,
+                })}
+                className="notification-button"
+              >
+                <Bell size={18} />
+                {unreadNotificationCount > 0 ? (
+                  <span
+                    aria-label={t('shell.topbar.unreadNotifications', {
+                      count: unreadNotificationCount,
+                    })}
+                  >
+                    {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                  </span>
+                ) : null}
+              </summary>
+              <div className="notification-menu__content" role="menu">
+                <div className="notification-menu__header">
+                  <strong>{t('shell.topbar.notifications')}</strong>
+                  <small>
+                    {t('shell.topbar.unreadNotifications', {
+                      count: unreadNotificationCount,
+                    })}
+                  </small>
+                </div>
+
+                {!canReadNotifications ? (
+                  <p>{t('shell.topbar.notificationsForbidden')}</p>
+                ) : notificationPreviewQuery.isLoading ? (
+                  <p>{t('shell.topbar.notificationsLoading')}</p>
+                ) : notificationPreviewQuery.isError ? (
+                  <p>{t('shell.states.error')}</p>
+                ) : notificationPreviewItems.length === 0 ? (
+                  <p>{t('shell.topbar.noUnreadNotifications')}</p>
+                ) : (
+                  notificationPreviewItems.map((notification) => (
+                    <button
+                      key={notification.id}
+                      onClick={() => navigate(notification.deepLink ?? '/notificacoes')}
+                      role="menuitem"
+                      type="button"
+                    >
+                      <strong>{notification.title}</strong>
+                      <span>{notification.message}</span>
+                    </button>
+                  ))
+                )}
+
+                <button
+                  className="notification-menu__all"
+                  onClick={() => navigate('/notificacoes')}
+                  role="menuitem"
+                  type="button"
+                >
+                  {t('shell.topbar.viewNotifications')}
+                </button>
+              </div>
+            </details>
             <details className="profile-menu">
               <summary aria-label={t('shell.topbar.profile')}>
                 <UserCircle size={20} />

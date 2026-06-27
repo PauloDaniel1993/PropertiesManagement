@@ -11,15 +11,16 @@ public sealed class NotificationRecord : IOrganizationScoped, ISoftDeletable
   {
   }
 
-  private NotificationRecord(ModuleEventEnvelope envelope, DateTimeOffset createdAt)
+  private NotificationRecord(ModuleEventEnvelope envelope, DateTimeOffset createdAt, UserId? recipientUserId)
   {
     Id = Guid.NewGuid();
     EventId = envelope.EventId;
     OrganizationId = envelope.OrganizationId;
+    RecipientUserId = recipientUserId;
     Category = envelope.ModuleName;
     EventName = envelope.EventName;
     Channel = "in-app";
-    DeliveryStatus = "pending";
+    DeliveryStatus = "delivered";
     PayloadJson = InfrastructureJsonSerializer.Serialize(envelope.Data);
     SubjectEntityType = envelope.Subject.EntityType;
     SubjectEntityId = envelope.Subject.EntityId;
@@ -71,7 +72,8 @@ public sealed class NotificationRecord : IOrganizationScoped, ISoftDeletable
 
   public static NotificationRecord FromEnvelope(
     ModuleEventEnvelope envelope,
-    DateTimeOffset createdAt)
+    DateTimeOffset createdAt,
+    UserId? recipientUserId = null)
   {
     ArgumentNullException.ThrowIfNull(envelope);
 
@@ -80,7 +82,7 @@ public sealed class NotificationRecord : IOrganizationScoped, ISoftDeletable
       throw new ArgumentException("Created timestamp is required.", nameof(createdAt));
     }
 
-    return new NotificationRecord(envelope, createdAt);
+    return new NotificationRecord(envelope, createdAt, recipientUserId);
   }
 
   public void MarkRead(DateTimeOffset readAt)
