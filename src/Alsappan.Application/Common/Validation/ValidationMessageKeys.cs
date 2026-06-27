@@ -10,4 +10,5 @@ public static class ValidationMessageKeys
   public const string MaxLength = "validation.maxLength";
   public const string MinValue = "validation.minValue";
   public const string Required = "validation.required";
+  public const string Unsupported = "validation.unsupported";
 }

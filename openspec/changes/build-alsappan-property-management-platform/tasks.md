@@ -223,19 +223,19 @@
 
 ## 15. Vistorias Module
 
-- [ ] 15.1 Model inspections with type, property, optional contract/resident context, scheduled date, assigned user, status, completion metadata, and lifecycle metadata
-- [ ] 15.2 Model inspection areas, checklist items, condition ratings, observations, photos, document links, and signature slots
-- [ ] 15.3 Add inspection type, condition rating, and status catalogs with localized labels
-- [ ] 15.4 Add inspection migrations, indexes for property, contract, assignee, scheduled date, status, and organization scoping
-- [ ] 15.5 Implement inspection schedule, list, detail, update, start, complete, cancel, archive, and restore use cases
-- [ ] 15.6 Implement checklist item create/update/delete and completion progress use cases
-- [ ] 15.7 Implement inspection document/photo link use cases through the documents module
-- [ ] 15.8 Implement inspection API endpoints with filters for property, contract, assignee, status, date range, and pending state
-- [ ] 15.9 Emit inspection audit, timeline, notification, and dashboard projection events
-- [ ] 15.10 Build Vistorias list page with date, status, assignee, property, and pending filters
-- [ ] 15.11 Build inspection schedule/edit form and checklist execution experience
-- [ ] 15.12 Build completed inspection report view using structured checklist data and attachments
-- [ ] 15.13 Add tests for scheduling, checklist progress, completion lock, document links, permissions, localization, and dashboard impact
+- [x] 15.1 Model inspections with type, property, optional contract/resident context, scheduled date, assigned user, status, completion metadata, and lifecycle metadata
+- [x] 15.2 Model inspection areas, checklist items, condition ratings, observations, photos, document links, and signature slots
+- [x] 15.3 Add inspection type, condition rating, and status catalogs with localized labels
+- [x] 15.4 Add inspection migrations, indexes for property, contract, assignee, scheduled date, status, and organization scoping
+- [x] 15.5 Implement inspection schedule, list, detail, update, start, complete, cancel, archive, and restore use cases
+- [x] 15.6 Implement checklist item create/update/delete and completion progress use cases
+- [x] 15.7 Implement inspection document/photo link use cases through the documents module
+- [x] 15.8 Implement inspection API endpoints with filters for property, contract, assignee, status, date range, and pending state
+- [x] 15.9 Emit inspection audit, timeline, notification, and dashboard projection events
+- [x] 15.10 Build Vistorias list page with date, status, assignee, property, and pending filters
+- [x] 15.11 Build inspection schedule/edit form and checklist execution experience
+- [x] 15.12 Build completed inspection report view using structured checklist data and attachments
+- [x] 15.13 Add tests for scheduling, checklist progress, completion lock, document links, permissions, localization, and dashboard impact
 
 ## 16. Notificacoes Module
 
