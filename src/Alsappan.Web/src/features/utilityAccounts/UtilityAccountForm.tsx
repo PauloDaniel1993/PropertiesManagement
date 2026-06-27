@@ -19,6 +19,7 @@ import type {
 } from '../../lib/api/utilityAccounts'
 import { utilityAccountResponsibilities, utilityAccountTypes } from '../../lib/api/utilityAccounts'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { UtilityAccountDocumentAttachmentField } from './UtilityAccountDocumentAttachmentField'
 import { getUtilityAccountCopy } from './utilityAccountCopy'
 
 export type UtilityAccountFormMode = 'create' | 'edit'
@@ -157,6 +158,12 @@ function formatFirstDocumentId(documents: UtilityAccountListItem['billDocuments'
   return documents[0]?.documentId ?? ''
 }
 
+function getUtilityAccountId(
+  initialValue?: Partial<UtilityAccountDetail | UtilityAccountListItem>,
+) {
+  return typeof initialValue?.id === 'string' ? initialValue.id : undefined
+}
+
 function getDefaultValues(
   initialValue?: Partial<UtilityAccountDetail | UtilityAccountListItem>,
 ): UtilityAccountFormValues {
@@ -192,6 +199,9 @@ export function UtilityAccountForm({
     defaultValues: getDefaultValues(initialValue),
   })
   const errorSummary = buildErrorSummary(form.formState.errors, copy)
+  const utilityAccountId = getUtilityAccountId(initialValue)
+  const billDocumentId = form.watch('billDocumentId')
+  const title = form.watch('title')
 
   useEffect(() => {
     form.reset(getDefaultValues(initialValue))
@@ -401,16 +411,19 @@ export function UtilityAccountForm({
         <p style={{ color: 'var(--als-color-text-muted, #64748b)', margin: 0 }}>
           {copy.form.documentHint}
         </p>
-        <FormField label={copy.form.billDocumentId}>
-          {({ describedBy, id, isInvalid }) => (
-            <TextInput
-              {...form.register('billDocumentId')}
-              id={id}
-              aria-describedby={describedBy}
-              isInvalid={isInvalid}
-            />
-          )}
-        </FormField>
+        <UtilityAccountDocumentAttachmentField
+          entityId={utilityAccountId}
+          label={copy.form.billDocumentId}
+          linkLabel={copy.detail.billDocumentsTitle}
+          onChange={(documentId) =>
+            form.setValue('billDocumentId', documentId, {
+              shouldDirty: true,
+              shouldTouch: true,
+            })
+          }
+          uploadDefaultTitle={title.trim() || copy.detail.billDocumentsTitle}
+          value={billDocumentId}
+        />
       </fieldset>
 
       <FormField label={copy.form.description}>

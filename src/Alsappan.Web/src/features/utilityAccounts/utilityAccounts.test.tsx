@@ -19,6 +19,7 @@ import { UtilityAccountsListPage } from './UtilityAccountsListPage'
 const utilityAccountId = '11111111-1111-1111-1111-111111111111'
 const billDocumentId = '22222222-2222-2222-2222-222222222222'
 const receiptDocumentId = '33333333-3333-3333-3333-333333333333'
+const uploadedReceiptDocumentId = '77777777-7777-7777-7777-777777777777'
 const propertyId = '44444444-4444-4444-4444-444444444444'
 const contractId = '55555555-5555-5555-5555-555555555555'
 const residentId = '66666666-6666-6666-6666-666666666666'
@@ -88,6 +89,50 @@ const apiUtilityAccountListItem = (() => {
 
   return item
 })()
+
+const apiBillDocument = {
+  category: 'utility-account',
+  categoryLabel: 'Conta de consumo',
+  contentType: 'application/pdf',
+  currentVersionNumber: 1,
+  fileName: 'fatura-cpfl-junho.pdf',
+  id: billDocumentId,
+  isArchived: false,
+  links: [
+    {
+      entityId: utilityAccountId,
+      entityType: 'utility-account',
+      label: 'Faturas',
+      route: `/contas-de-consumo?id=${utilityAccountId}`,
+    },
+  ],
+  sizeBytes: 2048,
+  status: { code: 'active', label: 'Ativo', tone: 'success' },
+  title: 'Fatura CPFL junho',
+  uploadedAt: '2026-06-27T10:00:00.000Z',
+}
+
+const apiReceiptDocument = {
+  ...apiBillDocument,
+  fileName: 'recibo-cpfl-junho.pdf',
+  id: receiptDocumentId,
+  links: [
+    {
+      entityId: utilityAccountId,
+      entityType: 'utility-account',
+      label: 'Recibos',
+      route: `/contas-de-consumo?id=${utilityAccountId}`,
+    },
+  ],
+  title: 'Recibo CPFL junho',
+}
+
+const apiUploadedReceiptDocument = {
+  ...apiReceiptDocument,
+  fileName: 'recibo-enviado.pdf',
+  id: uploadedReceiptDocumentId,
+  title: 'Recibo enviado',
+}
 
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
@@ -180,6 +225,14 @@ function buildUtilityAccountSession(): AuthSessionDto {
 function createUtilityAccountsFetch() {
   return vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input))
+
+    if (url.pathname === '/v1/documents' && init?.method === 'POST') {
+      return jsonResponse(apiUploadedReceiptDocument)
+    }
+
+    if (url.pathname === '/v1/documents') {
+      return jsonResponse(paged([apiBillDocument, apiReceiptDocument]))
+    }
 
     if (url.pathname === '/v1/utility-accounts/type-options') {
       return jsonResponse([
@@ -302,7 +355,32 @@ describe('utility accounts management UI', () => {
     await user.type(paidAmountInput, '350')
     await user.selectOptions(within(markPaidDialog).getByLabelText(/Metodo de pagamento/), 'pix')
     await user.type(within(markPaidDialog).getByLabelText(/Referencia bancaria/), 'PIX-CPFL-1')
-    await user.type(within(markPaidDialog).getByLabelText(/ID do recibo/), receiptDocumentId)
+    await user.upload(
+      within(markPaidDialog).getByLabelText('Arquivo'),
+      new File(['recibo'], 'recibo.pdf', { type: 'application/pdf' }),
+    )
+    await user.click(within(markPaidDialog).getByRole('button', { name: 'Enviar e anexar' }))
+
+    await waitFor(() =>
+      expect(
+        vi.mocked(fetchImpl).mock.calls.some(
+          ([input, init]) =>
+            String(input).includes('/v1/documents?') &&
+            init?.method === 'POST' &&
+            init.body instanceof FormData &&
+            init.body.get('category') === 'utility-account' &&
+            init.body.get('linksJson') ===
+              JSON.stringify([
+                {
+                  entityId: utilityAccountId,
+                  entityType: 'utility-account',
+                  label: 'Recibos',
+                },
+              ]),
+        ),
+      ).toBe(true),
+    )
+
     await user.click(within(markPaidDialog).getByRole('button', { name: 'Marcar como paga' }))
 
     await waitFor(() =>
@@ -322,7 +400,7 @@ describe('utility accounts management UI', () => {
           ([, init]) =>
             init?.method === 'POST' &&
             String(init.body).includes('"bankReference":"PIX-CPFL-1"') &&
-            String(init.body).includes(`"receiptDocumentId":"${receiptDocumentId}"`),
+            String(init.body).includes(`"receiptDocumentId":"${uploadedReceiptDocumentId}"`),
         ),
     ).toBe(true)
   })

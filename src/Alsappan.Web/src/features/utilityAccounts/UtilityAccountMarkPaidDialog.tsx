@@ -17,6 +17,7 @@ import type {
 } from '../../lib/api/utilityAccounts'
 import { utilityPaymentMethods } from '../../lib/api/utilityAccounts'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { UtilityAccountDocumentAttachmentField } from './UtilityAccountDocumentAttachmentField'
 import { getUtilityAccountCopy } from './utilityAccountCopy'
 
 export type UtilityAccountMarkPaidDialogProps = {
@@ -141,6 +142,7 @@ export function UtilityAccountMarkPaidDialog({
     defaultValues: getDefaultValues(utilityAccount),
   })
   const errorSummary = buildErrorSummary(form.formState.errors, copy)
+  const receiptDocumentId = form.watch('receiptDocumentId')
   const paymentMethodOptions = utilityPaymentMethods.map((method) => ({
     label: copy.terms.methods[method],
     value: method,
@@ -234,28 +236,34 @@ export function UtilityAccountMarkPaidDialog({
           )}
         </FormField>
 
-        <div style={fieldGridStyle}>
-          <FormField label={copy.markPaid.bankReference}>
-            {({ describedBy, id, isInvalid }) => (
-              <TextInput
-                {...form.register('bankReference')}
-                id={id}
-                aria-describedby={describedBy}
-                isInvalid={isInvalid}
-              />
-            )}
-          </FormField>
-          <FormField label={copy.markPaid.receiptDocumentId}>
-            {({ describedBy, id, isInvalid }) => (
-              <TextInput
-                {...form.register('receiptDocumentId')}
-                id={id}
-                aria-describedby={describedBy}
-                isInvalid={isInvalid}
-              />
-            )}
-          </FormField>
-        </div>
+        <FormField label={copy.markPaid.bankReference}>
+          {({ describedBy, id, isInvalid }) => (
+            <TextInput
+              {...form.register('bankReference')}
+              id={id}
+              aria-describedby={describedBy}
+              isInvalid={isInvalid}
+            />
+          )}
+        </FormField>
+
+        <UtilityAccountDocumentAttachmentField
+          entityId={utilityAccount?.id}
+          label={copy.markPaid.receiptDocumentId}
+          linkLabel={copy.detail.receiptDocumentsTitle}
+          onChange={(documentId) =>
+            form.setValue('receiptDocumentId', documentId, {
+              shouldDirty: true,
+              shouldTouch: true,
+            })
+          }
+          uploadDefaultTitle={
+            utilityAccount?.title
+              ? `${copy.markPaid.receiptDocumentUploadTitle} - ${utilityAccount.title}`
+              : copy.markPaid.receiptDocumentUploadTitle
+          }
+          value={receiptDocumentId}
+        />
 
         <FormField label={copy.markPaid.notes}>
           {({ describedBy, id, isInvalid }) => (
