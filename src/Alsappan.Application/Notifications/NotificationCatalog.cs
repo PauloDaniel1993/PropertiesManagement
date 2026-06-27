@@ -1,4 +1,5 @@
 using Alsappan.Application.Common.Contracts;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Notifications.Repositories;
 
 namespace Alsappan.Application.Notifications;
@@ -13,9 +14,13 @@ public static class NotificationCatalog
     "residents",
     "contracts",
     "payments",
+    "utility-accounts",
     "documents",
+    "pets",
+    "vehicles",
     "occurrences",
     "inspections",
+    "administrators",
     "settings",
     "system"
   ];
@@ -31,6 +36,8 @@ public static class NotificationCatalog
     Categories
       .Select(category => new SelectOptionDto(category, GetCategoryLabel(category, locale).Label))
       .ToArray();
+
+  public static IReadOnlyList<string> CategoryCodes => Categories;
 
   public static IReadOnlyList<SelectOptionDto> GetChannelOptions(string? locale = null) =>
     Channels
@@ -82,6 +89,25 @@ public static class NotificationCatalog
   public static bool IsKnownChannel(string? channel) =>
     string.IsNullOrWhiteSpace(channel) ||
       Channels.Contains(NormalizeToken(channel), StringComparer.OrdinalIgnoreCase);
+
+  public static string? GetReadPermissionForCategory(string? category) =>
+    NormalizeToken(category) switch
+    {
+      "properties" => PermissionCodes.Read(PermissionModules.Properties),
+      "residents" => PermissionCodes.Read(PermissionModules.Residents),
+      "contracts" => PermissionCodes.Read(PermissionModules.Contracts),
+      "payments" => PermissionCodes.Read(PermissionModules.Payments),
+      "utility-accounts" or "utilityaccounts" => PermissionCodes.Read(PermissionModules.UtilityAccounts),
+      "documents" => PermissionCodes.Read(PermissionModules.Documents),
+      "pets" => PermissionCodes.Read(PermissionModules.Pets),
+      "vehicles" => PermissionCodes.Read(PermissionModules.Vehicles),
+      "occurrences" => PermissionCodes.Read(PermissionModules.Occurrences),
+      "inspections" => PermissionCodes.Read(PermissionModules.Inspections),
+      "administrators" => PermissionCodes.Read(PermissionModules.Administrators),
+      "settings" => PermissionCodes.Read(PermissionModules.Settings),
+      "system" => PermissionCodes.Read(PermissionModules.Notifications),
+      _ => null
+    };
 
   public static NotificationListItemDto ToDto(
     NotificationRecordSnapshot notification,
@@ -238,6 +264,11 @@ public static class NotificationCatalog
       "resident.updated" => portuguese ? "Morador atualizado" : "Resident updated",
       "resident.archived" => portuguese ? "Morador arquivado" : "Resident archived",
       "resident.restored" => portuguese ? "Morador restaurado" : "Resident restored",
+      "administrators.invited" => portuguese ? "Administrador convidado" : "Administrator invited",
+      "administrators.role.changed" => portuguese ? "Permissoes de administrador alteradas" : "Administrator permissions changed",
+      "administrators.deactivated" => portuguese ? "Administrador desativado" : "Administrator deactivated",
+      "administrators.reactivated" => portuguese ? "Administrador reativado" : "Administrator reactivated",
+      "administrators.archived" => portuguese ? "Administrador arquivado" : "Administrator archived",
       _ => HumanizeEventName(eventName)
     };
   }
@@ -255,9 +286,13 @@ public static class NotificationCatalog
       "resident" or "residents" => "residentId",
       "contract" or "contracts" => "contractId",
       "payment" or "payments" => "paymentId",
+      "utility-account" or "utility-accounts" or "utilityaccount" or "utilityaccounts" => "utilityAccountId",
       "document" or "documents" => "documentId",
+      "pet" or "pets" => "petId",
+      "vehicle" or "vehicles" => "vehicleId",
       "occurrence" or "occurrences" => "occurrenceId",
       "inspection" or "inspections" => "inspectionId",
+      "identityuser" or "identity-user" or "administrator" or "administrators" => "administratorId",
       _ => null
     };
 
@@ -272,9 +307,13 @@ public static class NotificationCatalog
       "residents" => "/moradores",
       "contracts" => "/contratos",
       "payments" => "/pagamentos",
+      "utility-accounts" or "utilityaccounts" => "/contas-de-consumo",
       "documents" => "/documentos",
+      "pets" => "/pets",
+      "vehicles" => "/veiculos",
       "occurrences" => "/ocorrencias",
       "inspections" => "/vistorias",
+      "administrators" => "/administradores",
       "settings" => "/configuracoes",
       _ => "/notificacoes"
     };
@@ -304,9 +343,13 @@ public static class NotificationCatalog
       "residents" => portuguese ? "Moradores" : "Residents",
       "contracts" => portuguese ? "Contratos" : "Contracts",
       "payments" => portuguese ? "Pagamentos" : "Payments",
+      "utility-accounts" or "utilityaccounts" => portuguese ? "Contas de consumo" : "Utility accounts",
       "documents" => portuguese ? "Documentos" : "Documents",
+      "pets" => "Pets",
+      "vehicles" => portuguese ? "Veiculos" : "Vehicles",
       "occurrences" => portuguese ? "Ocorrencias" : "Occurrences",
       "inspections" => portuguese ? "Vistorias" : "Inspections",
+      "administrators" => portuguese ? "Administradores" : "Administrators",
       "settings" => portuguese ? "Configuracoes" : "Settings",
       "system" => portuguese ? "Sistema" : "System",
       _ => HumanizeEventName(category)

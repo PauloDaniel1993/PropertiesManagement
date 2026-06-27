@@ -23,6 +23,7 @@ import { logoutAuthSession } from '../lib/api/identity'
 import { getNotificationUnreadCount, listNotifications } from '../lib/api/notifications'
 import { adminMenuItems, findAdminMenuItemByPath } from '../navigation/menuContract'
 import { menuIconComponents } from '../navigation/menuIcons'
+import { useActiveOrganizationStore } from '../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../stores/useAuthSessionStore'
 import { useShellStore } from '../stores/useShellStore'
@@ -33,6 +34,7 @@ export function AdminShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const activeItem = findAdminMenuItemByPath(location.pathname)
+  const activeOrganizationId = useActiveOrganizationStore((state) => state.activeOrganizationId)
   const { locale, setLocale, theme, toggleTheme } = useAppPreferencesStore()
   const user = useAuthSessionStore((state) => state.user)
   const refreshToken = useAuthSessionStore((state) => state.refreshToken)
@@ -49,7 +51,7 @@ export function AdminShell() {
   const notificationUnreadCountQuery = useQuery({
     enabled: canReadNotifications,
     queryFn: () => getNotificationUnreadCount(apiClient),
-    queryKey: ['notifications', 'unread-count'],
+    queryKey: ['notifications', activeOrganizationId, 'unread-count'],
     refetchInterval: 60_000,
     staleTime: 30_000,
   })
@@ -62,7 +64,7 @@ export function AdminShell() {
         page: 1,
         pageSize: 5,
       }),
-    queryKey: ['notifications', 'topbar-preview', locale],
+    queryKey: ['notifications', activeOrganizationId, 'topbar-preview', locale],
     staleTime: 30_000,
   })
   const unreadNotificationCount = canReadNotifications

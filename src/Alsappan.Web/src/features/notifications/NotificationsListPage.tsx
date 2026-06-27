@@ -30,6 +30,7 @@ import {
   type NotificationPreference,
 } from '../../lib/api/notifications'
 import { formatDateTime } from '../../lib/format'
+import { useActiveOrganizationStore } from '../../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -176,6 +177,7 @@ function IconActionButton({ icon, isDestructive = false, label, onClick }: IconA
 export function NotificationsListPage() {
   const apiClient = useApiClient()
   const queryClient = useQueryClient()
+  const activeOrganizationId = useActiveOrganizationStore((state) => state.activeOrganizationId)
   const locale = useAppPreferencesStore((state) => state.locale)
   const authUser = useAuthSessionStore((state) => state.user)
   const storedFilters = useFiltersStore((state) => state.filtersByScope[notificationFilterScope])
@@ -194,24 +196,24 @@ export function NotificationsListPage() {
   const [preferenceDraft, setPreferenceDraft] = useState<Record<string, boolean>>({})
   const notificationsQuery = useQuery({
     queryFn: () => listNotifications(apiClient, apiFilters),
-    queryKey: ['notifications', 'list', apiFilters],
+    queryKey: ['notifications', activeOrganizationId, 'list', apiFilters],
   })
   const unreadCountQuery = useQuery({
     queryFn: () => getNotificationUnreadCount(apiClient),
-    queryKey: ['notifications', 'unread-count'],
+    queryKey: ['notifications', activeOrganizationId, 'unread-count'],
   })
   const categoryOptionsQuery = useQuery({
     queryFn: () => listNotificationCategoryOptions(apiClient, locale),
-    queryKey: ['notifications', 'category-options', locale],
+    queryKey: ['notifications', activeOrganizationId, 'category-options', locale],
   })
   const channelOptionsQuery = useQuery({
     queryFn: () => listNotificationChannelOptions(apiClient, locale),
-    queryKey: ['notifications', 'channel-options', locale],
+    queryKey: ['notifications', activeOrganizationId, 'channel-options', locale],
   })
   const preferencesQuery = useQuery({
     enabled: isPreferencesOpen,
     queryFn: () => getNotificationPreferences(apiClient, locale),
-    queryKey: ['notifications', 'preferences', locale],
+    queryKey: ['notifications', activeOrganizationId, 'preferences', locale],
   })
   const lifecycleMutation = useMutation({
     mutationFn: async (request: {
@@ -256,7 +258,7 @@ export function NotificationsListPage() {
           ]),
         ),
       )
-      await queryClient.invalidateQueries({ queryKey: ['notifications', 'preferences'] })
+      await queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
 

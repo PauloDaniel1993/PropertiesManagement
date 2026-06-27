@@ -1,7 +1,10 @@
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Notifications;
 using Alsappan.Application.Notifications.Repositories;
 using Alsappan.Domain.Common.Identifiers;
+using Alsappan.Domain.Identity;
+using Alsappan.Infrastructure.Authorization;
 using Alsappan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +13,14 @@ namespace Alsappan.Infrastructure.Notifications;
 public sealed class EfNotificationRepository : INotificationRepository
 {
   private readonly AlsappanDbContext dbContext;
+  private readonly IRolePermissionCatalog rolePermissionCatalog;
 
-  public EfNotificationRepository(AlsappanDbContext dbContext)
+  public EfNotificationRepository(
+    AlsappanDbContext dbContext,
+    IRolePermissionCatalog? rolePermissionCatalog = null)
   {
     this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    this.rolePermissionCatalog = rolePermissionCatalog ?? new DefaultRolePermissionCatalog();
   }
 
   public async Task<PagedResultDto<NotificationRecordSnapshot>> ListAsync(
@@ -27,9 +34,13 @@ public sealed class EfNotificationRepository : INotificationRepository
     var filter = request.ToListFilter();
     var disabledPreferences = await ListDisabledPreferencesAsync(organizationId, userId, cancellationToken)
       .ConfigureAwait(false);
+    var visibleCategories = await ListVisibleCategoriesAsync(organizationId, userId, cancellationToken)
+      .ConfigureAwait(false);
     var query = ApplyFilters(
       ApplyPreferenceVisibility(
-        BuildUserScopedQuery(organizationId, userId, request.IncludeArchived),
+        ApplyPermissionVisibility(
+          BuildUserScopedQuery(organizationId, userId, request.IncludeArchived),
+          visibleCategories),
         disabledPreferences),
       request);
     var totalItems = await query.CountAsync(cancellationToken).ConfigureAwait(false);
@@ -61,8 +72,12 @@ public sealed class EfNotificationRepository : INotificationRepository
   {
     var disabledPreferences = await ListDisabledPreferencesAsync(organizationId, userId, cancellationToken)
       .ConfigureAwait(false);
+    var visibleCategories = await ListVisibleCategoriesAsync(organizationId, userId, cancellationToken)
+      .ConfigureAwait(false);
     var notification = await ApplyPreferenceVisibility(
-        BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+        ApplyPermissionVisibility(
+          BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+          visibleCategories),
         disabledPreferences)
       .FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
       .ConfigureAwait(false);
@@ -89,8 +104,12 @@ public sealed class EfNotificationRepository : INotificationRepository
   {
     var disabledPreferences = await ListDisabledPreferencesAsync(organizationId, userId, cancellationToken)
       .ConfigureAwait(false);
+    var visibleCategories = await ListVisibleCategoriesAsync(organizationId, userId, cancellationToken)
+      .ConfigureAwait(false);
     var notifications = await ApplyPreferenceVisibility(
-        BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+        ApplyPermissionVisibility(
+          BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+          visibleCategories),
         disabledPreferences)
       .Where(notification => !notification.IsRead)
       .ToListAsync(cancellationToken)
@@ -118,8 +137,12 @@ public sealed class EfNotificationRepository : INotificationRepository
   {
     var disabledPreferences = await ListDisabledPreferencesAsync(organizationId, userId, cancellationToken)
       .ConfigureAwait(false);
+    var visibleCategories = await ListVisibleCategoriesAsync(organizationId, userId, cancellationToken)
+      .ConfigureAwait(false);
     var notification = await ApplyPreferenceVisibility(
-        BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+        ApplyPermissionVisibility(
+          BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+          visibleCategories),
         disabledPreferences)
       .FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
       .ConfigureAwait(false);
@@ -212,9 +235,13 @@ public sealed class EfNotificationRepository : INotificationRepository
   {
     var disabledPreferences = await ListDisabledPreferencesAsync(organizationId, userId, cancellationToken)
       .ConfigureAwait(false);
+    var visibleCategories = await ListVisibleCategoriesAsync(organizationId, userId, cancellationToken)
+      .ConfigureAwait(false);
 
     return await ApplyPreferenceVisibility(
-        BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+        ApplyPermissionVisibility(
+          BuildUserScopedQuery(organizationId, userId, includeArchived: false),
+          visibleCategories),
         disabledPreferences)
       .CountAsync(notification => !notification.IsRead, cancellationToken)
       .ConfigureAwait(false);
@@ -229,7 +256,8 @@ public sealed class EfNotificationRepository : INotificationRepository
       .IgnoreQueryFilters()
       .Where(notification =>
         notification.OrganizationId == organizationId &&
-        (!notification.RecipientUserId.HasValue || notification.RecipientUserId.Value == userId));
+        notification.RecipientUserId.HasValue &&
+        notification.RecipientUserId.Value == userId);
 
     if (!includeArchived)
     {
@@ -240,6 +268,18 @@ public sealed class EfNotificationRepository : INotificationRepository
   }
 
 #pragma warning disable CA1304, CA1311, CA1862
+  private static IQueryable<NotificationRecord> ApplyPermissionVisibility(
+    IQueryable<NotificationRecord> query,
+    IReadOnlySet<string> visibleCategories)
+  {
+    if (visibleCategories.Count == 0)
+    {
+      return query.Where(notification => false);
+    }
+
+    return query.Where(notification => visibleCategories.Contains(notification.Category.ToLower()));
+  }
+
   private static IQueryable<NotificationRecord> ApplyPreferenceVisibility(
     IQueryable<NotificationRecord> query,
     IReadOnlyList<DisabledNotificationPreference> disabledPreferences)
@@ -351,6 +391,45 @@ public sealed class EfNotificationRepository : INotificationRepository
       .Select(preference => new DisabledNotificationPreference(preference.Category, preference.Channel))
       .ToListAsync(cancellationToken)
       .ConfigureAwait(false);
+
+  private async Task<IReadOnlySet<string>> ListVisibleCategoriesAsync(
+    OrganizationId organizationId,
+    UserId userId,
+    CancellationToken cancellationToken)
+  {
+    var membership = await dbContext.IdentityMemberships
+      .IgnoreQueryFilters()
+      .AsNoTracking()
+      .FirstOrDefaultAsync(
+        candidate =>
+          candidate.OrganizationId == organizationId &&
+          candidate.UserId == userId &&
+          candidate.DeletedAt == null &&
+          candidate.Status == IdentityMembershipStatus.Active,
+        cancellationToken)
+      .ConfigureAwait(false);
+    if (membership is null)
+    {
+      return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    var permissions = new HashSet<string>(membership.PermissionCodes, StringComparer.OrdinalIgnoreCase);
+    permissions.UnionWith(rolePermissionCatalog.GetPermissionsForRoles(membership.RoleCodes));
+
+    return NotificationCatalog.CategoryCodes
+      .Where(category =>
+      {
+        var sourcePermission = NotificationCatalog.GetReadPermissionForCategory(category);
+        return sourcePermission is not null &&
+          HasPermission(permissions, PermissionCodes.Read(PermissionModules.Notifications)) &&
+          HasPermission(permissions, sourcePermission);
+      })
+      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+  }
+
+  private static bool HasPermission(HashSet<string> permissions, string permissionCode) =>
+    permissions.Contains(PermissionCodes.Wildcard) ||
+    permissions.Contains(PermissionCodes.Normalize(permissionCode));
 
   private sealed record DisabledNotificationPreference(string Category, string Channel);
 }
