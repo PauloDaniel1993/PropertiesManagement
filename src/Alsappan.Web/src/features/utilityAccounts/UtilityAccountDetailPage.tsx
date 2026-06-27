@@ -14,6 +14,7 @@ import {
   type StatusBadgeTone,
 } from '../../components'
 import type { AppLocale } from '../../i18n'
+import type { CurrentUserDto } from '../../lib/api/identity'
 import {
   getUtilityAccount,
   type UtilityAccountDetail,
@@ -22,6 +23,16 @@ import {
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDate, formatDateTime, formatMoney } from '../../lib/format'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
+import { EntityTimelinePanel } from '../timeline'
 import { getUtilityAccountCopy } from './utilityAccountCopy'
 
 export type UtilityAccountDetailPageProps = {
@@ -61,9 +72,15 @@ function formatPeriod(utilityAccount: UtilityAccountDetail, locale: AppLocale) {
 function getRelationshipPanels(
   utilityAccount: UtilityAccountDetail,
   copy: ReturnType<typeof getUtilityAccountCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
 ) {
+  const context: RelationshipContext = {
+    entityId: utilityAccount.id,
+    entityType: 'utility-account',
+  }
   const relationshipItems: Array<RelationshipPanelItem | undefined> = [
-    utilityAccount.property
+    utilityAccount.property && canReadRelationshipModule('properties', authUser)
       ? {
           description: utilityAccount.property.description,
           href: utilityAccount.property.route,
@@ -71,7 +88,7 @@ function getRelationshipPanels(
           title: utilityAccount.property.name,
         }
       : undefined,
-    utilityAccount.contract
+    utilityAccount.contract && canReadRelationshipModule('contracts', authUser)
       ? {
           description: utilityAccount.contract.description,
           href: utilityAccount.contract.route,
@@ -79,7 +96,7 @@ function getRelationshipPanels(
           title: utilityAccount.contract.name,
         }
       : undefined,
-    utilityAccount.resident
+    utilityAccount.resident && canReadRelationshipModule('residents', authUser)
       ? {
           description: utilityAccount.resident.description,
           href: utilityAccount.resident.route,
@@ -88,6 +105,7 @@ function getRelationshipPanels(
         }
       : undefined,
   ]
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
 
   return (
     <div
@@ -103,49 +121,63 @@ function getRelationshipPanels(
         title={copy.detail.relationshipTitle}
       />
 
-      <RelationshipPanel
-        emptyState={copy.detail.emptyRelationship}
-        items={utilityAccount.billDocuments.map((document) => ({
-          href: document.route,
-          id: document.documentId,
-          title: document.label ?? document.documentId,
-        }))}
-        title={copy.detail.billDocumentsTitle}
-      />
+      {canReadRelationshipModule('documents', authUser) ? (
+        <RelationshipPanel
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          emptyState={copy.detail.emptyRelationship}
+          items={utilityAccount.billDocuments.map((document) => ({
+            href: document.route,
+            id: document.documentId,
+            title: document.label ?? document.documentId,
+          }))}
+          title={copy.detail.billDocumentsTitle}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        emptyState={copy.detail.emptyRelationship}
-        items={utilityAccount.receiptDocuments.map((document) => ({
-          href: document.route,
-          id: document.documentId,
-          title: document.label ?? document.documentId,
-        }))}
-        title={copy.detail.receiptDocumentsTitle}
-      />
+      {canReadRelationshipModule('documents', authUser) ? (
+        <RelationshipPanel
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          emptyState={copy.detail.emptyRelationship}
+          items={utilityAccount.receiptDocuments.map((document) => ({
+            href: document.route,
+            id: document.documentId,
+            title: document.label ?? document.documentId,
+          }))}
+          title={copy.detail.receiptDocumentsTitle}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: utilityAccount.timelineRoute,
-            href: utilityAccount.timelineRoute,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline,
-          },
-        ]}
-        title={copy.detail.relationships.timeline}
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: utilityAccount.timelineRoute,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline,
+            },
+          ]}
+          title={copy.detail.relationships.timeline}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: utilityAccount.auditRoute,
-            href: utilityAccount.auditRoute,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit,
-          },
-        ]}
-        title={copy.detail.relationships.audit}
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: utilityAccount.auditRoute,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit,
+            },
+          ]}
+          title={copy.detail.relationships.audit}
+        />
+      ) : null}
     </div>
   )
 }
@@ -159,12 +191,14 @@ export function UtilityAccountDetailPage({
 }: UtilityAccountDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getUtilityAccountCopy(locale)
   const utilityAccountQuery = useQuery({
     queryFn: () => getUtilityAccount(apiClient, utilityAccountId, locale),
     queryKey: ['utility-accounts', 'detail', utilityAccountId, locale],
   })
   const utilityAccount = utilityAccountQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (utilityAccountQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -329,10 +363,21 @@ export function UtilityAccountDetailPage({
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(utilityAccount, copy),
+            content: getRelationshipPanels(utilityAccount, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: (
+                    <EntityTimelinePanel entityId={utilityAccount.id} entityType="utilityAccount" />
+                  ),
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline,
+                },
+              ]
+            : []),
         ]}
       />
     </section>

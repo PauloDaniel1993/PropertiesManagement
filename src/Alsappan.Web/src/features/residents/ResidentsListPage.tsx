@@ -11,6 +11,7 @@ import {
   Pagination,
   SearchInput,
   StatusBadge,
+  CheckboxInput,
   type StatusBadgeTone,
 } from '../../components'
 import {
@@ -34,6 +35,7 @@ import {
 } from '../../lib/api/residents'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
+import { coerceStatusBadgeTone } from '../../lib/statusBadges'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -75,15 +77,6 @@ const portalStatusTones: Record<ResidentPortalStatus, StatusBadgeTone> = {
   invited: 'info',
   'not-invited': 'neutral',
 }
-
-const allowedTones: StatusBadgeTone[] = [
-  'archived',
-  'danger',
-  'info',
-  'neutral',
-  'success',
-  'warning',
-]
 
 const iconButtonStyle: CSSProperties = {
   alignItems: 'center',
@@ -196,10 +189,6 @@ function getMutationKey(filters: ResidentListFilters) {
   return ['residents', 'list', filters] as const
 }
 
-function coerceTone(tone: string | undefined, fallback: StatusBadgeTone) {
-  return allowedTones.includes(tone as StatusBadgeTone) ? (tone as StatusBadgeTone) : fallback
-}
-
 function IconActionButton({ icon, isDestructive = false, label, onClick }: IconActionButtonProps) {
   return (
     <button
@@ -298,6 +287,7 @@ export function ResidentsListPage() {
   const setStoredFilters = useFiltersStore((state) => state.setFilters)
   const copy = getResidentCopy(locale)
   const canWriteResidents = hasAnyPermission(['residents.write'], authUser)
+  const canArchiveResidents = hasAnyPermission(['residents.archive'], authUser)
   const filters = useMemo(() => normalizeResidentFilters(storedFilters), [storedFilters])
   const apiFilters = useMemo(
     () => ({
@@ -334,6 +324,7 @@ export function ResidentsListPage() {
     filters.status,
     filters.portalStatus,
     filters.hasPortalAccess === '' ? '' : String(filters.hasPortalAccess),
+    filters.includeArchived ? 'archived' : '',
   ].filter((value) => value !== undefined && value !== '').length
   const page = residentsQuery.data?.page ?? filters.page ?? 1
   const pageSize = residentsQuery.data?.pageSize ?? filters.pageSize ?? 10
@@ -414,37 +405,37 @@ export function ResidentsListPage() {
       />,
     ]
 
-    if (!canWriteResidents) {
-      return actions
+    if (canWriteResidents && !row.isArchived && row.status.code !== 'archived') {
+      actions.push(
+        <IconActionButton
+          key="edit"
+          icon={<Pencil aria-hidden="true" size={16} />}
+          label={`${copy.list.edit} ${row.fullName}`}
+          onClick={() => setFormState({ mode: 'edit', resident: row })}
+        />,
+      )
     }
 
-    actions.push(
-      <IconActionButton
-        key="edit"
-        icon={<Pencil aria-hidden="true" size={16} />}
-        label={`${copy.list.edit} ${row.fullName}`}
-        onClick={() => setFormState({ mode: 'edit', resident: row })}
-      />,
-    )
-
-    actions.push(
-      row.isArchived || row.status.code === 'archived' ? (
-        <IconActionButton
-          key="restore"
-          icon={<RotateCcw aria-hidden="true" size={16} />}
-          label={`${copy.list.restore} ${row.fullName}`}
-          onClick={() => lifecycleMutation.mutate({ action: 'restore', id: row.id })}
-        />
-      ) : (
-        <IconActionButton
-          key="archive"
-          icon={<Archive aria-hidden="true" size={16} />}
-          isDestructive
-          label={`${copy.list.archive} ${row.fullName}`}
-          onClick={() => lifecycleMutation.mutate({ action: 'archive', id: row.id })}
-        />
-      ),
-    )
+    if (canArchiveResidents) {
+      actions.push(
+        row.isArchived || row.status.code === 'archived' ? (
+          <IconActionButton
+            key="restore"
+            icon={<RotateCcw aria-hidden="true" size={16} />}
+            label={`${copy.list.restore} ${row.fullName}`}
+            onClick={() => lifecycleMutation.mutate({ action: 'restore', id: row.id })}
+          />
+        ) : (
+          <IconActionButton
+            key="archive"
+            icon={<Archive aria-hidden="true" size={16} />}
+            isDestructive
+            label={`${copy.list.archive} ${row.fullName}`}
+            onClick={() => lifecycleMutation.mutate({ action: 'archive', id: row.id })}
+          />
+        ),
+      )
+    }
 
     return actions
   }
@@ -550,6 +541,11 @@ export function ResidentsListPage() {
             ))}
           </select>
         </label>
+        <CheckboxInput
+          checked={Boolean(filters.includeArchived)}
+          label={copy.list.includeArchived}
+          onChange={(event) => updateFilters({ includeArchived: event.currentTarget.checked })}
+        />
       </FilterBar>
 
       <DataTable
@@ -575,7 +571,7 @@ export function ResidentsListPage() {
             cell: (row) => (
               <StatusBadge
                 label={row.status.label}
-                tone={coerceTone(row.status.tone, statusTones[row.status.code])}
+                tone={coerceStatusBadgeTone(row.status.tone, statusTones[row.status.code])}
               />
             ),
             header: copy.list.columns.status,
@@ -586,7 +582,10 @@ export function ResidentsListPage() {
             cell: (row) => (
               <StatusBadge
                 label={row.portalStatus.label}
-                tone={coerceTone(row.portalStatus.tone, portalStatusTones[row.portalStatus.code])}
+                tone={coerceStatusBadgeTone(
+                  row.portalStatus.tone,
+                  portalStatusTones[row.portalStatus.code],
+                )}
               />
             ),
             header: copy.list.columns.portalStatus,

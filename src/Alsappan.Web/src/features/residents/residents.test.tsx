@@ -89,6 +89,21 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
 }
 
 function buildResidentSession(): AuthSessionDto {
+  const permissions = [
+    'residents.read',
+    'residents.write',
+    'residents.archive',
+    'contracts.read',
+    'properties.read',
+    'payments.read',
+    'documents.read',
+    'pets.read',
+    'vehicles.read',
+    'occurrences.read',
+    'timeline.read',
+    'audit.read',
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -107,12 +122,12 @@ function buildResidentSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: ['residents.read', 'residents.write'],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: ['residents.read', 'residents.write'],
+      permissions,
     },
   }
 }
@@ -331,13 +346,17 @@ describe('residents management UI', () => {
     expect(screen.getByText('Pets')).toBeInTheDocument()
     expect(screen.getByText('Veiculos')).toBeInTheDocument()
     expect(screen.getByText('Ocorrencias')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir documentos vinculados' })).toHaveAttribute(
+      'href',
+      '/documentos?entityType=resident&entityId=resident-a',
+    )
     expect(screen.getByRole('link', { name: 'Abrir timeline do morador' })).toHaveAttribute(
       'href',
-      '/timeline?residentId=resident-a',
+      '/timeline?entityType=resident&entityId=resident-a',
     )
     expect(screen.getByRole('link', { name: 'Abrir auditoria do morador' })).toHaveAttribute(
       'href',
-      '/auditoria?residentId=resident-a',
+      '/auditoria?entityType=resident&entityId=resident-a',
     )
   })
 

@@ -40,7 +40,16 @@ import {
 } from '../../lib/api/inspections'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
 import { hasAnyPermission } from '../identity/session'
+import { EntityTimelinePanel } from '../timeline'
 import { getInspectionCopy } from './inspectionCopy'
 
 export type InspectionDetailPageProps = {
@@ -116,10 +125,13 @@ function readDocumentKind(formData: FormData) {
 function getRelationshipPanels(
   inspection: InspectionDetail,
   copy: ReturnType<typeof getInspectionCopy>,
+  locale: ReturnType<typeof useAppPreferencesStore.getState>['locale'],
+  authUser: ReturnType<typeof useAuthSessionStore.getState>['user'],
 ) {
+  const context: RelationshipContext = { entityId: inspection.id, entityType: 'inspection' }
   const documents = [...inspection.photoDocuments, ...inspection.linkedDocuments]
   const relationshipItems: Array<RelationshipPanelItem | undefined> = [
-    inspection.property
+    inspection.property && canReadRelationshipModule('properties', authUser)
       ? {
           description: inspection.property.description,
           href: inspection.property.route,
@@ -127,7 +139,7 @@ function getRelationshipPanels(
           title: inspection.property.name,
         }
       : undefined,
-    inspection.contract
+    inspection.contract && canReadRelationshipModule('contracts', authUser)
       ? {
           description: inspection.contract.description,
           href: inspection.contract.route,
@@ -135,7 +147,7 @@ function getRelationshipPanels(
           title: inspection.contract.name,
         }
       : undefined,
-    inspection.resident
+    inspection.resident && canReadRelationshipModule('residents', authUser)
       ? {
           description: inspection.resident.description,
           href: inspection.resident.route,
@@ -143,7 +155,7 @@ function getRelationshipPanels(
           title: inspection.resident.name,
         }
       : undefined,
-    inspection.assignee
+    inspection.assignee && canReadRelationshipModule('administrators', authUser)
       ? {
           description: inspection.assignee.description,
           href: inspection.assignee.route,
@@ -152,6 +164,7 @@ function getRelationshipPanels(
         }
       : undefined,
   ]
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
 
   return (
     <div
@@ -167,40 +180,49 @@ function getRelationshipPanels(
         title={copy.detail.relationshipTitle}
       />
 
-      <RelationshipPanel
-        emptyState={copy.detail.emptyRelationship}
-        items={documents.map((document) => ({
-          description: document.kind.label,
-          href: document.route,
-          id: document.documentId,
-          title: document.label ?? document.documentId,
-        }))}
-        title={copy.detail.documentsTitle}
-      />
+      {canReadRelationshipModule('documents', authUser) ? (
+        <RelationshipPanel
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          emptyState={copy.detail.emptyRelationship}
+          items={documents.map((document) => ({
+            description: document.kind.label,
+            href: document.route,
+            id: document.documentId,
+            title: document.label ?? document.documentId,
+          }))}
+          title={copy.detail.documentsTitle}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: inspection.timelineRoute,
-            href: inspection.timelineRoute,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline,
-          },
-        ]}
-        title={copy.detail.relationships.timeline}
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: inspection.timelineRoute,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline,
+            },
+          ]}
+          title={copy.detail.relationships.timeline}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: inspection.auditRoute,
-            href: inspection.auditRoute,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit,
-          },
-        ]}
-        title={copy.detail.relationships.audit}
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: inspection.auditRoute,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit,
+            },
+          ]}
+          title={copy.detail.relationships.audit}
+        />
+      ) : null}
     </div>
   )
 }
@@ -232,6 +254,7 @@ export function InspectionDetailPage({
   const canWriteInspections = hasAnyPermission(['inspections.write'], authUser)
   const canManageInspections = hasAnyPermission(['inspections.manage'], authUser)
   const canReadDocuments = hasAnyPermission(['documents.read'], authUser)
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
   const inspectionQuery = useQuery({
     queryFn: () => getInspection(apiClient, inspectionId, locale),
     queryKey: ['inspections', 'detail', inspectionId, locale],
@@ -755,12 +778,21 @@ export function InspectionDetailPage({
                     </form>
                   </DetailSection>
                 ) : null}
-                {getRelationshipPanels(inspection, copy)}
+                {getRelationshipPanels(inspection, copy, locale, authUser)}
               </div>
             ),
             id: 'documents',
             label: copy.detail.documentsTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={inspection.id} entityType="inspection" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline,
+                },
+              ]
+            : []),
           {
             content: (
               <DetailSection title={copy.detail.signaturesTitle}>

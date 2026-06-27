@@ -12,7 +12,6 @@ import {
   Pagination,
   SearchInput,
   StatusBadge,
-  type StatusBadgeTone,
 } from '../../components'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import {
@@ -30,6 +29,7 @@ import {
   type NotificationPreference,
 } from '../../lib/api/notifications'
 import { formatDateTime } from '../../lib/format'
+import { coerceStatusBadgeTone } from '../../lib/statusBadges'
 import { useActiveOrganizationStore } from '../../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
@@ -48,15 +48,6 @@ const defaultFilters: NotificationListFilters = {
   pageSize: 10,
   search: '',
 }
-
-const allowedTones: StatusBadgeTone[] = [
-  'archived',
-  'danger',
-  'info',
-  'neutral',
-  'success',
-  'warning',
-]
 
 const iconButtonStyle: CSSProperties = {
   alignItems: 'center',
@@ -147,10 +138,6 @@ function toFilterSet(filters: NotificationListFilters): FilterSet {
   }
 
   return nextFilters
-}
-
-function coerceTone(tone: string | undefined, fallback: StatusBadgeTone) {
-  return allowedTones.includes(tone as StatusBadgeTone) ? (tone as StatusBadgeTone) : fallback
 }
 
 function getPreferenceKey(preference: Pick<NotificationPreference, 'category' | 'channel'>) {
@@ -518,7 +505,7 @@ export function NotificationsListPage() {
               <StatusBadge
                 icon={<Bell aria-hidden="true" size={14} />}
                 label={row.category.label}
-                tone={coerceTone(row.category.tone, 'info')}
+                tone={coerceStatusBadgeTone(row.category.tone, 'info')}
               />
             ),
             header: copy.list.columns.category,
@@ -529,7 +516,7 @@ export function NotificationsListPage() {
             cell: (row) => (
               <StatusBadge
                 label={row.channel.label}
-                tone={coerceTone(row.channel.tone, 'neutral')}
+                tone={coerceStatusBadgeTone(row.channel.tone, 'neutral')}
               />
             ),
             header: copy.list.columns.channel,
@@ -540,7 +527,7 @@ export function NotificationsListPage() {
             cell: (row) => (
               <StatusBadge
                 label={row.readState.label}
-                tone={coerceTone(row.readState.tone, row.isRead ? 'neutral' : 'info')}
+                tone={coerceStatusBadgeTone(row.readState.tone, row.isRead ? 'neutral' : 'info')}
               />
             ),
             header: copy.list.columns.readState,

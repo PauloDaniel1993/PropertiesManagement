@@ -159,6 +159,13 @@ function buildInspectionSession(
     'inspections.write',
     'inspections.manage',
     'inspections.archive',
+    'properties.read',
+    'contracts.read',
+    'residents.read',
+    'administrators.read',
+    'documents.read',
+    'timeline.read',
+    'audit.read',
   ],
 ): AuthSessionDto {
   return {
@@ -311,7 +318,7 @@ describe('inspections management UI', () => {
 
   it('renders photo attachments in details and includes them in completed report counts', async () => {
     const user = userEvent.setup()
-    applyAuthSession(buildInspectionSession(['inspections.read']))
+    applyAuthSession(buildInspectionSession(['inspections.read', 'documents.read']))
     const completedInspection = {
       ...apiInspection,
       checklistItems: [

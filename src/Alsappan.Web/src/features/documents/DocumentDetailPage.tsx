@@ -30,7 +30,14 @@ import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDateTime } from '../../lib/format'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
 import { hasAnyPermission } from '../identity/session'
+import { EntityTimelinePanel } from '../timeline'
 import { getDocumentCopy } from './documentCopy'
 import { formatFileSize, getDocumentStatusTone } from './documentFormat'
 import { DocumentVersionForm } from './DocumentVersionForm'
@@ -42,7 +49,13 @@ export type DocumentDetailPageProps = {
   onEdit?: (document: DocumentDetail) => void
 }
 
-function getLinksPanel(document: DocumentDetail, copy: ReturnType<typeof getDocumentCopy>) {
+function getLinksPanel(
+  document: DocumentDetail,
+  copy: ReturnType<typeof getDocumentCopy>,
+  authUser: ReturnType<typeof useAuthSessionStore.getState>['user'],
+) {
+  const context: RelationshipContext = { entityId: document.id, entityType: 'document' }
+
   return (
     <div
       style={{
@@ -53,39 +66,45 @@ function getLinksPanel(document: DocumentDetail, copy: ReturnType<typeof getDocu
     >
       <RelationshipPanel
         emptyState={copy.detail.emptyLinks}
-        items={document.links.map((link) => ({
-          description: copy.terms.entityTypes[link.entityType],
-          href: link.route,
-          id: `${link.entityType}-${link.entityId}`,
-          meta: link.entityId,
-          title: link.label ?? link.entityId,
-        }))}
+        items={document.links
+          .filter((link) => canReadRelationshipModule(link.entityType, authUser))
+          .map((link) => ({
+            description: copy.terms.entityTypes[link.entityType],
+            href: link.route,
+            id: `${link.entityType}-${link.entityId}`,
+            meta: link.entityId,
+            title: link.label ?? link.entityId,
+          }))}
         title={copy.detail.labels.links}
       />
 
-      <RelationshipPanel
-        items={[
-          {
-            description: document.timelineRoute,
-            href: document.timelineRoute,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline,
-          },
-        ]}
-        title={copy.detail.relationships.timeline}
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: document.timelineRoute,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline,
+            },
+          ]}
+          title={copy.detail.relationships.timeline}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: document.auditRoute,
-            href: document.auditRoute,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit,
-          },
-        ]}
-        title={copy.detail.relationships.audit}
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: document.auditRoute,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit,
+            },
+          ]}
+          title={copy.detail.relationships.audit}
+        />
+      ) : null}
     </div>
   )
 }
@@ -98,6 +117,7 @@ export function DocumentDetailPage({ documentId, onBack, onEdit }: DocumentDetai
   const copy = getDocumentCopy(locale)
   const canWriteDocuments = hasAnyPermission(['documents.write'], authUser)
   const canArchiveDocuments = hasAnyPermission(['documents.archive'], authUser)
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
   const [isVersionDrawerOpen, setIsVersionDrawerOpen] = useState(false)
   const documentQuery = useQuery({
     queryFn: () => getDocument(apiClient, documentId, locale),
@@ -278,10 +298,19 @@ export function DocumentDetailPage({ documentId, onBack, onEdit }: DocumentDetai
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getLinksPanel(document, copy),
+            content: getLinksPanel(document, copy, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={document.id} entityType="document" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline,
+                },
+              ]
+            : []),
           {
             content: (
               <DataTable

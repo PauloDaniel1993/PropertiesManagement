@@ -144,6 +144,16 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
 }
 
 function buildPetSession(): AuthSessionDto {
+  const permissions = [
+    'pets.read',
+    'pets.write',
+    'pets.manage',
+    'pets.archive',
+    'documents.read',
+    'timeline.read',
+    'audit.read',
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -162,12 +172,12 @@ function buildPetSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: ['pets.read', 'pets.write', 'pets.manage', 'pets.archive'],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: ['pets.read', 'pets.write', 'pets.manage', 'pets.archive'],
+      permissions,
     },
   }
 }

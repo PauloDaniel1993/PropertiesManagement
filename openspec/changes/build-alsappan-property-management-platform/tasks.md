@@ -301,15 +301,15 @@
 
 ## 21. Cross-Module Relationship Integration
 
-- [ ] 21.1 Add relationship panels to property details for contracts, residents, payments, utility accounts, documents, pets, vehicles, occurrences, inspections, timeline, and audit links
-- [ ] 21.2 Add relationship panels to resident details for contracts, properties, payments, documents, pets, vehicles, occurrences, timeline, and audit links
-- [ ] 21.3 Add relationship panels to contract details for property, residents, payments, utility accounts, documents, inspections, timeline, and audit links
-- [ ] 21.4 Add document link controls to all modules that support attachments
-- [ ] 21.5 Add timeline panels to all detail pages that require activity history
-- [ ] 21.6 Add permission-aware visibility rules to all relationship panels and row actions
-- [ ] 21.7 Add consistent archive/restore behavior across all archive-capable modules
-- [ ] 21.8 Add consistent status badge rendering across all modules and locales
-- [ ] 21.9 Add cross-module tests for deep links, related data visibility, permission filtering, archive state, and localized relationship labels
+- [x] 21.1 Add relationship panels to property details for contracts, residents, payments, utility accounts, documents, pets, vehicles, occurrences, inspections, timeline, and audit links
+- [x] 21.2 Add relationship panels to resident details for contracts, properties, payments, documents, pets, vehicles, occurrences, timeline, and audit links
+- [x] 21.3 Add relationship panels to contract details for property, residents, payments, utility accounts, documents, inspections, timeline, and audit links
+- [x] 21.4 Add document link controls to all modules that support attachments
+- [x] 21.5 Add timeline panels to all detail pages that require activity history
+- [x] 21.6 Add permission-aware visibility rules to all relationship panels and row actions
+- [x] 21.7 Add consistent archive/restore behavior across all archive-capable modules
+- [x] 21.8 Add consistent status badge rendering across all modules and locales
+- [x] 21.9 Add cross-module tests for deep links, related data visibility, permission filtering, archive state, and localized relationship labels
 
 ## 22. Localization, Accessibility, and UI Hardening
 

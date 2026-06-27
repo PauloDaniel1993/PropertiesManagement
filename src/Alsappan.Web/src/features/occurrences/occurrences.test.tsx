@@ -262,6 +262,12 @@ function buildOccurrenceSession(): AuthSessionDto {
     'occurrences.write',
     'occurrences.manage',
     'occurrences.archive',
+    'properties.read',
+    'residents.read',
+    'contracts.read',
+    'documents.read',
+    'timeline.read',
+    'audit.read',
   ]
 
   return {
@@ -443,6 +449,7 @@ describe('occurrences management UI', () => {
     await user.click(screen.getByLabelText('Ver detalhes Vazamento na cozinha - Casa Calabria'))
 
     expect(await screen.findByText('Morador relatou vazamento recorrente.')).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Anexos' }))
     expect(screen.getAllByText('Foto do vazamento').length).toBeGreaterThan(0)
 
     await user.click(screen.getByRole('tab', { name: 'Workflow' }))

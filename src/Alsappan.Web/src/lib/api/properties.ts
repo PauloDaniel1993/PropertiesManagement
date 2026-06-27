@@ -29,6 +29,7 @@ export type PropertyAddress = {
 
 export type PropertyListFilters = {
   hasGarage?: boolean | ''
+  includeArchived?: boolean
   maxRent?: number
   minRent?: number
   page?: number
@@ -56,9 +57,17 @@ export type PropertyListItem = {
   updatedAt?: string
 }
 
+export type PropertyRelationshipSummary = {
+  count: number
+  label: string
+  module: string
+  route?: string
+}
+
 export type PropertyDetail = PropertyListItem & {
   audit?: ApiAuditMetadata
   createdAt?: string
+  relationships: PropertyRelationshipSummary[]
 }
 
 export type PropertyFormRequest = {
@@ -120,12 +129,7 @@ type ApiPropertyListItem = {
 type ApiPropertyDetail = ApiPropertyListItem & {
   archivedAt?: string
   concurrencyToken?: string
-  relationships?: Array<{
-    count: number
-    label: string
-    module: string
-    route: string
-  }>
+  relationships?: PropertyRelationshipSummary[]
 }
 
 type ApiPropertyFormRequest = {
@@ -177,6 +181,7 @@ function mapPropertyDetail(item: ApiPropertyDetail): PropertyDetail {
     ...mapProperty(item),
     archivedAt: item.archivedAt,
     createdAt: item.createdAt,
+    relationships: item.relationships ?? [],
   }
 }
 
@@ -212,6 +217,7 @@ export async function listProperties(client: ApiClient, filters: PropertyListFil
   const page = await client.get<ApiPagedResult<ApiPropertyListItem>>('/v1/properties', {
     query: {
       hasGarage: filters.hasGarage,
+      includeArchived: filters.includeArchived,
       maxRent: filters.maxRent,
       minRent: filters.minRent,
       page: filters.page,

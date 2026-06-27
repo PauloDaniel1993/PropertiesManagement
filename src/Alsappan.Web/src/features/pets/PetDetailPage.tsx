@@ -10,12 +10,25 @@ import {
   RelationshipPanel,
   StatusBadge,
   Tabs,
+  type RelationshipPanelItem,
   type StatusBadgeTone,
 } from '../../components'
+import type { AppLocale } from '../../i18n'
+import type { CurrentUserDto } from '../../lib/api/identity'
 import { getPet, type PetDetail, type PetEntitySummary } from '../../lib/api/pets'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDateTime } from '../../lib/format'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
+import { EntityTimelinePanel } from '../timeline'
 import { getPetCopy } from './petCopy'
 
 const statusTones: Record<string, StatusBadgeTone> = {
@@ -53,14 +66,44 @@ function getDocumentItems(pet: PetDetail) {
   }))
 }
 
-function getRelationshipPanels(pet: PetDetail, copy: ReturnType<typeof getPetCopy>) {
+function getRelationshipPanels(
+  pet: PetDetail,
+  copy: ReturnType<typeof getPetCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
+) {
+  const context: RelationshipContext = { entityId: pet.id, entityType: 'pet' }
+  const relationshipItems: RelationshipPanelItem[] = []
+
+  if (canReadRelationshipModule('timeline', authUser)) {
+    relationshipItems.push({
+      href: buildEntityTimelineRoute(context),
+      id: 'timeline',
+      title: copy.detail.relationships.timeline,
+    })
+  }
+
+  if (canReadRelationshipModule('audit', authUser)) {
+    relationshipItems.push({
+      href: buildEntityAuditRoute(context),
+      id: 'audit',
+      title: copy.detail.relationships.audit,
+    })
+  }
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
+
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <RelationshipPanel
-        emptyState={copy.detail.emptyRelationship}
-        items={getDocumentItems(pet)}
-        title={copy.detail.documentsTitle}
-      />
+      {canReadRelationshipModule('documents', authUser) ? (
+        <RelationshipPanel
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          emptyState={copy.detail.emptyRelationship}
+          items={getDocumentItems(pet)}
+          title={copy.detail.documentsTitle}
+        />
+      ) : null}
       <RelationshipPanel
         emptyState={copy.detail.emptyRelationship}
         items={pet.authorizationHistory.map((history) => ({
@@ -73,18 +116,7 @@ function getRelationshipPanels(pet: PetDetail, copy: ReturnType<typeof getPetCop
       />
       <RelationshipPanel
         emptyState={copy.detail.emptyRelationship}
-        items={[
-          {
-            href: pet.timelineRoute,
-            id: 'timeline',
-            title: copy.detail.relationships.timeline,
-          },
-          {
-            href: pet.auditRoute,
-            id: 'audit',
-            title: copy.detail.relationships.audit,
-          },
-        ]}
+        items={relationshipItems}
         title={copy.detail.relationshipTitle}
       />
     </div>
@@ -94,12 +126,14 @@ function getRelationshipPanels(pet: PetDetail, copy: ReturnType<typeof getPetCop
 export function PetDetailPage({ onAuthorize, onBack, onDeny, onEdit, petId }: PetDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getPetCopy(locale)
   const petQuery = useQuery({
     queryFn: () => getPet(apiClient, petId, locale),
     queryKey: ['pets', 'detail', petId, locale],
   })
   const pet = petQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (petQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -222,10 +256,19 @@ export function PetDetailPage({ onAuthorize, onBack, onDeny, onEdit, petId }: Pe
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(pet, copy),
+            content: getRelationshipPanels(pet, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={pet.id} entityType="pet" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline,
+                },
+              ]
+            : []),
         ]}
       />
     </section>

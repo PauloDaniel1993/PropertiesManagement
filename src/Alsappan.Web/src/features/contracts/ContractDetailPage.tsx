@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { ArrowLeft, Pencil } from 'lucide-react'
 import {
   ActionButton,
@@ -10,16 +11,33 @@ import {
   RelationshipPanel,
   StatusBadge,
   Tabs,
+  type RelationshipPanelItem,
   type StatusBadgeTone,
 } from '../../components'
+import type { AppLocale } from '../../i18n'
 import {
   getLeaseContract,
   type ContractDetail,
+  type ContractRelationshipSummary,
   type ContractStatus,
 } from '../../lib/api/leaseContracts'
+import type { CurrentUserDto } from '../../lib/api/identity'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDate, formatDateTime, formatMoney } from '../../lib/format'
+import { coerceStatusBadgeTone } from '../../lib/statusBadges'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  filterRelationshipsByPermission,
+  relationshipSummaryItems,
+  type RelationshipContext,
+} from '../crossModule/relationships'
+import { EntityTimelinePanel } from '../timeline'
 import { getContractCopy } from './contractCopy'
 
 export type ContractDetailPageProps = {
@@ -38,12 +56,69 @@ const statusTones: Record<ContractStatus, StatusBadgeTone> = {
   terminated: 'danger',
 }
 
-function getRelationshipPanels(contract: ContractDetail, copy: ReturnType<typeof getContractCopy>) {
-  const emptyPanels = contract.relationships.filter(
-    (relationship) => !['timeline', 'audit'].includes(relationship.module),
+const summaryRelationshipModules = ['payments', 'utility-accounts', 'inspections'] as const
+
+function getRelationship(
+  relationships: ContractRelationshipSummary[],
+  module: (typeof summaryRelationshipModules)[number],
+) {
+  const aliases =
+    module === 'utility-accounts' ? ['utility-accounts', 'utilityAccounts', 'utilities'] : [module]
+
+  return relationships.find((relationship) => aliases.includes(relationship.module))
+}
+
+function getContractRelationshipPanels(
+  contract: ContractDetail,
+  copy: ReturnType<typeof getContractCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
+) {
+  const context: RelationshipContext = { entityId: contract.id, entityType: 'contract' }
+  const relationships = filterRelationshipsByPermission(
+    contract.relationships.filter(
+      (relationship) => !['timeline', 'audit', 'documents'].includes(relationship.module),
+    ),
+    authUser,
   )
-  const timeline = contract.relationships.find((relationship) => relationship.module === 'timeline')
-  const audit = contract.relationships.find((relationship) => relationship.module === 'audit')
+  const relationshipPanels: ReactNode[] = []
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
+
+  if (canReadRelationshipModule('properties', authUser)) {
+    relationshipPanels.push(
+      <RelationshipPanel
+        key="property"
+        emptyState={copy.detail.emptyRelationship}
+        items={[
+          {
+            href: `/imoveis?propertyId=${encodeURIComponent(contract.property.id)}`,
+            id: contract.property.id,
+            meta: contract.property.location,
+            title: contract.property.name,
+          },
+        ]}
+        title={copy.detail.labels.property}
+      />,
+    )
+  }
+
+  if (canReadRelationshipModule('residents', authUser)) {
+    const residentItems: RelationshipPanelItem[] = contract.residents.map((resident) => ({
+      href: `/moradores?residentId=${encodeURIComponent(resident.id)}`,
+      id: resident.id,
+      meta: resident.isPrimary ? copy.detail.labels.primaryResident : undefined,
+      title: resident.name,
+    }))
+
+    relationshipPanels.push(
+      <RelationshipPanel
+        key="residents"
+        emptyState={copy.detail.emptyRelationship}
+        items={residentItems}
+        title={copy.detail.labels.residents}
+      />,
+    )
+  }
 
   return (
     <div
@@ -53,52 +128,82 @@ function getRelationshipPanels(contract: ContractDetail, copy: ReturnType<typeof
         gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
       }}
     >
-      {emptyPanels.map((relationship) => (
+      {relationshipPanels}
+
+      {summaryRelationshipModules
+        .filter((module) => canReadRelationshipModule(module, authUser))
+        .map((module) => {
+          const relationship = getRelationship(relationships, module)
+
+          return (
+            <RelationshipPanel
+              key={module}
+              emptyState={copy.detail.emptyRelationship}
+              items={
+                relationship
+                  ? relationshipSummaryItems({
+                      context,
+                      relationship,
+                    })
+                  : []
+              }
+              title={relationship?.label ?? module}
+            />
+          )
+        })}
+
+      {canReadRelationshipModule('documents', authUser) ? (
         <RelationshipPanel
-          key={relationship.module}
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          items={contract.documents.map((document) => ({
+            description: document.category,
+            href: document.route,
+            id: document.documentId ?? document.category,
+            meta: `${document.count}`,
+            title: document.label,
+          }))}
           emptyState={copy.detail.emptyRelationship}
-          items={[]}
-          title={relationship.label}
-        />
-      ))}
-
-      <RelationshipPanel
-        items={contract.documents.map((document) => ({
-          description: document.category,
-          href: document.route,
-          id: document.documentId ?? document.category,
-          meta: `${document.count}`,
-          title: document.label,
-        }))}
-        emptyState={copy.detail.emptyRelationship}
-        title={copy.detail.documentsTitle}
-      />
-
-      {timeline ? (
-        <RelationshipPanel
-          items={[
-            {
-              description: timeline.route,
-              href: timeline.route,
-              id: 'timeline-link',
-              title: timeline.label,
-            },
-          ]}
-          title={timeline.label}
+          title={copy.detail.documentsTitle}
         />
       ) : null}
 
-      {audit ? (
+      {canReadRelationshipModule('timeline', authUser) ? (
         <RelationshipPanel
           items={[
             {
-              description: audit.route,
-              href: audit.route,
-              id: 'audit-link',
-              title: audit.label,
+              description: buildEntityTimelineRoute(context),
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title:
+                contract.relationships.find((relationship) => relationship.module === 'timeline')
+                  ?.label ?? 'Timeline',
             },
           ]}
-          title={audit.label}
+          title={
+            contract.relationships.find((relationship) => relationship.module === 'timeline')
+              ?.label ?? 'Timeline'
+          }
+        />
+      ) : null}
+
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: buildEntityAuditRoute(context),
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title:
+                contract.relationships.find((relationship) => relationship.module === 'audit')
+                  ?.label ?? 'Auditoria',
+            },
+          ]}
+          title={
+            contract.relationships.find((relationship) => relationship.module === 'audit')?.label ??
+            'Auditoria'
+          }
         />
       ) : null}
     </div>
@@ -108,12 +213,14 @@ function getRelationshipPanels(contract: ContractDetail, copy: ReturnType<typeof
 export function ContractDetailPage({ contractId, onBack, onEdit }: ContractDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getContractCopy(locale)
   const contractQuery = useQuery({
     queryFn: () => getLeaseContract(apiClient, contractId),
     queryKey: ['contracts', 'detail', contractId],
   })
   const contract = contractQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (contractQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -163,7 +270,10 @@ export function ContractDetailPage({ contractId, onBack, onEdit }: ContractDetai
               value: (
                 <StatusBadge
                   label={contract.status.label}
-                  tone={statusTones[contract.status.code]}
+                  tone={coerceStatusBadgeTone(
+                    contract.status.tone,
+                    statusTones[contract.status.code],
+                  )}
                 />
               ),
             },
@@ -244,10 +354,22 @@ export function ContractDetailPage({ contractId, onBack, onEdit }: ContractDetai
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(contract, copy),
+            content: getContractRelationshipPanels(contract, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={contract.id} entityType="contract" />,
+                  id: 'timeline',
+                  label:
+                    contract.relationships.find(
+                      (relationship) => relationship.module === 'timeline',
+                    )?.label ?? 'Timeline',
+                },
+              ]
+            : []),
         ]}
       />
     </section>

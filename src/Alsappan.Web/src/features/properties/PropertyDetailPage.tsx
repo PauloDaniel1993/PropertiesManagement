@@ -12,10 +12,30 @@ import {
   Tabs,
   type StatusBadgeTone,
 } from '../../components'
-import { getProperty, type PropertyDetail, type PropertyStatus } from '../../lib/api/properties'
+import { EntityTimelinePanel } from '../timeline'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  filterRelationshipsByPermission,
+  relationshipSummaryItems,
+  type RelationshipContext,
+  type RelationshipSummary,
+} from '../crossModule/relationships'
+import type { AppLocale } from '../../i18n'
+import {
+  getProperty,
+  type PropertyDetail,
+  type PropertyRelationshipSummary,
+  type PropertyStatus,
+} from '../../lib/api/properties'
+import type { CurrentUserDto } from '../../lib/api/identity'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDateTime, formatMoney } from '../../lib/format'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { getPropertyCopy } from './propertyCopy'
 
 export type PropertyDetailPageProps = {
@@ -49,18 +69,74 @@ function getGarageLabel(property: PropertyDetail, copy: ReturnType<typeof getPro
   return copy.list.garageSpaces(property.garageSpaces ?? 0)
 }
 
-function getRelationshipPanels(property: PropertyDetail, copy: ReturnType<typeof getPropertyCopy>) {
-  const emptyPanels = [
-    copy.detail.relationships.contracts.title,
-    copy.detail.relationships.residents.title,
-    copy.detail.relationships.payments.title,
-    copy.detail.relationships.utilities.title,
-    copy.detail.relationships.documents.title,
-    copy.detail.relationships.pets.title,
-    copy.detail.relationships.vehicles.title,
-    copy.detail.relationships.occurrences.title,
-    copy.detail.relationships.inspections.title,
+const relationshipModules = [
+  'contracts',
+  'residents',
+  'payments',
+  'utilities',
+  'documents',
+  'pets',
+  'vehicles',
+  'occurrences',
+  'inspections',
+] as const
+
+function getRelationship(relationships: RelationshipSummary[], module: string) {
+  const aliases =
+    module === 'utilities' ? ['utilities', 'utility-accounts', 'utilityAccounts'] : [module]
+
+  return relationships.find((relationship) => aliases.includes(relationship.module))
+}
+
+function getRelationshipTitle(
+  module: (typeof relationshipModules)[number],
+  copy: ReturnType<typeof getPropertyCopy>,
+) {
+  return copy.detail.relationships[module].title
+}
+
+function getFallbackRelationships(
+  context: RelationshipContext,
+  copy: ReturnType<typeof getPropertyCopy>,
+): PropertyRelationshipSummary[] {
+  const relationships: PropertyRelationshipSummary[] = relationshipModules.map((module) => ({
+    count: 0,
+    label: getRelationshipTitle(module, copy),
+    module,
+    route: module === 'utilities' ? '/contas-de-consumo' : `/${module}`,
+  }))
+
+  return [
+    ...relationships,
+    {
+      count: 1,
+      label: copy.detail.relationships.timeline.linkTitle,
+      module: 'timeline',
+      route: buildEntityTimelineRoute(context),
+    },
+    {
+      count: 1,
+      label: copy.detail.relationships.audit.linkTitle,
+      module: 'audit',
+      route: buildEntityAuditRoute(context),
+    },
   ]
+}
+
+function getRelationshipPanels(
+  property: PropertyDetail,
+  copy: ReturnType<typeof getPropertyCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
+) {
+  const context: RelationshipContext = { entityId: property.id, entityType: 'property' }
+  const relationships = filterRelationshipsByPermission(
+    property.relationships.length > 0
+      ? property.relationships
+      : getFallbackRelationships(context, copy),
+    authUser,
+  )
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
 
   return (
     <div
@@ -70,38 +146,60 @@ function getRelationshipPanels(property: PropertyDetail, copy: ReturnType<typeof
         gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
       }}
     >
-      {emptyPanels.map((title) => (
+      {relationshipModules
+        .filter((module) => canReadRelationshipModule(module, authUser))
+        .map((module) => {
+          const relationship = getRelationship(relationships, module)
+
+          return (
+            <RelationshipPanel
+              key={module}
+              action={
+                module === 'documents' && canLinkDocuments ? (
+                  <DocumentLinkAction context={context} locale={locale} />
+                ) : undefined
+              }
+              emptyState={copy.detail.emptyRelationship}
+              items={
+                relationship
+                  ? relationshipSummaryItems({
+                      context,
+                      relationship,
+                    })
+                  : []
+              }
+              title={getRelationshipTitle(module, copy)}
+            />
+          )
+        })}
+
+      {canReadRelationshipModule('timeline', authUser) ? (
         <RelationshipPanel
-          key={String(title)}
-          emptyState={copy.detail.emptyRelationship}
-          items={[]}
-          title={title}
+          items={[
+            {
+              description: copy.detail.relationships.timeline.description,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline.linkTitle,
+            },
+          ]}
+          title={copy.detail.relationships.timeline.title}
         />
-      ))}
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: copy.detail.relationships.timeline.description,
-            href: `/timeline?propertyId=${encodeURIComponent(property.id)}`,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline.linkTitle,
-          },
-        ]}
-        title={copy.detail.relationships.timeline.title}
-      />
-
-      <RelationshipPanel
-        items={[
-          {
-            description: copy.detail.relationships.audit.description,
-            href: `/auditoria?propertyId=${encodeURIComponent(property.id)}`,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit.linkTitle,
-          },
-        ]}
-        title={copy.detail.relationships.audit.title}
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: copy.detail.relationships.audit.description,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit.linkTitle,
+            },
+          ]}
+          title={copy.detail.relationships.audit.title}
+        />
+      ) : null}
     </div>
   )
 }
@@ -109,12 +207,14 @@ function getRelationshipPanels(property: PropertyDetail, copy: ReturnType<typeof
 export function PropertyDetailPage({ onBack, onEdit, propertyId }: PropertyDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getPropertyCopy(locale)
   const propertyQuery = useQuery({
     queryFn: () => getProperty(apiClient, propertyId),
     queryKey: ['properties', 'detail', propertyId],
   })
   const property = propertyQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (propertyQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -131,6 +231,8 @@ export function PropertyDetailPage({ onBack, onEdit, propertyId }: PropertyDetai
     )
   }
 
+  const canEditProperty = onEdit && property.status !== 'archived'
+
   return (
     <section style={{ display: 'grid', gap: 18 }}>
       <PageHeader
@@ -141,7 +243,7 @@ export function PropertyDetailPage({ onBack, onEdit, propertyId }: PropertyDetai
         }
         description={copy.detail.pageDescription}
         primaryAction={
-          onEdit
+          canEditProperty
             ? {
                 icon: <Pencil aria-hidden="true" size={18} />,
                 label: copy.detail.actions.edit,
@@ -212,10 +314,19 @@ export function PropertyDetailPage({ onBack, onEdit, propertyId }: PropertyDetai
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(property, copy),
+            content: getRelationshipPanels(property, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={property.id} entityType="property" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline.title,
+                },
+              ]
+            : []),
         ]}
       />
     </section>

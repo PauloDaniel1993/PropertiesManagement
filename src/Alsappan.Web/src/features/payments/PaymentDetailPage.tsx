@@ -20,9 +20,22 @@ import {
   type PaymentStatus,
   type PaymentTransaction,
 } from '../../lib/api/payments'
+import type { CurrentUserDto } from '../../lib/api/identity'
+import type { AppLocale } from '../../i18n'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDate, formatDateTime, formatMoney } from '../../lib/format'
+import { coerceStatusBadgeTone } from '../../lib/statusBadges'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
+import { EntityTimelinePanel } from '../timeline'
 import { getPaymentCopy } from './paymentCopy'
 
 export type PaymentDetailPageProps = {
@@ -44,19 +57,6 @@ const statusTones: Record<PaymentStatus, StatusBadgeTone> = {
   pending: 'warning',
 }
 
-const allowedTones: StatusBadgeTone[] = [
-  'archived',
-  'danger',
-  'info',
-  'neutral',
-  'success',
-  'warning',
-]
-
-function coerceTone(tone: string | undefined, fallback: StatusBadgeTone) {
-  return allowedTones.includes(tone as StatusBadgeTone) ? (tone as StatusBadgeTone) : fallback
-}
-
 function formatEntity(entity: PaymentDetail['property'], emptyLabel: string) {
   if (!entity) {
     return emptyLabel
@@ -65,7 +65,22 @@ function formatEntity(entity: PaymentDetail['property'], emptyLabel: string) {
   return entity.description ? `${entity.name} | ${entity.description}` : entity.name
 }
 
-function getRelationshipPanels(payment: PaymentDetail, copy: ReturnType<typeof getPaymentCopy>) {
+function getRelationshipLabels(locale: AppLocale) {
+  return locale === 'en-US'
+    ? { audit: 'Audit', timeline: 'Timeline' }
+    : { audit: 'Auditoria', timeline: 'Timeline' }
+}
+
+function getRelationshipPanels(
+  payment: PaymentDetail,
+  copy: ReturnType<typeof getPaymentCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
+) {
+  const context: RelationshipContext = { entityId: payment.id, entityType: 'payment' }
+  const labels = getRelationshipLabels(locale)
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
+
   return (
     <div
       style={{
@@ -74,39 +89,48 @@ function getRelationshipPanels(payment: PaymentDetail, copy: ReturnType<typeof g
         gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
       }}
     >
-      <RelationshipPanel
-        emptyState={copy.detail.emptyRelationship}
-        items={payment.receiptDocuments.map((document) => ({
-          href: document.route,
-          id: document.documentId,
-          title: document.label ?? document.documentId,
-        }))}
-        title={copy.detail.documentsTitle}
-      />
+      {canReadRelationshipModule('documents', authUser) ? (
+        <RelationshipPanel
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          emptyState={copy.detail.emptyRelationship}
+          items={payment.receiptDocuments.map((document) => ({
+            href: document.route,
+            id: document.documentId,
+            title: document.label ?? document.documentId,
+          }))}
+          title={copy.detail.documentsTitle}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: payment.timelineRoute,
-            href: payment.timelineRoute,
-            id: 'timeline-link',
-            title: 'Timeline',
-          },
-        ]}
-        title="Timeline"
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: payment.timelineRoute,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: labels.timeline,
+            },
+          ]}
+          title={labels.timeline}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: payment.auditRoute,
-            href: payment.auditRoute,
-            id: 'audit-link',
-            title: 'Auditoria',
-          },
-        ]}
-        title="Auditoria"
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: payment.auditRoute,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: labels.audit,
+            },
+          ]}
+          title={labels.audit}
+        />
+      ) : null}
     </div>
   )
 }
@@ -121,12 +145,14 @@ export function PaymentDetailPage({
 }: PaymentDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getPaymentCopy(locale)
   const paymentQuery = useQuery({
     queryFn: () => getPayment(apiClient, paymentId, locale),
     queryKey: ['payments', 'detail', paymentId, locale],
   })
   const payment = paymentQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (paymentQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -201,7 +227,7 @@ export function PaymentDetailPage({
               value: (
                 <StatusBadge
                   label={payment.reconciliationStatus.label}
-                  tone={coerceTone(payment.reconciliationStatus.tone, 'neutral')}
+                  tone={coerceStatusBadgeTone(payment.reconciliationStatus.tone, 'neutral')}
                 />
               ),
             },
@@ -356,10 +382,19 @@ export function PaymentDetailPage({
             label: copy.detail.transactionsTitle,
           },
           {
-            content: getRelationshipPanels(payment, copy),
+            content: getRelationshipPanels(payment, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={payment.id} entityType="payment" />,
+                  id: 'timeline',
+                  label: getRelationshipLabels(locale).timeline,
+                },
+              ]
+            : []),
         ]}
       />
     </section>
