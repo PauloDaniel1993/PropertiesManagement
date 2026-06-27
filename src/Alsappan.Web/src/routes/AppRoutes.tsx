@@ -3,6 +3,7 @@ import { defaultAuthenticatedRoute } from '../navigation/menuContract'
 import { IdentityLoginPage, AuthSessionBootstrap } from '../features/identity'
 import { AdministratorsPage } from '../pages/AdministratorsPage'
 import { PropertiesPage } from '../pages/PropertiesPage'
+import { ResidentsPage } from '../pages/ResidentsPage'
 import { ModulePlaceholderPage } from '../pages/ModulePlaceholderPage'
 import { modulePageRoutes } from '../pages/modulePageRoutes'
 import { RequireActiveOrganization, RequireAdminRoute, RequireAuthenticated } from './guards'
@@ -34,6 +35,8 @@ export function AppRoutes() {
                   <AdministratorsPage />
                 ) : route.item.id === 'properties' ? (
                   <PropertiesPage />
+                ) : route.item.id === 'residents' ? (
+                  <ResidentsPage />
                 ) : (
                   <ModulePlaceholderPage item={route.item} />
                 )

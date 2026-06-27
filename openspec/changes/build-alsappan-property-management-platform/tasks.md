@@ -99,15 +99,15 @@
 
 ## 7. Moradores Module
 
-- [ ] 7.1 Model residents with personal data, contacts, identification, emergency contact, notes, privacy flags, optional linked user account, portal status, and lifecycle metadata
-- [ ] 7.2 Add resident migrations, indexes for name, email, phone, document identifier, and organization scoping
-- [ ] 7.3 Implement resident create, list, detail, update, archive, restore, and duplicate warning use cases
-- [ ] 7.4 Implement resident API endpoints with search, filters, permission-aware sensitive field masking, and relationship summaries
-- [ ] 7.5 Emit resident audit, timeline, and outbox events for all mutating actions
-- [ ] 7.6 Build Moradores list page with search, status filters, contact summary, and row actions
-- [ ] 7.7 Build resident create/edit form with localized validation and duplicate warning flow
-- [ ] 7.8 Build resident detail page with contracts, properties, payments, documents, pets, vehicles, occurrences, timeline, and audit links
-- [ ] 7.9 Add tests for resident CRUD, duplicate detection, sensitive field masking, permissions, localization, and archived state
+- [x] 7.1 Model residents with personal data, contacts, identification, emergency contact, notes, privacy flags, optional linked user account, portal status, and lifecycle metadata
+- [x] 7.2 Add resident migrations, indexes for name, email, phone, document identifier, and organization scoping
+- [x] 7.3 Implement resident create, list, detail, update, archive, restore, and duplicate warning use cases
+- [x] 7.4 Implement resident API endpoints with search, filters, permission-aware sensitive field masking, and relationship summaries
+- [x] 7.5 Emit resident audit, timeline, and outbox events for all mutating actions
+- [x] 7.6 Build Moradores list page with search, status filters, contact summary, and row actions
+- [x] 7.7 Build resident create/edit form with localized validation and duplicate warning flow
+- [x] 7.8 Build resident detail page with contracts, properties, payments, documents, pets, vehicles, occurrences, timeline, and audit links
+- [x] 7.9 Add tests for resident CRUD, duplicate detection, sensitive field masking, permissions, localization, and archived state
 - [ ] 7.10 Implement resident account invitation, activation, deactivation, password reset, and link/unlink use cases
 - [ ] 7.11 Implement resident portal summary APIs for profile, linked property, contracts, payments, documents, occurrences, inspections, and notifications
 - [ ] 7.12 Build resident portal shell with localized navigation, profile menu, notifications, theme, locale, and responsive layout
