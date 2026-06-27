@@ -2,8 +2,14 @@ import { getModulePageComponent, implementedModuleRouteIds } from './modulePageR
 
 describe('module page route registry', () => {
   it('discovers implemented feature pages without root router edits', () => {
-    expect(implementedModuleRouteIds).toEqual(['administrators', 'properties', 'residents'])
+    expect(implementedModuleRouteIds).toEqual([
+      'administrators',
+      'audit',
+      'properties',
+      'residents',
+    ])
     expect(getModulePageComponent('administrators')).toEqual(expect.any(Function))
+    expect(getModulePageComponent('audit')).toEqual(expect.any(Function))
     expect(getModulePageComponent('properties')).toEqual(expect.any(Function))
     expect(getModulePageComponent('residents')).toEqual(expect.any(Function))
   })

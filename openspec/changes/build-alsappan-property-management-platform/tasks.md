@@ -263,14 +263,14 @@
 
 ## 18. Auditoria Module
 
-- [ ] 18.1 Model immutable audit entries with actor, action, target entity, changed field summary, request context, security category, and timestamp
-- [ ] 18.2 Add audit migrations and indexes for actor, action, entity type, entity ID, date, security category, and organization scoping
-- [ ] 18.3 Implement audit writing in all mutating use cases and security-sensitive identity use cases
-- [ ] 18.4 Implement guardrails that prevent normal application APIs from editing or deleting audit entries
-- [ ] 18.5 Implement audit list and detail endpoints with filters for actor, action, entity, date range, and security category
-- [ ] 18.6 Implement audit permission policies and administrator-only navigation visibility
-- [ ] 18.7 Build Auditoria page with filters, results table, detail expansion, and protected access handling
-- [ ] 18.8 Add tests for audit immutability, permission denial, mutation coverage, filter accuracy, localization, and sensitive payload redaction
+- [x] 18.1 Model immutable audit entries with actor, action, target entity, changed field summary, request context, security category, and timestamp
+- [x] 18.2 Add audit migrations and indexes for actor, action, entity type, entity ID, date, security category, and organization scoping
+- [x] 18.3 Implement audit writing in all mutating use cases and security-sensitive identity use cases
+- [x] 18.4 Implement guardrails that prevent normal application APIs from editing or deleting audit entries
+- [x] 18.5 Implement audit list and detail endpoints with filters for actor, action, entity, date range, and security category
+- [x] 18.6 Implement audit permission policies and administrator-only navigation visibility
+- [x] 18.7 Build Auditoria page with filters, results table, detail expansion, and protected access handling
+- [x] 18.8 Add tests for audit immutability, permission denial, mutation coverage, filter accuracy, localization, and sensitive payload redaction
 
 ## 19. Dashboard and Global Search
 
