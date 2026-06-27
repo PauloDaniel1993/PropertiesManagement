@@ -145,23 +145,23 @@
 
 ## 10. Pagamentos Module
 
-- [ ] 10.1 Model charges, payment transactions, balances, payment methods, receipt links, discounts, penalties, reconciliation metadata, and lifecycle status
-- [ ] 10.2 Add payment statuses, methods, and reconciliation catalogs with localized labels
-- [ ] 10.3 Add payment migrations, indexes for contract, property, resident, due date, status, and organization scoping
-- [ ] 10.4 Implement charge create, list, detail, update, cancel, archive, restore, and status calculation use cases
-- [ ] 10.5 Implement transaction record, partial settlement, full settlement, reversal/correction, and balance recalculation use cases
-- [ ] 10.6 Implement overdue detection job or query projection for dashboard and notifications
-- [ ] 10.7 Implement payment API endpoints with filters for status, due date, contract, resident, property, and overdue state
-- [ ] 10.8 Emit payment audit, timeline, outbox, notification, and dashboard projection events
-- [ ] 10.9 Build Pagamentos list page with status tabs, due date filters, amount columns, and settlement actions
-- [ ] 10.10 Build charge create/edit and payment settlement forms with receipt document attachment
-- [ ] 10.11 Build payment detail page with transactions, balance history, linked documents, timeline, and audit links
-- [ ] 10.12 Add tests for charge lifecycle, partial payments, overdue status, receipt links, permissions, localization, and dashboard impact
-- [ ] 10.13 Define payment provider interfaces for payment instructions, provider references, status mapping, mock events, and reconciliation callbacks
-- [ ] 10.14 Implement mocked boleto provider returning placeholder barcode, linha digitavel, due date, amount, payer summary, and provider reference
-- [ ] 10.15 Implement mocked Pix provider returning placeholder QR payload, copy-and-paste code, expiration, amount, payer summary, and provider reference
-- [ ] 10.16 Implement mocked PayPal provider returning placeholder payment intent ID, approval URL, status, amount, payer summary, and provider reference
-- [ ] 10.17 Add payment instruction endpoints and DTOs for boleto, Pix, and PayPal mock provider responses
+- [x] 10.1 Model charges, payment transactions, balances, payment methods, receipt links, discounts, penalties, reconciliation metadata, and lifecycle status
+- [x] 10.2 Add payment statuses, methods, and reconciliation catalogs with localized labels
+- [x] 10.3 Add payment migrations, indexes for contract, property, resident, due date, status, and organization scoping
+- [x] 10.4 Implement charge create, list, detail, update, cancel, archive, restore, and status calculation use cases
+- [x] 10.5 Implement transaction record, partial settlement, full settlement, reversal/correction, and balance recalculation use cases
+- [x] 10.6 Implement overdue detection job or query projection for dashboard and notifications
+- [x] 10.7 Implement payment API endpoints with filters for status, due date, contract, resident, property, and overdue state
+- [x] 10.8 Emit payment audit, timeline, outbox, notification, and dashboard projection events
+- [x] 10.9 Build Pagamentos list page with status tabs, due date filters, amount columns, and settlement actions
+- [x] 10.10 Build charge create/edit and payment settlement forms with receipt document attachment
+- [x] 10.11 Build payment detail page with transactions, balance history, linked documents, timeline, and audit links
+- [x] 10.12 Add tests for charge lifecycle, partial payments, overdue status, receipt links, permissions, localization, and dashboard impact
+- [x] 10.13 Define payment provider interfaces for payment instructions, provider references, status mapping, mock events, and reconciliation callbacks
+- [x] 10.14 Implement mocked boleto provider returning placeholder barcode, linha digitavel, due date, amount, payer summary, and provider reference
+- [x] 10.15 Implement mocked Pix provider returning placeholder QR payload, copy-and-paste code, expiration, amount, payer summary, and provider reference
+- [x] 10.16 Implement mocked PayPal provider returning placeholder payment intent ID, approval URL, status, amount, payer summary, and provider reference
+- [x] 10.17 Add payment instruction endpoints and DTOs for boleto, Pix, and PayPal mock provider responses
 - [ ] 10.18 Add resident portal payment instruction display for mocked boleto, Pix, and PayPal
 - [ ] 10.19 Add tests for mocked provider instruction generation, mock event settlement mapping, tenant isolation, resident visibility, and future-provider contract stability
 
