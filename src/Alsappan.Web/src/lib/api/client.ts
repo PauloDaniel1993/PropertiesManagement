@@ -6,12 +6,7 @@ import {
 } from './contracts'
 
 export type ApiQueryValue =
-  | boolean
-  | null
-  | number
-  | readonly (boolean | number | string)[]
-  | string
-  | undefined
+  boolean | null | number | readonly (boolean | number | string)[] | string | undefined
 
 export type ApiRequestOptions<TBody = unknown> = {
   body?: TBody

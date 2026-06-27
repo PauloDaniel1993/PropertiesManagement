@@ -2,11 +2,7 @@ import { create } from 'zustand'
 import type { AuthSessionDto, CurrentUserDto } from '../lib/api/identity'
 
 export type AuthSessionStatus =
-  | 'authenticated'
-  | 'bootstrapping'
-  | 'error'
-  | 'idle'
-  | 'unauthenticated'
+  'authenticated' | 'bootstrapping' | 'error' | 'idle' | 'unauthenticated'
 
 export type AuthSessionUser = CurrentUserDto & {
   name: string
