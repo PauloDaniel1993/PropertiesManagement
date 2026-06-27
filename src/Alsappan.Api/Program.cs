@@ -5,6 +5,7 @@ using Alsappan.Api.Modules;
 using Alsappan.Api.OpenApi;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Infrastructure;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -55,10 +56,27 @@ app.UseHttpsRedirection();
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 app.UseCors(ApiPlatformServiceCollectionExtensions.CorsPolicyName);
 app.UseAuthentication();
+app.UseMiddleware<OperationalLoggingMiddleware>();
 app.UseAuthorization();
 
-app.MapHealthChecks("/health")
+app.MapHealthChecks(
+    "/health",
+    new HealthCheckOptions
+    {
+      Predicate = registration => registration.Tags.Contains("live", StringComparer.Ordinal),
+      ResponseWriter = OperationalHealthResponseWriter.WriteAsync
+    })
     .WithName("System_Health")
+    .WithTags("System");
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+      Predicate = registration => registration.Tags.Contains("ready", StringComparer.Ordinal),
+      ResponseWriter = OperationalHealthResponseWriter.WriteAsync
+    })
+    .WithName("System_Readiness")
     .WithTags("System");
 
 var v1 = app.MapGroup(ApiConventions.VersionPrefix);

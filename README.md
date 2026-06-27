@@ -18,6 +18,7 @@ Alsappan is a multi-tenant property management platform with a React frontend an
 
 - [API conventions](docs/api-conventions.md)
 - [Domain glossary](docs/domain-glossary.md)
+- [Deployment and operational readiness](docs/deployment-readiness.md)
 - [Parallel feature development](docs/parallel-feature-development.md)
 - [Security review checklist](docs/security-review-checklist.md)
 - [Seed data plan](docs/seed-data.md)
@@ -61,6 +62,12 @@ Alsappan is a multi-tenant property management platform with a React frontend an
 ./scripts/build.ps1
 ./scripts/test.ps1
 openspec validate build-alsappan-property-management-platform
+```
+
+Operational smoke checks for deployed environments:
+
+```powershell
+./scripts/performance-smoke.ps1 -BaseUrl https://api.example.com
 ```
 
 ## Git Flow

@@ -105,7 +105,22 @@ internal static class ApiPlatformServiceCollectionExtensions
     });
 
     services.AddHealthChecks()
-        .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API process is running."));
+        .AddCheck(
+          "api",
+          () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API process is running."),
+          tags: ["live", "ready"])
+        .AddCheck<DatabaseHealthCheck>(
+          "database",
+          tags: ["ready"])
+        .AddCheck<StorageHealthCheck>(
+          "storage",
+          tags: ["ready"])
+        .AddCheck<BackgroundWorkerHealthCheck>(
+          "background-worker",
+          tags: ["ready"])
+        .AddCheck<LocalizationHealthCheck>(
+          "localization",
+          tags: ["ready"]);
 
     return services;
   }

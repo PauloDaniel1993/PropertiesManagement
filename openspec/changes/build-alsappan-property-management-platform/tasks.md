@@ -343,13 +343,13 @@
 
 ## 24. Deployment and Operational Readiness
 
-- [ ] 24.1 Add production-ready configuration documentation for API, web, database, auth, multi-tenancy, resident portal, file storage, localization, and CORS
-- [ ] 24.2 Add Dockerfiles or deployment artifacts for backend and frontend
-- [ ] 24.3 Add database migration execution guidance for deployment environments
-- [ ] 24.4 Add structured logging fields for organization, user, request ID, action, entity type, and entity ID
-- [ ] 24.5 Add health checks for API, database, storage, background worker, and localization resource loading
-- [ ] 24.6 Add backup and restore assumptions for PostgreSQL and file storage
-- [ ] 24.7 Add basic performance checks for large lists, indexed filters, dashboard queries, and global search
+- [x] 24.1 Add production-ready configuration documentation for API, web, database, auth, multi-tenancy, resident portal, file storage, localization, and CORS
+- [x] 24.2 Add Dockerfiles or deployment artifacts for backend and frontend
+- [x] 24.3 Add database migration execution guidance for deployment environments
+- [x] 24.4 Add structured logging fields for organization, user, request ID, action, entity type, and entity ID
+- [x] 24.5 Add health checks for API, database, storage, background worker, and localization resource loading
+- [x] 24.6 Add backup and restore assumptions for PostgreSQL and file storage
+- [x] 24.7 Add basic performance checks for large lists, indexed filters, dashboard queries, and global search
 - [x] 24.8 Add security review checklist for auth, tenant isolation, resident portal policies, payment provider mock boundaries, permissions, white-label asset validation, upload restrictions, audit, sensitive data masking, and dependency scanning
 - [ ] 24.9 Run full local validation from clean checkout instructions and update README gaps
 - [ ] 24.10 Run final OpenSpec validation/status check before implementation starts
