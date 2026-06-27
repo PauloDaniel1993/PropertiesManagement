@@ -1,0 +1,106 @@
+import type { AppLocale } from '../../i18n'
+
+const copy = {
+  'en-US': {
+    activeFilters: (count: number) => `${count} active filter${count === 1 ? '' : 's'}`,
+    allCategories: 'All categories',
+    allSorts: 'Newest first',
+    category: {
+      Mutation: 'Data',
+      Security: 'Security',
+      System: 'System',
+    },
+    clearFilters: 'Clear filters',
+    columns: {
+      action: 'Action',
+      actor: 'Actor',
+      category: 'Category',
+      occurredAt: 'When',
+      target: 'Target',
+    },
+    details: {
+      changedFields: 'Changed fields',
+      context: 'Context',
+      correlation: 'Correlation',
+      empty: 'No structured payload',
+      selected: 'Selected event',
+    },
+    empty: 'No audit events found.',
+    entityType: 'Entity type',
+    error: 'Unable to load audit entries.',
+    filters: 'Filters',
+    from: 'From',
+    loading: 'Loading audit entries...',
+    pageDescription: 'Review immutable security, authorization, and data mutation events.',
+    pageTitle: 'Audit',
+    pagination: {
+      next: 'Next',
+      page: (page: number, totalPages: number) => `Page ${page} of ${totalPages}`,
+      previous: 'Previous',
+      range: (first: number, last: number, total: number) => `Showing ${first}-${last} of ${total}`,
+    },
+    search: 'Search audit',
+    searchPlaceholder: 'Search by action, actor, target, or category',
+    sortAction: 'Action',
+    sortActor: 'Actor',
+    sortCategory: 'Category',
+    sortOldest: 'Oldest first',
+    targetId: 'Target ID',
+    to: 'To',
+    view: 'View',
+  },
+  'pt-BR': {
+    activeFilters: (count: number) =>
+      `${count} filtro${count === 1 ? '' : 's'} ativo${count === 1 ? '' : 's'}`,
+    allCategories: 'Todas as categorias',
+    allSorts: 'Mais recentes',
+    category: {
+      Mutation: 'Dados',
+      Security: 'Seguranca',
+      System: 'Sistema',
+    },
+    clearFilters: 'Limpar filtros',
+    columns: {
+      action: 'Acao',
+      actor: 'Ator',
+      category: 'Categoria',
+      occurredAt: 'Quando',
+      target: 'Alvo',
+    },
+    details: {
+      changedFields: 'Campos alterados',
+      context: 'Contexto',
+      correlation: 'Correlacao',
+      empty: 'Sem payload estruturado',
+      selected: 'Evento selecionado',
+    },
+    empty: 'Nenhum evento de auditoria encontrado.',
+    entityType: 'Tipo de entidade',
+    error: 'Erro ao carregar eventos de auditoria.',
+    filters: 'Filtros',
+    from: 'De',
+    loading: 'Carregando eventos de auditoria...',
+    pageDescription: 'Consulte eventos imutaveis de seguranca, autorizacao e alteracao de dados.',
+    pageTitle: 'Auditoria',
+    pagination: {
+      next: 'Proxima',
+      page: (page: number, totalPages: number) => `Pagina ${page} de ${totalPages}`,
+      previous: 'Anterior',
+      range: (first: number, last: number, total: number) =>
+        `Exibindo ${first}-${last} de ${total}`,
+    },
+    search: 'Buscar auditoria',
+    searchPlaceholder: 'Buscar por acao, ator, alvo ou categoria',
+    sortAction: 'Acao',
+    sortActor: 'Ator',
+    sortCategory: 'Categoria',
+    sortOldest: 'Mais antigos',
+    targetId: 'ID do alvo',
+    to: 'Ate',
+    view: 'Ver',
+  },
+} as const
+
+export function getAuditCopy(locale: AppLocale) {
+  return copy[locale] ?? copy['pt-BR']
+}
