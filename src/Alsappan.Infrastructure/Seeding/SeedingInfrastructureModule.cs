@@ -16,6 +16,5 @@ internal sealed class SeedingInfrastructureModule : IInfrastructureModule
 
     services.AddScoped<IDatabaseSeedRunner, EfDatabaseSeedRunner>();
     services.AddScoped<IDatabaseSeedContributor, IdentitySeedContributor>();
-    services.AddScoped<IDatabaseSeedContributor, DemoSeedContributor>();
   }
 }

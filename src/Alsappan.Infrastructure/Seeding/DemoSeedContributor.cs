@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Alsappan.Application.Common.Audit;
 using Alsappan.Application.Common.Authorization;
+using Alsappan.Application.Common.Configuration;
 using Alsappan.Application.Common.Seeding;
 using Alsappan.Application.Identity.Security;
 using Alsappan.Application.Payments;
@@ -26,13 +27,19 @@ using Alsappan.Infrastructure.Notifications;
 using Alsappan.Infrastructure.Payments;
 using Alsappan.Infrastructure.Persistence;
 using Alsappan.Infrastructure.Timeline;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Alsappan.Infrastructure.Seeding;
 
+public sealed record DemoSeedEnvironment(string EnvironmentName);
+
 public sealed class DemoSeedContributor : IDatabaseSeedContributor
 {
+  internal const string EnableDemoDataPath = "Alsappan:Seeding:EnableDemoData";
+
   private const string DemoPassword = "alsappan";
   private const string Locale = "pt-BR";
   private const string Currency = "BRL";
@@ -44,6 +51,20 @@ public sealed class DemoSeedContributor : IDatabaseSeedContributor
   private static readonly UserId StaffUserId = UserId("staff-user");
   private static readonly UserId ResidentUserId = UserId("resident-user");
 
+  private readonly DemoSeedEnvironment _environment;
+  private readonly SeedingOptions _seedingOptions;
+
+  public DemoSeedContributor(
+    IOptions<AlsappanOptions> options,
+    DemoSeedEnvironment environment)
+  {
+    ArgumentNullException.ThrowIfNull(options);
+    ArgumentNullException.ThrowIfNull(environment);
+
+    _seedingOptions = options.Value.Seeding;
+    _environment = environment;
+  }
+
   public string Name => "tenant-demo-data";
 
   public string Version => "2026.06.27";
@@ -51,6 +72,7 @@ public sealed class DemoSeedContributor : IDatabaseSeedContributor
   public async Task SeedAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(serviceProvider);
+    EnsureEnabled();
 
     var dbContext = serviceProvider.GetRequiredService<AlsappanDbContext>();
     var passwordHashService = serviceProvider.GetRequiredService<IPasswordHashService>();
@@ -1067,7 +1089,8 @@ public sealed class DemoSeedContributor : IDatabaseSeedContributor
       DemoNow.AddDays(-2),
       EntityReference.FromGuid("payment", EntityId("payment:rent-july-2026").Value, "Aluguel - Julho 2026"),
       new Dictionary<string, string> { ["provider"] = PaymentCatalog.MockBoletoProvider, ["dueDate"] = "2026-07-10" },
-      [EntityReference.FromGuid("contract", contract.Id.Value, "Contrato Apartamento Aurora 1201")]);
+      [EntityReference.FromGuid("contract", contract.Id.Value, "Contrato Apartamento Aurora 1201")],
+      ModuleEventConsumer.Timeline | ModuleEventConsumer.Notifications);
 
     if (!await dbContext.NotificationRecords
       .IgnoreQueryFilters()
@@ -1123,7 +1146,10 @@ public sealed class DemoSeedContributor : IDatabaseSeedContributor
     DateTimeOffset occurredAt,
     EntityReference subject,
     IReadOnlyDictionary<string, string> data,
-    IReadOnlyCollection<EntityReference>? relatedEntities = null) =>
+    IReadOnlyCollection<EntityReference>? relatedEntities = null,
+    ModuleEventConsumer consumers = ModuleEventConsumer.Audit |
+      ModuleEventConsumer.Timeline |
+      ModuleEventConsumer.Notifications) =>
     new(
       GuidFor($"event:{key}"),
       DemoOrganizationId,
@@ -1132,11 +1158,49 @@ public sealed class DemoSeedContributor : IDatabaseSeedContributor
       occurredAt,
       EventActor.User(StaffUserId, "Bruno Operador"),
       subject,
-      ModuleEventConsumer.Audit | ModuleEventConsumer.Timeline | ModuleEventConsumer.Notifications,
+      consumers,
       data,
       relatedEntities,
       $"demo-seed:{key}",
       locale: Locale);
+
+  internal static bool IsEnabled(IConfiguration? configuration, string? environmentName)
+  {
+    if (configuration is null || string.IsNullOrWhiteSpace(environmentName))
+    {
+      return false;
+    }
+
+    return bool.TryParse(configuration[EnableDemoDataPath], out var enabled) &&
+      enabled &&
+      IsAllowedDemoEnvironment(environmentName);
+  }
+
+  private void EnsureEnabled()
+  {
+    if (IsEnabled(_seedingOptions, _environment))
+    {
+      return;
+    }
+
+    throw new InvalidOperationException(
+      $"Demo seed data is disabled. Set {EnableDemoDataPath}=true only in Development, Local, or Demo environments.");
+  }
+
+  private static bool IsEnabled(SeedingOptions seedingOptions, DemoSeedEnvironment environment) =>
+    seedingOptions.EnableDemoData && IsAllowedDemoEnvironment(environment.EnvironmentName);
+
+  private static bool IsAllowedDemoEnvironment(string? environmentName)
+  {
+    if (string.Equals(environmentName, "Production", StringComparison.OrdinalIgnoreCase))
+    {
+      return false;
+    }
+
+    return string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase) ||
+      string.Equals(environmentName, "Local", StringComparison.OrdinalIgnoreCase) ||
+      string.Equals(environmentName, "Demo", StringComparison.OrdinalIgnoreCase);
+  }
 
   private static async Task<PaymentInstructionDto> CreateInstructionAsync(
     IPaymentInstructionProvider provider,

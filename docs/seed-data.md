@@ -9,9 +9,21 @@ Os seeds iniciais mantem o ambiente local utilizavel e preservam os limites de o
 - Localidade padrao: `pt-BR`
 - Moeda padrao: `BRL`
 
+## Seed de demonstracao
+
+O cenario completo de demonstracao fica desativado por padrao. Ative somente em
+ambientes locais, de desenvolvimento ou demonstracao, usando configuracao ou
+variavel de ambiente equivalente:
+
+```powershell
+$env:Alsappan__Seeding__EnableDemoData = "true"
+```
+
+O backend ignora essa opcao em `Production`, mesmo se a variavel estiver ligada.
+
 ## Credenciais locais
 
-Use somente em ambientes locais:
+Use somente quando o seed de demonstracao estiver ativado em ambiente local:
 
 - Administrador: `admin@alsappan.local` / `alsappan`
 - Operador: `operador@alsappan.local` / `alsappan`

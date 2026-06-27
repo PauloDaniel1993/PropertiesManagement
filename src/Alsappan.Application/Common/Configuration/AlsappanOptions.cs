@@ -12,6 +12,8 @@ public sealed class AlsappanOptions
 
   public StorageOptions Storage { get; init; } = new();
 
+  public SeedingOptions Seeding { get; init; } = new();
+
   public LocalizationOptions Localization { get; init; } = new();
 
   public CorsOptions Cors { get; init; } = new();
@@ -44,6 +46,11 @@ public sealed class AuthOptions
 public sealed class StorageOptions
 {
   public string LocalPath { get; init; } = "./storage";
+}
+
+public sealed class SeedingOptions
+{
+  public bool EnableDemoData { get; init; }
 }
 
 public sealed class LocalizationOptions

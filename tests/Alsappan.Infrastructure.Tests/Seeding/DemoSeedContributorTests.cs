@@ -1,4 +1,6 @@
 using Alsappan.Application.Common.Authorization;
+using Alsappan.Application.Common.Configuration;
+using Alsappan.Application.Common.Seeding;
 using Alsappan.Application.Identity.Security;
 using Alsappan.Application.Payments;
 using Alsappan.Application.Settings.Repositories;
@@ -8,14 +10,17 @@ using Alsappan.Domain.Inspections;
 using Alsappan.Domain.Occurrences;
 using Alsappan.Domain.Payments;
 using Alsappan.Domain.UtilityAccounts;
+using Alsappan.Infrastructure;
 using Alsappan.Infrastructure.Authorization;
 using Alsappan.Infrastructure.Identity;
 using Alsappan.Infrastructure.Persistence;
 using Alsappan.Infrastructure.Seeding;
 using Alsappan.Infrastructure.Settings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Alsappan.Infrastructure.Tests.Seeding;
 
@@ -34,7 +39,7 @@ public sealed class DemoSeedContributorTests
       await new IdentitySeedContributor().SeedAsync(scope.ServiceProvider);
       await new SettingsSeedContributor().SeedAsync(scope.ServiceProvider);
 
-      var contributor = new DemoSeedContributor();
+      var contributor = scope.ServiceProvider.GetRequiredService<DemoSeedContributor>();
       await contributor.SeedAsync(scope.ServiceProvider);
       await contributor.SeedAsync(scope.ServiceProvider);
     }
@@ -57,6 +62,15 @@ public sealed class DemoSeedContributorTests
     Assert.Equal(6, await dbContext.NotificationRecords.IgnoreQueryFilters().CountAsync(item => item.OrganizationId == organizationId));
     Assert.Equal(6, await dbContext.TimelineEntries.IgnoreQueryFilters().CountAsync(item => item.OrganizationId == organizationId));
     Assert.Equal(6, await dbContext.AuditLogEntries.IgnoreQueryFilters().CountAsync(item => item.OrganizationId == organizationId));
+    Assert.True(await dbContext.NotificationRecords
+      .IgnoreQueryFilters()
+      .AnyAsync(item => item.CorrelationId == "demo-seed:payment-july-open-resident"));
+    Assert.True(await dbContext.TimelineEntries
+      .IgnoreQueryFilters()
+      .AnyAsync(item => item.CorrelationId == "demo-seed:payment-july-open-resident"));
+    Assert.False(await dbContext.AuditLogEntries
+      .IgnoreQueryFilters()
+      .AnyAsync(item => item.CorrelationId == "demo-seed:payment-july-open-resident"));
 
     var contract = await dbContext.Contracts
       .IgnoreQueryFilters()
@@ -125,17 +139,74 @@ public sealed class DemoSeedContributorTests
     Assert.All(inspection.SignatureSlots, slot => Assert.True(slot.IsSigned));
   }
 
-  private static ServiceProvider CreateProvider(string databaseName)
+  [Fact]
+  public void InfrastructureRegistrationOmitsDemoSeedContributorUnlessExplicitlyEnabledInDemoEnvironment()
+  {
+    var disabledServices = CreateInfrastructureServices(enableDemoData: false, environmentName: "Development");
+    var productionServices = CreateInfrastructureServices(enableDemoData: true, environmentName: "Production");
+    var enabledServices = CreateInfrastructureServices(enableDemoData: true, environmentName: "Development");
+
+    Assert.DoesNotContain(disabledServices, IsDemoSeedRegistration);
+    Assert.DoesNotContain(productionServices, IsDemoSeedRegistration);
+    Assert.Contains(enabledServices, IsDemoSeedRegistration);
+  }
+
+  [Fact]
+  public async Task DemoSeedContributorRejectsDisabledOptionsWithoutSeedingDemoTenant()
+  {
+    var databaseName = Guid.NewGuid().ToString("N");
+    await using var provider = CreateProvider(databaseName, enableDemoData: false);
+    await using var scope = provider.CreateAsyncScope();
+    var contributor = scope.ServiceProvider.GetRequiredService<DemoSeedContributor>();
+
+    var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => contributor.SeedAsync(scope.ServiceProvider));
+
+    Assert.Contains("Alsappan:Seeding:EnableDemoData", exception.Message, StringComparison.Ordinal);
+    var dbContext = scope.ServiceProvider.GetRequiredService<AlsappanDbContext>();
+    var organizationId = new Domain.Common.Identifiers.OrganizationId(DemoOrganizationGuid);
+    Assert.False(await dbContext.IdentityOrganizations
+      .IgnoreQueryFilters()
+      .AnyAsync(organization => organization.Id == organizationId));
+  }
+
+  private static ServiceProvider CreateProvider(
+    string databaseName,
+    bool enableDemoData = true,
+    string environmentName = "Development")
   {
     var services = new ServiceCollection();
     services.AddSingleton(TimeProvider.System);
+    services.AddSingleton(new DemoSeedEnvironment(environmentName));
+    services.AddSingleton(Options.Create(new AlsappanOptions
+    {
+      Seeding = new SeedingOptions { EnableDemoData = enableDemoData }
+    }));
     services.AddSingleton<IRolePermissionCatalog, DefaultRolePermissionCatalog>();
     services.AddScoped<IPasswordHashService, Pbkdf2PasswordHashService>();
     services.AddScoped<ISettingsRepository, EfSettingsRepository>();
+    services.AddScoped<DemoSeedContributor>();
     services.AddDbContext<AlsappanDbContext>(options => options
       .UseInMemoryDatabase(databaseName)
       .ReplaceService<IModelCacheKeyFactory, AlsappanModelCacheKeyFactory>());
 
     return services.BuildServiceProvider();
   }
+
+  private static ServiceCollection CreateInfrastructureServices(bool enableDemoData, string environmentName)
+  {
+    var services = new ServiceCollection();
+    var configuration = new ConfigurationBuilder()
+      .AddInMemoryCollection(new Dictionary<string, string?>
+      {
+        ["Alsappan:Seeding:EnableDemoData"] = enableDemoData ? "true" : "false"
+      })
+      .Build();
+
+    services.AddInfrastructure(environmentName, configuration);
+    return services;
+  }
+
+  private static bool IsDemoSeedRegistration(ServiceDescriptor descriptor) =>
+    descriptor.ServiceType == typeof(IDatabaseSeedContributor) &&
+    descriptor.ImplementationType == typeof(DemoSeedContributor);
 }
