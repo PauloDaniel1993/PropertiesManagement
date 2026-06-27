@@ -166,6 +166,8 @@ public sealed class AdministratorServiceTests
   {
     private readonly List<IdentityUser> users = [];
     private readonly List<IdentityMembership> memberships = [];
+    private readonly List<UserInvitation> invitations = [];
+    private readonly List<ResidentAccountLink> residentAccountLinks = [];
 
     public Task AddUserAsync(
       IdentityUser user,
@@ -177,6 +179,16 @@ public sealed class AdministratorServiceTests
       cancellationToken.ThrowIfCancellationRequested();
       users.Add(user);
       this.memberships.AddRange(memberships);
+      if (invitation is not null)
+      {
+        invitations.Add(invitation);
+      }
+
+      if (residentAccountLink is not null)
+      {
+        residentAccountLinks.Add(residentAccountLink);
+      }
+
       return Task.CompletedTask;
     }
 
@@ -219,7 +231,37 @@ public sealed class AdministratorServiceTests
       CancellationToken cancellationToken = default)
     {
       cancellationToken.ThrowIfCancellationRequested();
-      return Task.FromResult<ResidentAccountLink?>(null);
+      return Task.FromResult(residentAccountLinks.FirstOrDefault(link =>
+        link.UserId == userId &&
+        link.OrganizationId == organizationId &&
+        link.IsActive));
+    }
+
+    public Task<IdentityRole?> FindRoleByCodeAsync(
+      string roleCode,
+      OrganizationId organizationId,
+      CancellationToken cancellationToken = default)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      return Task.FromResult<IdentityRole?>(IdentityRole.Create(
+        EntityId.New(),
+        organizationId,
+        roleCode,
+        roleCode,
+        DateTimeOffset.UtcNow));
+    }
+
+    public Task<ResidentAccountLink?> FindResidentAccountLinkByResidentAsync(
+      EntityId residentId,
+      OrganizationId organizationId,
+      bool includeInactive = false,
+      CancellationToken cancellationToken = default)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      return Task.FromResult(residentAccountLinks.FirstOrDefault(link =>
+        link.ResidentId == residentId &&
+        link.OrganizationId == organizationId &&
+        (includeInactive || link.IsActive)));
     }
 
     public Task<IdentityUser?> FindUserByEmailAsync(
@@ -302,6 +344,27 @@ public sealed class AdministratorServiceTests
         0));
     }
 
+    public Task AddMembershipAsync(IdentityMembership membership, CancellationToken cancellationToken = default)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      memberships.Add(membership);
+      return Task.CompletedTask;
+    }
+
+    public Task AddUserInvitationAsync(UserInvitation invitation, CancellationToken cancellationToken = default)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      invitations.Add(invitation);
+      return Task.CompletedTask;
+    }
+
+    public Task AddResidentAccountLinkAsync(ResidentAccountLink link, CancellationToken cancellationToken = default)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      residentAccountLinks.Add(link);
+      return Task.CompletedTask;
+    }
+
     public Task UpdateMembershipAsync(IdentityMembership membership, CancellationToken cancellationToken = default)
     {
       cancellationToken.ThrowIfCancellationRequested();
@@ -309,6 +372,14 @@ public sealed class AdministratorServiceTests
     }
 
     public Task UpdateUserAsync(IdentityUser user, CancellationToken cancellationToken = default)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      return Task.CompletedTask;
+    }
+
+    public Task UpdateResidentAccountLinkAsync(
+      ResidentAccountLink link,
+      CancellationToken cancellationToken = default)
     {
       cancellationToken.ThrowIfCancellationRequested();
       return Task.CompletedTask;

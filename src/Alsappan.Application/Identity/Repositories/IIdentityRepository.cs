@@ -38,9 +38,20 @@ public interface IIdentityRepository
     OrganizationId organizationId,
     CancellationToken cancellationToken = default);
 
+  Task<IdentityRole?> FindRoleByCodeAsync(
+    string roleCode,
+    OrganizationId organizationId,
+    CancellationToken cancellationToken = default);
+
   Task<ResidentAccountLink?> FindResidentAccountLinkAsync(
     UserId userId,
     OrganizationId organizationId,
+    CancellationToken cancellationToken = default);
+
+  Task<ResidentAccountLink?> FindResidentAccountLinkByResidentAsync(
+    EntityId residentId,
+    OrganizationId organizationId,
+    bool includeInactive = false,
     CancellationToken cancellationToken = default);
 
   Task AddUserAsync(
@@ -50,9 +61,17 @@ public interface IIdentityRepository
     ResidentAccountLink? residentAccountLink = null,
     CancellationToken cancellationToken = default);
 
+  Task AddMembershipAsync(IdentityMembership membership, CancellationToken cancellationToken = default);
+
+  Task AddUserInvitationAsync(UserInvitation invitation, CancellationToken cancellationToken = default);
+
+  Task AddResidentAccountLinkAsync(ResidentAccountLink link, CancellationToken cancellationToken = default);
+
   Task UpdateUserAsync(IdentityUser user, CancellationToken cancellationToken = default);
 
   Task UpdateMembershipAsync(IdentityMembership membership, CancellationToken cancellationToken = default);
+
+  Task UpdateResidentAccountLinkAsync(ResidentAccountLink link, CancellationToken cancellationToken = default);
 
   Task<PagedResultDto<AdministratorListItemDto>> ListAdministratorsAsync(
     AdministratorListRequestDto filter,

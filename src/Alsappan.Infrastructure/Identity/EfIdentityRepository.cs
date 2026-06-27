@@ -1,4 +1,5 @@
 using Alsappan.Application.Common.Contracts;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Identity.Administrators;
 using Alsappan.Application.Identity.Repositories;
 using Alsappan.Domain.Common.Identifiers;
@@ -116,6 +117,22 @@ public sealed class EfIdentityRepository : IIdentityRepository
         organization => organization.Id == organizationId && organization.DeletedAt == null,
         cancellationToken);
 
+  public Task<IdentityRole?> FindRoleByCodeAsync(
+    string roleCode,
+    OrganizationId organizationId,
+    CancellationToken cancellationToken = default)
+  {
+    var normalizedRoleCode = RoleCodes.Normalize(roleCode);
+    return dbContext.Set<IdentityRole>()
+      .IgnoreQueryFilters()
+      .FirstOrDefaultAsync(
+        role =>
+          role.OrganizationId == organizationId &&
+          role.Code == normalizedRoleCode &&
+          role.DeletedAt == null,
+        cancellationToken);
+  }
+
   public Task<ResidentAccountLink?> FindResidentAccountLinkAsync(
     UserId userId,
     OrganizationId organizationId,
@@ -129,6 +146,27 @@ public sealed class EfIdentityRepository : IIdentityRepository
           link.IsActive &&
           link.DeletedAt == null,
         cancellationToken);
+
+  public Task<ResidentAccountLink?> FindResidentAccountLinkByResidentAsync(
+    EntityId residentId,
+    OrganizationId organizationId,
+    bool includeInactive = false,
+    CancellationToken cancellationToken = default)
+  {
+    var query = dbContext.Set<ResidentAccountLink>()
+      .IgnoreQueryFilters()
+      .Where(link =>
+        link.ResidentId == residentId &&
+        link.OrganizationId == organizationId &&
+        link.DeletedAt == null);
+
+    if (!includeInactive)
+    {
+      query = query.Where(link => link.IsActive);
+    }
+
+    return query.FirstOrDefaultAsync(cancellationToken);
+  }
 
   public async Task AddUserAsync(
     IdentityUser user,
@@ -156,6 +194,36 @@ public sealed class EfIdentityRepository : IIdentityRepository
     await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  public async Task AddMembershipAsync(
+    IdentityMembership membership,
+    CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(membership);
+
+    dbContext.Set<IdentityMembership>().Add(membership);
+    await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+  }
+
+  public async Task AddUserInvitationAsync(
+    UserInvitation invitation,
+    CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(invitation);
+
+    dbContext.Set<UserInvitation>().Add(invitation);
+    await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+  }
+
+  public async Task AddResidentAccountLinkAsync(
+    ResidentAccountLink link,
+    CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(link);
+
+    dbContext.Set<ResidentAccountLink>().Add(link);
+    await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+  }
+
   public async Task UpdateUserAsync(
     IdentityUser user,
     CancellationToken cancellationToken = default)
@@ -173,6 +241,16 @@ public sealed class EfIdentityRepository : IIdentityRepository
     ArgumentNullException.ThrowIfNull(membership);
 
     dbContext.Set<IdentityMembership>().Update(membership);
+    await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+  }
+
+  public async Task UpdateResidentAccountLinkAsync(
+    ResidentAccountLink link,
+    CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(link);
+
+    dbContext.Set<ResidentAccountLink>().Update(link);
     await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
   }
 

@@ -11,6 +11,10 @@ type GuardProps = PropsWithChildren<{
   fallback?: ReactNode
 }>
 
+type AuthenticatedGuardProps = GuardProps & {
+  redirectTo?: string
+}
+
 type PermissionMode = 'all' | 'any'
 
 export type PermissionGuardProps = GuardProps & {
@@ -32,7 +36,7 @@ function getPermissionResult(
     : hasAnyPermission(permissions, user)
 }
 
-export function RequireAuthenticated({ children }: GuardProps) {
+export function RequireAuthenticated({ children, redirectTo = '/login' }: AuthenticatedGuardProps) {
   const location = useLocation()
   const locale = useAppPreferencesStore((state) => state.locale)
   const isAuthenticated = useAuthSessionStore((state) => state.isAuthenticated)
@@ -56,7 +60,7 @@ export function RequireAuthenticated({ children }: GuardProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate replace to="/login" />
+    return <Navigate replace to={redirectTo} />
   }
 
   return <GuardContent>{children}</GuardContent>
