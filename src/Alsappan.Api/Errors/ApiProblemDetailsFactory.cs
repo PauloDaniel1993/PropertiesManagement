@@ -1,9 +1,12 @@
 using Alsappan.Api.Contracts;
+using Alsappan.Application.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alsappan.Api.Errors;
 
-internal sealed class ApiProblemDetailsFactory(ProblemDetailsMessageCatalog messages)
+internal sealed class ApiProblemDetailsFactory(
+  ProblemDetailsMessageCatalog messages,
+  LocalizedValidationMessages validationMessages)
 {
   private const string ProblemTypeBaseUri = "https://docs.alsappan.local/errors/";
 
@@ -33,8 +36,9 @@ internal sealed class ApiProblemDetailsFactory(ProblemDetailsMessageCatalog mess
     ArgumentNullException.ThrowIfNull(httpContext);
     ArgumentNullException.ThrowIfNull(errors);
 
-    var message = messages.Resolve(ApiProblemCode.Validation, httpContext.Request.Headers.AcceptLanguage);
-    var problem = new HttpValidationProblemDetails(errors)
+    var culture = ProblemDetailsMessageCatalog.ResolveCulture(httpContext.Request.Headers.AcceptLanguage);
+    var message = messages.Resolve(ApiProblemCode.Validation, culture);
+    var problem = new HttpValidationProblemDetails(LocalizeErrors(errors, culture))
     {
       Status = StatusCodes.Status400BadRequest,
       Title = message.Title,
@@ -52,5 +56,19 @@ internal sealed class ApiProblemDetailsFactory(ProblemDetailsMessageCatalog mess
   {
     problem.Extensions[ApiConventions.ErrorCodeExtension] = code;
     problem.Extensions[ApiConventions.TraceIdExtension] = httpContext.TraceIdentifier;
+  }
+
+  private Dictionary<string, string[]> LocalizeErrors(IDictionary<string, string[]> errors, string culture)
+  {
+    var localizedErrors = new Dictionary<string, string[]>(errors.Count, StringComparer.Ordinal);
+
+    foreach (var (field, fieldErrors) in errors)
+    {
+      localizedErrors[field] = fieldErrors
+        .Select(error => validationMessages.Resolve(error, culture))
+        .ToArray();
+    }
+
+    return localizedErrors;
   }
 }

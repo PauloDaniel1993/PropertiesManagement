@@ -4,6 +4,7 @@ using Alsappan.Api.Errors;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OpenApi;
 using Alsappan.Application.Common.Configuration;
+using Alsappan.Application.Common.Validation;
 using Alsappan.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ builder.Services.AddOpenApi(ApiConventions.CurrentVersion, options =>
   options.AddDocumentTransformer<AlsappanOpenApiDocumentTransformer>();
 });
 builder.Services.AddSingleton<ProblemDetailsMessageCatalog>();
+builder.Services.AddSingleton<LocalizedValidationMessages>();
 builder.Services.AddSingleton<ApiProblemDetailsFactory>();
 builder.Services.AddProblemDetails(options =>
 {
