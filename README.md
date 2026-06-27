@@ -14,6 +14,14 @@ Alsappan is a multi-tenant property management platform with a React frontend an
 - `scripts`: local development helper scripts.
 - `docs`: supporting implementation notes.
 
+## Supporting Docs
+
+- [API conventions](docs/api-conventions.md)
+- [Domain glossary](docs/domain-glossary.md)
+- [Parallel feature development](docs/parallel-feature-development.md)
+- [Security review checklist](docs/security-review-checklist.md)
+- [Seed data plan](docs/seed-data.md)
+
 ## Prerequisites
 
 - .NET SDK 10.0.301 or compatible latest feature SDK.
