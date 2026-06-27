@@ -162,11 +162,13 @@ const adminMenuItemDefinitions = [
   },
 ] as const satisfies readonly Omit<AdminMenuItemContract, 'menuLabelKey' | 'page'>[]
 
-export const adminMenuItems = adminMenuItemDefinitions.map((item): AdminMenuItemContract => ({
-  ...item,
-  menuLabelKey: `navigation.items.${item.id}.label`,
-  page: pageCopy(item.id),
-}))
+export const adminMenuItems = adminMenuItemDefinitions.map(
+  (item): AdminMenuItemContract => ({
+    ...item,
+    menuLabelKey: `navigation.items.${item.id}.label`,
+    page: pageCopy(item.id),
+  }),
+)
 
 export const defaultAuthenticatedRoute = '/dashboard'
 

@@ -334,7 +334,7 @@
 - [ ] 23.7 Add E2E test for notification creation, unread count, read state, and deep link navigation
 - [ ] 23.8 Add E2E test for audit access control and audit filtering
 - [x] 23.9 Add API integration tests for authorization on every module endpoint
-- [ ] 23.10 Add CI gates for backend tests, frontend tests, type checks, linting, formatting, OpenAPI generation, and migration validation
+- [x] 23.10 Add CI gates for backend tests, frontend tests, type checks, linting, formatting, OpenAPI generation, and migration validation
 - [ ] 23.11 Add E2E test for resident portal login, resident-scoped data visibility, resident-created occurrence, and cross-resident access denial
 - [ ] 23.12 Add E2E test for cross-organization isolation in admin lists, details, global search, dashboard, audit, notifications, and file downloads
 - [ ] 23.13 Run manual Chrome browser smoke testing for the admin shell, resident portal, locale switching, organization switching, core CRUD flows, and permission-denied states when UI implementation is available
