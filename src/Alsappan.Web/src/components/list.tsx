@@ -15,6 +15,7 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ActionButton } from './actions'
 import {
   cx,
@@ -57,7 +58,7 @@ const inputStyle: CSSProperties = {
 
 export function SearchInput({
   className,
-  clearLabel = 'Limpar busca',
+  clearLabel,
   hideLabel = true,
   id,
   inputClassName,
@@ -71,8 +72,10 @@ export function SearchInput({
   value,
   ...props
 }: SearchInputProps) {
+  const { t } = useTranslation()
   const inputId = useComponentId('als-search-input', id)
   const hasValue = typeof value === 'string' && value.length > 0
+  const resolvedClearLabel = clearLabel ?? t('components.search.clear')
 
   return (
     <div className={cx('als-search-input', className)} style={style}>
@@ -104,7 +107,7 @@ export function SearchInput({
 
         {hasValue && onClear ? (
           <button
-            aria-label={clearLabel}
+            aria-label={resolvedClearLabel}
             className="als-search-input__clear"
             onClick={onClear}
             style={{
@@ -145,15 +148,19 @@ export function FilterBar({
   activeCount,
   children,
   className,
-  clearLabel = 'Limpar filtros',
-  label = 'Filtros',
+  clearLabel,
+  label,
   onClear,
   style,
   summary,
 }: FilterBarProps) {
+  const { t } = useTranslation()
+  const resolvedClearLabel = clearLabel ?? t('components.filters.clear')
+  const resolvedLabel = label ?? t('components.filters.label')
+
   return (
     <section
-      aria-label={typeof label === 'string' ? label : undefined}
+      aria-label={typeof resolvedLabel === 'string' ? resolvedLabel : undefined}
       className={cx('als-filter-bar', className)}
       style={mergeStyles(
         surfaceStyle,
@@ -183,10 +190,10 @@ export function FilterBar({
           style={{ alignItems: 'center', display: 'inline-flex', fontWeight: 800, gap: 8 }}
         >
           <SlidersHorizontal aria-hidden="true" size={18} />
-          {label}
+          {resolvedLabel}
           {typeof activeCount === 'number' && activeCount > 0 ? (
             <span
-              aria-label={`${activeCount} filtros ativos`}
+              aria-label={t('components.filters.activeCount', { count: activeCount })}
               className="als-filter-bar__count"
               style={{
                 background: 'var(--als-color-primary-soft, #e8f2ff)',
@@ -219,7 +226,7 @@ export function FilterBar({
         ) : null}
         {onClear ? (
           <ActionButton onClick={onClear} size="sm" tone="ghost">
-            {clearLabel}
+            {resolvedClearLabel}
           </ActionButton>
         ) : null}
         {actions}
@@ -265,17 +272,20 @@ export function DataTable<TData>({
   caption,
   className,
   columns,
-  emptyState = 'Nenhum registro encontrado.',
+  emptyState,
   errorState,
   getRowKey,
   isLoading = false,
-  loadingLabel = 'Carregando registros...',
+  loadingLabel,
   rowActions,
   rows,
   style,
 }: DataTableProps<TData>) {
+  const { t } = useTranslation()
   const colspan = columns.length + (rowActions ? 1 : 0)
   const hasRows = rows.length > 0
+  const resolvedEmptyState = emptyState ?? t('components.table.empty')
+  const resolvedLoadingLabel = loadingLabel ?? t('components.table.loading')
 
   return (
     <div
@@ -362,7 +372,7 @@ export function DataTable<TData>({
                   width: 92,
                 })}
               >
-                Ações
+                {t('components.table.actions')}
               </th>
             ) : null}
           </tr>
@@ -381,10 +391,10 @@ export function DataTable<TData>({
               >
                 {isLoading ? (
                   <span className="als-data-table__loading" role="status">
-                    {loadingLabel}
+                    {resolvedLoadingLabel}
                   </span>
                 ) : (
-                  (errorState ?? emptyState)
+                  (errorState ?? resolvedEmptyState)
                 )}
               </td>
             </tr>
@@ -438,31 +448,32 @@ export type PaginationProps = {
   totalItems: number
 }
 
-const defaultPaginationLabels: PaginationLabels = {
-  next: 'Próxima',
-  page: (page, totalPages) => `Página ${page} de ${totalPages}`,
-  previous: 'Anterior',
-  range: (first, last, total) => `Exibindo ${first}-${last} de ${total}`,
-}
-
 export function Pagination({
   className,
-  labels = defaultPaginationLabels,
+  labels,
   onPageChange,
   page,
   pageSize,
   style,
   totalItems,
 }: PaginationProps) {
+  const { t } = useTranslation()
   const normalizedPageSize = Math.max(1, pageSize)
   const pageCount = Math.max(1, Math.ceil(totalItems / normalizedPageSize))
   const currentPage = Math.min(Math.max(1, page), pageCount)
   const firstItem = totalItems === 0 ? 0 : (currentPage - 1) * normalizedPageSize + 1
   const lastItem = Math.min(totalItems, currentPage * normalizedPageSize)
+  const resolvedLabels: PaginationLabels = labels ?? {
+    next: t('components.pagination.next'),
+    page: (pageNumber, totalPages) =>
+      t('components.pagination.page', { page: pageNumber, totalPages }),
+    previous: t('components.pagination.previous'),
+    range: (first, last, total) => t('components.pagination.range', { first, last, total }),
+  }
 
   return (
     <nav
-      aria-label="Paginação"
+      aria-label={t('components.pagination.label')}
       className={cx('als-pagination', className)}
       style={mergeStyles(
         {
@@ -476,7 +487,7 @@ export function Pagination({
       )}
     >
       <p className="als-pagination__range" style={mergeStyles(subtleTextStyle, { margin: 0 })}>
-        {labels.range(firstItem, lastItem, totalItems)}
+        {resolvedLabels.range(firstItem, lastItem, totalItems)}
       </p>
 
       <div
@@ -484,27 +495,27 @@ export function Pagination({
         style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 8 }}
       >
         <ActionButton
-          aria-label={labels.previous}
+          aria-label={resolvedLabels.previous}
           disabled={currentPage <= 1}
           icon={<ChevronLeft aria-hidden="true" size={16} />}
           onClick={() => onPageChange(currentPage - 1)}
           size="sm"
         >
-          {labels.previous}
+          {resolvedLabels.previous}
         </ActionButton>
 
         <span className="als-pagination__page" style={{ fontSize: '0.92rem', fontWeight: 800 }}>
-          {labels.page(currentPage, pageCount)}
+          {resolvedLabels.page(currentPage, pageCount)}
         </span>
 
         <ActionButton
-          aria-label={labels.next}
+          aria-label={resolvedLabels.next}
           disabled={currentPage >= pageCount}
           icon={<ChevronRight aria-hidden="true" size={16} />}
           onClick={() => onPageChange(currentPage + 1)}
           size="sm"
         >
-          {labels.next}
+          {resolvedLabels.next}
         </ActionButton>
       </div>
     </nav>
@@ -597,12 +608,14 @@ export type RowActionsProps = {
 export function RowActions({
   actions,
   className,
-  labels = { menu: 'Ações da linha' },
+  labels,
   menuIcon: MenuIcon = MoreHorizontal,
 }: RowActionsProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const menuId = useComponentId('als-row-actions')
+  const resolvedLabels = labels ?? { menu: t('components.rowActions.menu') }
 
   useEffect(() => {
     if (!isOpen) {
@@ -635,7 +648,7 @@ export function RowActions({
         aria-controls={isOpen ? menuId : undefined}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        aria-label={labels.menu}
+        aria-label={resolvedLabels.menu}
         className="als-row-actions__trigger"
         onClick={() => setIsOpen((current) => !current)}
         style={{

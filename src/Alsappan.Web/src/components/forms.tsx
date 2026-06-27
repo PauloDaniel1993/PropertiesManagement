@@ -8,6 +8,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react'
 import { AlertCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   composeIds,
   cx,
@@ -116,6 +117,7 @@ export function FormField({
   required = false,
   style,
 }: FormFieldProps) {
+  const { t } = useTranslation()
   const fieldId = useComponentId('als-field', id)
   const descriptionId = description ? `${fieldId}-description` : undefined
   const errorId = normalizeMessages(error).length > 0 ? `${fieldId}-error` : undefined
@@ -148,7 +150,7 @@ export function FormField({
               {' '}
               *
             </span>
-            <span style={visuallyHiddenStyle}>obrigatório</span>
+            <span style={visuallyHiddenStyle}>{t('components.forms.required')}</span>
           </>
         ) : null}
       </label>
@@ -349,8 +351,9 @@ export function ValidationSummary({
   errors,
   fieldLabels = {},
   style,
-  title = 'Revise os campos destacados',
+  title,
 }: ValidationSummaryProps) {
+  const { t } = useTranslation()
   const entries = Object.entries(errors).filter(([, messages]) => messages.length > 0)
 
   if (entries.length === 0) {
@@ -379,7 +382,7 @@ export function ValidationSummary({
         style={{ alignItems: 'center', display: 'flex', gap: 8 }}
       >
         <AlertCircle aria-hidden="true" size={18} />
-        {title}
+        {title ?? t('components.summary.title')}
       </strong>
 
       <ul className="als-validation-summary__list" style={{ margin: 0, paddingInlineStart: 20 }}>

@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from 'react'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cx, mergeStyles, subtleTextStyle, surfaceStyle, useComponentId } from './utils'
 
 const focusableSelector = [
@@ -45,7 +46,7 @@ type OverlayPanelProps = {
 function OverlayPanel({
   children,
   className,
-  closeLabel = 'Fechar',
+  closeLabel,
   description,
   footer,
   initialFocusRef,
@@ -58,6 +59,7 @@ function OverlayPanel({
   title,
   titlePrefix,
 }: OverlayPanelProps) {
+  const { t } = useTranslation()
   const panelRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<Element | null>(null)
   const titleId = useComponentId(`${titlePrefix}-title`)
@@ -206,7 +208,7 @@ function OverlayPanel({
           </div>
 
           <button
-            aria-label={closeLabel}
+            aria-label={closeLabel ?? t('components.overlay.close')}
             className="als-overlay__close"
             onClick={() => onOpenChange(false)}
             style={{

@@ -10,6 +10,78 @@
     "subtitle": "A base inicial está pronta para o painel administrativo, portal do morador, multi-tenant, white label e internacionalização.",
     "title": "Alsappan Gestão de Imóveis"
   },
+  "components": {
+    "actions": {
+      "loading": "Carregando"
+    },
+    "detail": {
+      "relationshipEmpty": "Nenhum vínculo cadastrado."
+    },
+    "filters": {
+      "activeCount": "{{count}} filtros ativos",
+      "clear": "Limpar filtros",
+      "label": "Filtros"
+    },
+    "forms": {
+      "required": "obrigatório"
+    },
+    "overlay": {
+      "close": "Fechar"
+    },
+    "pagination": {
+      "label": "Paginação",
+      "next": "Próxima",
+      "page": "Página {{page}} de {{totalPages}}",
+      "previous": "Anterior",
+      "range": "Exibindo {{first}}-{{last}} de {{total}}"
+    },
+    "relationships": {
+      "documentLinkLabel": "Vincular documento",
+      "documentLinkTitle": "Abrir documentos vinculados"
+    },
+    "rowActions": {
+      "menu": "Ações da linha"
+    },
+    "search": {
+      "clear": "Limpar busca"
+    },
+    "states": {
+      "archived": {
+        "title": "Registro arquivado"
+      },
+      "empty": {
+        "title": "Nenhum registro encontrado"
+      },
+      "error": {
+        "retry": "Tentar novamente",
+        "title": "Não foi possível carregar os dados"
+      },
+      "forbidden": {
+        "title": "Acesso não autorizado"
+      },
+      "loading": {
+        "title": "Carregando"
+      },
+      "notFound": {
+        "title": "Registro não encontrado"
+      },
+      "optimistic": {
+        "retry": "Atualizar agora",
+        "title": "Atualizando dados em segundo plano"
+      }
+    },
+    "summary": {
+      "title": "Revise os campos destacados"
+    },
+    "table": {
+      "actions": "Ações",
+      "empty": "Nenhum registro encontrado.",
+      "loading": "Carregando registros..."
+    },
+    "tabs": {
+      "ariaLabel": "Seções"
+    }
+  },
   "foundation": {
     "dotnet": ".NET 10 API",
     "i18n": "pt-BR e en-US",

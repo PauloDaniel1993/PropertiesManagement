@@ -33,26 +33,9 @@ import type { PaymentInstruction, PaymentProviderCode } from '../../lib/api/paym
 import { formatDate, formatDateTime, formatMoney, formatNumber } from '../../lib/format'
 import { useResidentPortalContext } from './ResidentPortalContext'
 
-const occurrenceTypeOptions = [
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'Request', value: 'request' },
-  { label: 'Complaint', value: 'complaint' },
-  { label: 'Other', value: 'other' },
-]
-
-const priorityOptions = [
-  { label: 'Low', value: 'low' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'High', value: 'high' },
-  { label: 'Urgent', value: 'urgent' },
-]
-
-const documentCategoryOptions = [
-  { label: 'Resident', value: 'resident' },
-  { label: 'Contract', value: 'contract' },
-  { label: 'Property', value: 'property' },
-  { label: 'Other', value: 'other' },
-]
+const occurrenceTypeCodes = ['maintenance', 'request', 'complaint', 'other'] as const
+const priorityCodes = ['low', 'medium', 'high', 'urgent'] as const
+const documentCategoryCodes = ['resident', 'contract', 'property', 'other'] as const
 
 function toneColor(tone?: string) {
   if (tone === 'success') {
@@ -427,6 +410,10 @@ export function ResidentPortalDocumentsPage() {
       })),
     [summary?.contracts],
   )
+  const documentCategoryOptions = documentCategoryCodes.map((value) => ({
+    label: copy.documents.categories[value],
+    value,
+  }))
 
   function handleUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -580,6 +567,14 @@ export function ResidentPortalOccurrencesPage() {
       })),
     [summary?.contracts],
   )
+  const occurrenceTypeOptions = occurrenceTypeCodes.map((value) => ({
+    label: copy.occurrences.types[value],
+    value,
+  }))
+  const priorityOptions = priorityCodes.map((value) => ({
+    label: copy.occurrences.priorities[value],
+    value,
+  }))
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

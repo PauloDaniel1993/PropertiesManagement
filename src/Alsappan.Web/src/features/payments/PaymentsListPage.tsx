@@ -223,7 +223,10 @@ function paymentTitleForAction(row: PaymentListItem) {
   return row.property?.name ? `${row.title} - ${row.property.name}` : row.title
 }
 
-function getFormInitialValue(payment: PaymentDetail | PaymentListItem): Partial<PaymentDetail> {
+function getFormInitialValue(
+  payment: PaymentDetail | PaymentListItem,
+  copy: ReturnType<typeof getPaymentCopy>,
+): Partial<PaymentDetail> {
   return {
     amount: payment.amount,
     concurrencyToken: payment.concurrencyToken,
@@ -239,7 +242,7 @@ function getFormInitialValue(payment: PaymentDetail | PaymentListItem): Partial<
     reconciliationStatus:
       'reconciliationStatus' in payment
         ? payment.reconciliationStatus
-        : { code: 'not-required', label: 'Nao requer' },
+        : { code: 'not-required', label: copy.terms.reconciliationStatuses['not-required'] },
     resident: payment.resident,
     title: payment.title,
   }
@@ -380,7 +383,7 @@ export function PaymentsListPage() {
     onSuccess: (payment) => {
       setFormState({
         mode: 'edit',
-        payment: getFormInitialValue(payment) as FormState['payment'],
+        payment: getFormInitialValue(payment, copy) as FormState['payment'],
       })
     },
   })
@@ -481,7 +484,7 @@ export function PaymentsListPage() {
                 setDetailPaymentId(null)
                 setFormState({
                   mode: 'edit',
-                  payment: getFormInitialValue(payment) as FormState['payment'],
+                  payment: getFormInitialValue(payment, copy) as FormState['payment'],
                 })
               }
             : undefined

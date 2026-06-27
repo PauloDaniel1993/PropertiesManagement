@@ -1,17 +1,7 @@
 import { FilePlus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { AppLocale } from '../../i18n'
 import { buildDocumentRelationshipRoute, type RelationshipContext } from './relationships'
-
-const documentLinkCopy = {
-  'en-US': {
-    label: 'Link document',
-    title: 'Open linked documents',
-  },
-  'pt-BR': {
-    label: 'Vincular documento',
-    title: 'Abrir documentos vinculados',
-  },
-} as const
 
 export function DocumentLinkAction({
   context,
@@ -20,12 +10,12 @@ export function DocumentLinkAction({
   context: RelationshipContext
   locale: AppLocale
 }) {
+  const { t } = useTranslation()
   const href = buildDocumentRelationshipRoute(context)
-  const copy = documentLinkCopy[locale === 'en-US' ? 'en-US' : 'pt-BR']
 
   return (
     <a
-      aria-label={copy.title}
+      aria-label={t('components.relationships.documentLinkTitle', { lng: locale })}
       href={href}
       style={{
         alignItems: 'center',
@@ -42,10 +32,10 @@ export function DocumentLinkAction({
         textDecoration: 'none',
         whiteSpace: 'nowrap',
       }}
-      title={copy.title}
+      title={t('components.relationships.documentLinkTitle', { lng: locale })}
     >
       <FilePlus aria-hidden="true" size={16} />
-      {copy.label}
+      {t('components.relationships.documentLinkLabel', { lng: locale })}
     </a>
   )
 }

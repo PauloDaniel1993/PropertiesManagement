@@ -10,6 +10,78 @@
     "subtitle": "The initial base is ready for the admin panel, resident portal, multi-tenancy, white labeling, and internationalization.",
     "title": "Alsappan Property Management"
   },
+  "components": {
+    "actions": {
+      "loading": "Loading"
+    },
+    "detail": {
+      "relationshipEmpty": "No linked records."
+    },
+    "filters": {
+      "activeCount": "{{count}} active filters",
+      "clear": "Clear filters",
+      "label": "Filters"
+    },
+    "forms": {
+      "required": "required"
+    },
+    "overlay": {
+      "close": "Close"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "next": "Next",
+      "page": "Page {{page}} of {{totalPages}}",
+      "previous": "Previous",
+      "range": "Showing {{first}}-{{last}} of {{total}}"
+    },
+    "relationships": {
+      "documentLinkLabel": "Link document",
+      "documentLinkTitle": "Open linked documents"
+    },
+    "rowActions": {
+      "menu": "Row actions"
+    },
+    "search": {
+      "clear": "Clear search"
+    },
+    "states": {
+      "archived": {
+        "title": "Record archived"
+      },
+      "empty": {
+        "title": "No records found"
+      },
+      "error": {
+        "retry": "Try again",
+        "title": "Could not load data"
+      },
+      "forbidden": {
+        "title": "Access not authorized"
+      },
+      "loading": {
+        "title": "Loading"
+      },
+      "notFound": {
+        "title": "Record not found"
+      },
+      "optimistic": {
+        "retry": "Refresh now",
+        "title": "Refreshing data in the background"
+      }
+    },
+    "summary": {
+      "title": "Review the highlighted fields"
+    },
+    "table": {
+      "actions": "Actions",
+      "empty": "No records found.",
+      "loading": "Loading records..."
+    },
+    "tabs": {
+      "ariaLabel": "Sections"
+    }
+  },
   "foundation": {
     "dotnet": ".NET 10 API",
     "i18n": "pt-BR and en-US",

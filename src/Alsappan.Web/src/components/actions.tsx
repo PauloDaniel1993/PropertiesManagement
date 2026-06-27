@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
 import { LoaderCircle, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cx, mergeStyles } from './utils'
 
 export type ActionButtonTone = 'primary' | 'secondary' | 'ghost' | 'danger'
@@ -71,7 +72,7 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
       disabled,
       icon,
       isLoading = false,
-      loadingLabel = 'Carregando',
+      loadingLabel,
       size = 'md',
       style,
       tone = 'secondary',
@@ -80,7 +81,9 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslation()
     const isDisabled = disabled || isLoading
+    const resolvedLoadingLabel = loadingLabel ?? t('components.actions.loading')
 
     return (
       <button
@@ -109,7 +112,7 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
         ) : (
           icon
         )}
-        {isLoading ? loadingLabel : children}
+        {isLoading ? resolvedLoadingLabel : children}
       </button>
     )
   },

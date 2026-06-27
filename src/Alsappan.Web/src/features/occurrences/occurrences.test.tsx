@@ -408,8 +408,8 @@ describe('occurrences management UI', () => {
     await user.type(screen.getByLabelText('ID do imovel'), propertyId)
     await user.type(screen.getByLabelText('ID do morador'), residentId)
     await user.type(screen.getByLabelText('ID do contrato'), contractId)
-    await user.type(screen.getByLabelText('dateFrom'), '2026-07-01')
-    await user.type(screen.getByLabelText('dateTo'), '2026-07-31')
+    await user.type(screen.getByLabelText('Data inicial'), '2026-07-01')
+    await user.type(screen.getByLabelText('Data final'), '2026-07-31')
     await user.click(screen.getByLabelText('Somente nao resolvidas'))
     await user.click(screen.getByLabelText('Incluir arquivadas'))
 

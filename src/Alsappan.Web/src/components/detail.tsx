@@ -1,5 +1,6 @@
 import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import { Link2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cx, mergeStyles, subtleTextStyle, surfaceStyle, useComponentId } from './utils'
 
 export type DetailSectionProps = {
@@ -158,7 +159,7 @@ export type TabsProps = {
 }
 
 export function Tabs({
-  ariaLabel = 'Seções',
+  ariaLabel,
   className,
   defaultSelectedId,
   onSelectedIdChange,
@@ -166,6 +167,7 @@ export function Tabs({
   style,
   tabs,
 }: TabsProps) {
+  const { t } = useTranslation()
   const tabsId = useComponentId('als-tabs')
   const firstEnabledTab = tabs.find((tab) => !tab.disabled)
   const [internalSelectedId, setInternalSelectedId] = useState(
@@ -220,7 +222,7 @@ export function Tabs({
   return (
     <div className={cx('als-tabs', className)} style={style}>
       <div
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? t('components.tabs.ariaLabel')}
         className="als-tabs__list"
         role="tablist"
         style={{
@@ -309,11 +311,13 @@ export type RelationshipPanelProps = {
 export function RelationshipPanel({
   action,
   className,
-  emptyState = 'Nenhum vínculo cadastrado.',
+  emptyState,
   items,
   style,
   title,
 }: RelationshipPanelProps) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={cx('als-relationship-panel', className)}
@@ -350,7 +354,7 @@ export function RelationshipPanel({
             padding: 14,
           })}
         >
-          {emptyState}
+          {emptyState ?? t('components.detail.relationshipEmpty')}
         </div>
       ) : (
         <ul
