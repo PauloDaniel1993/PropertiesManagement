@@ -195,17 +195,17 @@
 
 ## 13. Veiculos Module
 
-- [ ] 13.1 Model vehicles with resident owner, optional property/contract context, plate, type, color, brand/model, authorization state, parking allocation, and lifecycle metadata
-- [ ] 13.2 Add vehicle type and authorization status catalogs with localized labels
-- [ ] 13.3 Add vehicle migrations, indexes for plate, resident, property, authorization state, parking allocation, and organization scoping
-- [ ] 13.4 Implement vehicle create, list, detail, update, authorize, deny, archive, and restore use cases
-- [ ] 13.5 Implement parking allocation validation against property garage information where available
-- [ ] 13.6 Implement vehicle API endpoints with filters for plate, resident, property, type, parking allocation, and authorization state
-- [ ] 13.7 Emit vehicle audit, timeline, and notification events for registration, authorization, and parking changes
-- [ ] 13.8 Build Veiculos list page with plate search, owner, property, type, parking, and authorization filters
-- [ ] 13.9 Build vehicle create/edit form with resident picker, vehicle data, authorization state, and parking allocation controls
-- [ ] 13.10 Build vehicle detail page with owner, property, parking, authorization history, timeline, and audit links
-- [ ] 13.11 Add tests for vehicle CRUD, normalized plate search, parking allocation, authorization flow, permissions, and localization
+- [x] 13.1 Model vehicles with resident owner, optional property/contract context, plate, type, color, brand/model, authorization state, parking allocation, and lifecycle metadata
+- [x] 13.2 Add vehicle type and authorization status catalogs with localized labels
+- [x] 13.3 Add vehicle migrations, indexes for plate, resident, property, authorization state, parking allocation, and organization scoping
+- [x] 13.4 Implement vehicle create, list, detail, update, authorize, deny, archive, and restore use cases
+- [x] 13.5 Implement parking allocation validation against property garage information where available
+- [x] 13.6 Implement vehicle API endpoints with filters for plate, resident, property, type, parking allocation, and authorization state
+- [x] 13.7 Emit vehicle audit, timeline, and notification events for registration, authorization, and parking changes
+- [x] 13.8 Build Veiculos list page with plate search, owner, property, type, parking, and authorization filters
+- [x] 13.9 Build vehicle create/edit form with resident picker, vehicle data, authorization state, and parking allocation controls
+- [x] 13.10 Build vehicle detail page with owner, property, parking, authorization history, timeline, and audit links
+- [x] 13.11 Add tests for vehicle CRUD, normalized plate search, parking allocation, authorization flow, permissions, and localization
 
 ## 14. Ocorrencias Module
 

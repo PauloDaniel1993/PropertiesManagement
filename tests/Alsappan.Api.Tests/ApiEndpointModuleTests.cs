@@ -19,6 +19,7 @@ public sealed class ApiEndpointModuleTests : IClassFixture<WebApplicationFactory
   [InlineData("/v1/pets/options")]
   [InlineData("/v1/properties/status-options")]
   [InlineData("/v1/residents/status-options")]
+  [InlineData("/v1/vehicles/type-options")]
   public async Task FeatureEndpointModulesAreDiscovered(string path)
   {
     using var client = CreateClient();

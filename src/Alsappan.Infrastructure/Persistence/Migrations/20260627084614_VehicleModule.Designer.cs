@@ -3,6 +3,7 @@ using System;
 using Alsappan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Alsappan.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AlsappanDbContext))]
-    partial class AlsappanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260627084614_VehicleModule")]
+    partial class VehicleModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1461,207 +1464,6 @@ namespace Alsappan.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_payment_transactions_organization_id_provider_code_provider~");
 
                     b.ToTable("payment_transactions", "app");
-                });
-
-            modelBuilder.Entity("Alsappan.Domain.Pets.Pet", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AuthorizationNotes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("authorization_notes");
-
-                    b.Property<string>("AuthorizationStatus")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("authorization_status");
-
-                    b.Property<string>("Breed")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("breed");
-
-                    b.Property<string>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("concurrency_token");
-
-                    b.Property<Guid?>("ContractId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("contract_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_user_id");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<Guid?>("DeletedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("deleted_by_user_id");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("notes");
-
-                    b.Property<Guid>("OrganizationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("organization_id");
-
-                    b.Property<Guid?>("PropertyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("property_id");
-
-                    b.Property<Guid>("ResidentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("resident_id");
-
-                    b.Property<string>("SearchText")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
-                        .HasColumnName("search_text");
-
-                    b.Property<string>("Species")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("species");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("updated_by_user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_pets");
-
-                    b.HasIndex("OrganizationId", "AuthorizationStatus")
-                        .HasDatabaseName("ix_pets_organization_id_authorization_status");
-
-                    b.HasIndex("OrganizationId", "ContractId")
-                        .HasDatabaseName("ix_pets_organization_id_contract_id");
-
-                    b.HasIndex("OrganizationId", "DeletedAt")
-                        .HasDatabaseName("ix_pets_organization_id_deleted_at");
-
-                    b.HasIndex("OrganizationId", "PropertyId")
-                        .HasDatabaseName("ix_pets_organization_id_property_id");
-
-                    b.HasIndex("OrganizationId", "ResidentId")
-                        .HasDatabaseName("ix_pets_organization_id_resident_id");
-
-                    b.HasIndex("OrganizationId", "SearchText")
-                        .HasDatabaseName("ix_pets_organization_id_search_text");
-
-                    b.HasIndex("OrganizationId", "Species")
-                        .HasDatabaseName("ix_pets_organization_id_species");
-
-                    b.ToTable("pets", "app");
-                });
-
-            modelBuilder.Entity("Alsappan.Domain.Pets.PetDocumentLink", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("concurrency_token");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_user_id");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<Guid?>("DeletedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("deleted_by_user_id");
-
-                    b.Property<Guid>("DocumentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("document_id");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("kind");
-
-                    b.Property<string>("Label")
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("label");
-
-                    b.Property<Guid>("OrganizationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("organization_id");
-
-                    b.Property<Guid>("PetId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("pet_id");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("updated_by_user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_pet_document_links");
-
-                    b.HasIndex("PetId")
-                        .HasDatabaseName("ix_pet_document_links_pet_id");
-
-                    b.HasIndex("OrganizationId", "DeletedAt")
-                        .HasDatabaseName("ix_pet_document_links_organization_id_deleted_at");
-
-                    b.HasIndex("OrganizationId", "DocumentId")
-                        .HasDatabaseName("ix_pet_document_links_organization_id_document_id");
-
-                    b.HasIndex("OrganizationId", "PetId")
-                        .HasDatabaseName("ix_pet_document_links_organization_id_pet_id");
-
-                    b.HasIndex("OrganizationId", "PetId", "DocumentId", "Kind")
-                        .IsUnique()
-                        .HasDatabaseName("ix_pet_document_links_organization_id_pet_id_document_id_kind");
-
-                    b.ToTable("pet_document_links", "app");
                 });
 
             modelBuilder.Entity("Alsappan.Domain.Properties.RentalProperty", b =>
@@ -3124,16 +2926,6 @@ namespace Alsappan.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Alsappan.Domain.Pets.PetDocumentLink", b =>
-                {
-                    b.HasOne("Alsappan.Domain.Pets.Pet", null)
-                        .WithMany("DocumentLinks")
-                        .HasForeignKey("PetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_pet_document_links_pets_pet_id");
-                });
-
             modelBuilder.Entity("Alsappan.Domain.Properties.RentalProperty", b =>
                 {
                     b.OwnsOne("Alsappan.Domain.Common.ValueObjects.Address", "Address", b1 =>
@@ -3322,11 +3114,6 @@ namespace Alsappan.Infrastructure.Persistence.Migrations
                     b.Navigation("ReceiptLinks");
 
                     b.Navigation("Transactions");
-                });
-
-            modelBuilder.Entity("Alsappan.Domain.Pets.Pet", b =>
-                {
-                    b.Navigation("DocumentLinks");
                 });
 
             modelBuilder.Entity("Alsappan.Domain.UtilityAccounts.UtilityAccount", b =>
