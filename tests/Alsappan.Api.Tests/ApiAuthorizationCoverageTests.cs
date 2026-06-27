@@ -2,7 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using Alsappan.Application.Common.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -54,13 +56,22 @@ public sealed partial class ApiAuthorizationCoverageTests : IClassFixture<WebApp
   {
     _ = factory.CreateClient();
 
-    var failures = GetVersionedModuleEndpoints()
+    var anonymousEndpointNames = GetVersionedModuleEndpoints()
       .Where(endpoint => endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null)
+      .Select(GetEndpointName)
+      .ToHashSet(StringComparer.Ordinal);
+
+    var failures = GetVersionedModuleEndpoints()
+      .Where(endpoint => anonymousEndpointNames.Contains(GetEndpointName(endpoint)))
       .Where(endpoint => !PublicIdentityEndpointNames.Contains(GetEndpointName(endpoint)))
       .Select(Describe)
       .ToArray();
+    var missingPublicEndpoints = PublicIdentityEndpointNames
+      .Except(anonymousEndpointNames, StringComparer.Ordinal)
+      .ToArray();
 
     Assert.Empty(failures);
+    Assert.Empty(missingPublicEndpoints);
   }
 
   [Fact]
@@ -225,6 +236,7 @@ public sealed partial class ApiAuthorizationCoverageTests : IClassFixture<WebApp
 
   private static string CreateJwtWithoutOrganizationPermissions()
   {
+    var organizationId = Guid.NewGuid();
     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
       "replace-this-dev-only-signing-key-with-at-least-32-characters"));
     var token = new JwtSecurityToken(
@@ -233,7 +245,11 @@ public sealed partial class ApiAuthorizationCoverageTests : IClassFixture<WebApp
       claims:
       [
         new Claim(JwtRegisteredClaimNames.Sub, UserId.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, "authorization-probe@alsappan.local")
+        new Claim(JwtRegisteredClaimNames.Email, "authorization-probe@alsappan.local"),
+        new Claim(
+          AuthClaimTypes.Membership,
+          JsonSerializer.Serialize(
+            new OrganizationMembershipClaimDto(organizationId, [], [], true)))
       ],
       expires: DateTime.UtcNow.AddMinutes(15),
       signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));

@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Notifications;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +58,7 @@ internal static class NotificationEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Notifications_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Notifications))
       .WithSummary("Lists notifications for the active organization and current user.")
       .Produces<PagedResultDto<NotificationListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -147,6 +150,7 @@ internal static class NotificationEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Notifications_UpdatePreferences")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Notifications))
       .WithSummary("Accepts notification preference updates for the current user.")
       .Produces<NotificationPreferencesDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

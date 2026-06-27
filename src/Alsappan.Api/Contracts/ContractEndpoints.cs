@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.OperationResults;
 using Alsappan.Api.Modules;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
@@ -66,6 +68,7 @@ internal static class ContractEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Contracts_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Contracts))
       .WithSummary("Lists lease contracts in the active organization.")
       .Produces<PagedResultDto<ContractListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -142,6 +145,7 @@ internal static class ContractEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Contracts_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Contracts))
       .WithSummary("Creates a lease contract in the active organization.")
       .Produces<ContractDetailDto>(StatusCodes.Status200OK)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -189,6 +193,7 @@ internal static class ContractEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Contracts_Activate")
+      .RequirePermission(PermissionCodes.Manage(PermissionModules.Contracts))
       .WithSummary("Activates a contract and marks the property as rented.")
       .Produces<ContractDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

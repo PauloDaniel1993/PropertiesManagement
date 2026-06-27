@@ -30,4 +30,23 @@ internal static class PermissionEndpointFilterExtensions
         : ApiProblemResults.Forbidden(context.HttpContext);
     });
   }
+
+  public static RouteHandlerBuilder RequireAnyOrganizationPermission(this RouteHandlerBuilder builder)
+  {
+    ArgumentNullException.ThrowIfNull(builder);
+
+    return builder.AddEndpointFilter(async (context, next) =>
+    {
+      var permissionService = context.HttpContext.RequestServices.GetRequiredService<IPermissionService>();
+      var permissions = await permissionService.GetEffectivePermissionsAsync(context.HttpContext.RequestAborted)
+        .ConfigureAwait(false);
+
+      if (permissions.Count > 0)
+      {
+        return await next(context).ConfigureAwait(false);
+      }
+
+      return ApiProblemResults.Forbidden(context.HttpContext);
+    });
+  }
 }

@@ -1,6 +1,8 @@
-using Alsappan.Application.Common.Contracts;
-using Alsappan.Application.Identity.Administrators;
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
+using Alsappan.Application.Common.Contracts;
+using Alsappan.Application.Common.Authorization;
+using Alsappan.Application.Identity.Administrators;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alsappan.Api.Identity;
@@ -49,6 +51,7 @@ internal static class AdministratorEndpoints
           return IdentityEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Administrators_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Administrators))
       .WithSummary("Lists administrators in the active organization.")
       .Produces<PagedResultDto<AdministratorListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -106,6 +109,7 @@ internal static class AdministratorEndpoints
           return IdentityEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Administrators_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Administrators))
       .WithSummary("Creates or invites an administrator.")
       .Produces<AdministratorDetailDto>(StatusCodes.Status200OK)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

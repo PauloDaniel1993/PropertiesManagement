@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.UtilityAccounts;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +72,7 @@ internal static class UtilityAccountEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("UtilityAccounts_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.UtilityAccounts))
       .WithSummary("Lists utility accounts in the active organization.")
       .Produces<PagedResultDto<UtilityAccountListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -148,6 +151,7 @@ internal static class UtilityAccountEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("UtilityAccounts_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.UtilityAccounts))
       .WithSummary("Creates a utility account.")
       .Produces<UtilityAccountDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -195,6 +199,7 @@ internal static class UtilityAccountEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("UtilityAccounts_MarkPaid")
+      .RequirePermission(PermissionCodes.Manage(PermissionModules.UtilityAccounts))
       .WithSummary("Marks a utility account as paid.")
       .Produces<UtilityAccountDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

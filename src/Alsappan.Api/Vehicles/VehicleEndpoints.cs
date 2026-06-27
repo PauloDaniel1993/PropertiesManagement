@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Vehicles;
 using Microsoft.AspNetCore.Mvc;
@@ -66,6 +68,7 @@ internal static class VehicleEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Vehicles_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Vehicles))
       .WithSummary("Lists vehicles in the active organization.")
       .Produces<PagedResultDto<VehicleListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -132,6 +135,7 @@ internal static class VehicleEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Vehicles_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Vehicles))
       .WithSummary("Creates a vehicle.")
       .Produces<VehicleDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -178,6 +182,7 @@ internal static class VehicleEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Vehicles_Authorize")
+      .RequirePermission(PermissionCodes.Manage(PermissionModules.Vehicles))
       .WithSummary("Authorizes a vehicle.")
       .Produces<VehicleDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

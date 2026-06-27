@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Dashboard;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,6 +41,7 @@ internal static class DashboardEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Dashboard_GetOverview")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Dashboard))
       .WithSummary("Gets permission-aware dashboard metrics for the active organization.")
       .Produces<DashboardOverviewDto>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)

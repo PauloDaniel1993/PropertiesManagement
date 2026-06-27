@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Occurrences;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +72,7 @@ internal static class OccurrenceEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Occurrences_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Occurrences))
       .WithSummary("Lists occurrences in the active organization.")
       .Produces<PagedResultDto<OccurrenceListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -148,6 +151,7 @@ internal static class OccurrenceEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Occurrences_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Occurrences))
       .WithSummary("Creates an occurrence.")
       .Produces<OccurrenceDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -267,6 +271,7 @@ internal static class OccurrenceEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Occurrences_Resolve")
+      .RequirePermission(PermissionCodes.Manage(PermissionModules.Occurrences))
       .WithSummary("Resolves an occurrence.")
       .Produces<OccurrenceDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
