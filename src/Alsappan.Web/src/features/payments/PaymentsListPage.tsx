@@ -19,6 +19,7 @@ import {
   archivePayment,
   createPayment,
   createPaymentInstruction,
+  getPayment,
   listPaymentMethodOptions,
   listPaymentProviderOptions,
   listPaymentReconciliationStatusOptions,
@@ -222,7 +223,6 @@ function getFormInitialValue(payment: PaymentDetail | PaymentListItem): Partial<
         : { code: 'not-required', label: 'Nao requer' },
     resident: payment.resident,
     title: payment.title,
-    utilityAccountId: 'utilityAccountId' in payment ? payment.utilityAccountId : undefined,
   }
 }
 
@@ -348,6 +348,15 @@ export function PaymentsListPage() {
       void queryClient.invalidateQueries({ queryKey: ['payments'] })
     },
   })
+  const editPaymentMutation = useMutation({
+    mutationFn: (paymentId: string) => getPayment(apiClient, paymentId, locale),
+    onSuccess: (payment) => {
+      setFormState({
+        mode: 'edit',
+        payment: getFormInitialValue(payment) as FormState['payment'],
+      })
+    },
+  })
 
   function updateFilters(nextFilters: Partial<PaymentListFilters>) {
     setStoredFilters(
@@ -405,12 +414,7 @@ export function PaymentsListPage() {
           key="edit"
           icon={<Pencil aria-hidden="true" size={16} />}
           label={`${copy.list.edit} ${rowTitle}`}
-          onClick={() =>
-            setFormState({
-              mode: 'edit',
-              payment: getFormInitialValue(row) as FormState['payment'],
-            })
-          }
+          onClick={() => editPaymentMutation.mutate(row.id)}
         />,
       )
     }

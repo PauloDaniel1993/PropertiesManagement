@@ -1032,10 +1032,14 @@ public sealed class PaymentService : IPaymentService
       yield return new ValidationFailure(nameof(reconciliationStatus), "validation.reconciliationStatus");
     }
 
+    if (utilityAccountId.HasValue)
+    {
+      yield return new ValidationFailure(nameof(utilityAccountId), "validation.utilityAccount");
+    }
+
     if (!contractId.HasValue &&
       !propertyId.HasValue &&
-      !residentId.HasValue &&
-      !utilityAccountId.HasValue)
+      !residentId.HasValue)
     {
       yield return new ValidationFailure(nameof(contractId), "validation.paymentLink");
     }

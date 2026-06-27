@@ -43,6 +43,40 @@ public sealed class PaymentServiceTests
   }
 
   [Fact]
+  public async Task CreateAsyncRejectsUtilityAccountOnlyLinkUntilUtilityModuleCanValidateTenancy()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePaymentRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Payments)]);
+
+    var result = await service.CreateAsync(new PaymentCreateRequestDto(
+      "Conta de consumo",
+      "Energia",
+      null,
+      null,
+      null,
+      Guid.NewGuid(),
+      new DateOnly(2026, 6, 30),
+      new PaymentMoneyDto(300m, "BRL"),
+      null,
+      null,
+      "pix",
+      "pending",
+      null));
+
+    Assert.False(result.Succeeded);
+    Assert.NotNull(result.Errors);
+    Assert.Contains("utilityAccountId", result.Errors.Keys);
+    Assert.Contains("contractId", result.Errors.Keys);
+    Assert.Empty(repository.Charges);
+  }
+
+  [Fact]
   public async Task RecordTransactionAsyncSupportsPartialAndFullSettlement()
   {
     var organizationId = OrganizationId.New();

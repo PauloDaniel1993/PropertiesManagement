@@ -49,7 +49,6 @@ type PaymentFormValues = {
   reconciliationStatus: string
   residentId: string
   title: string
-  utilityAccountId: string
 }
 
 const fieldsetStyle = {
@@ -129,7 +128,6 @@ const paymentFormSchema = z.object({
     ),
   residentId: z.string().trim(),
   title: z.string().trim().min(1, 'titleRequired'),
-  utilityAccountId: z.string().trim(),
 })
 
 function getMessage(key: string | undefined, copy: ReturnType<typeof getPaymentCopy>) {
@@ -194,10 +192,6 @@ function getDefaultValues(
         : 'not-required',
     residentId: initialValue?.resident?.id ?? '',
     title: initialValue?.title ?? '',
-    utilityAccountId:
-      'utilityAccountId' in (initialValue ?? {})
-        ? ((initialValue as Partial<PaymentDetail>).utilityAccountId ?? '')
-        : '',
   }
 }
 
@@ -257,7 +251,6 @@ export function PaymentForm({
           reconciliationStatus: result.data.reconciliationStatus,
           residentId: optionalText(result.data.residentId),
           title: result.data.title,
-          utilityAccountId: optionalText(result.data.utilityAccountId),
         })
       })}
       style={{ display: 'grid', gap: 16 }}
@@ -417,16 +410,6 @@ export function PaymentForm({
             {({ describedBy, id, isInvalid }) => (
               <TextInput
                 {...form.register('residentId')}
-                id={id}
-                aria-describedby={describedBy}
-                isInvalid={isInvalid}
-              />
-            )}
-          </FormField>
-          <FormField label={copy.form.utilityAccountId}>
-            {({ describedBy, id, isInvalid }) => (
-              <TextInput
-                {...form.register('utilityAccountId')}
                 id={id}
                 aria-describedby={describedBy}
                 isInvalid={isInvalid}

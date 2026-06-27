@@ -95,6 +95,21 @@ const apiInstruction = {
   status: 'issued',
 } as const
 
+const apiPaymentListItem = (() => {
+  const item = { ...apiPayment } as Record<string, unknown>
+  delete item.auditRoute
+  delete item.notes
+  delete item.providerCode
+  delete item.providerMetadataJson
+  delete item.providerReference
+  delete item.receiptDocuments
+  delete item.reconciliationStatus
+  delete item.timelineRoute
+  delete item.transactions
+
+  return item
+})()
+
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
     new Response(JSON.stringify(body), {
@@ -225,7 +240,7 @@ function createPaymentsFetch() {
     }
 
     if (url.pathname === '/v1/payments') {
-      return jsonResponse(paged([apiPayment]))
+      return jsonResponse(paged([apiPaymentListItem]))
     }
 
     return jsonResponse({ title: 'Not found' }, 404)
@@ -318,5 +333,45 @@ describe('payments management UI', () => {
     expect(await screen.findByText('Resumo do pagamento')).toBeInTheDocument()
     expect(screen.getByText('Recebimentos')).toBeInTheDocument()
     expect(screen.getByText('PIX-1')).toBeInTheDocument()
+  })
+
+  it('fetches payment details before editing from the list', async () => {
+    const user = userEvent.setup()
+    applyAuthSession(buildPaymentSession())
+    const fetchImpl = createPaymentsFetch()
+
+    renderWithApi(<PaymentsListPage />, fetchImpl)
+
+    expect(await screen.findByText('Aluguel junho')).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Editar Aluguel junho - Casa Calabria'))
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input, init]) =>
+              String(input) === `https://api.alsappan.test/v1/payments/${paymentId}?locale=pt-BR` &&
+              init?.method === 'GET',
+          ),
+      ).toBe(true),
+    )
+
+    await user.click(await screen.findByRole('button', { name: 'Salvar alteracoes' }))
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input, init]) =>
+              String(input) === `https://api.alsappan.test/v1/payments/${paymentId}?locale=pt-BR` &&
+              init?.method === 'PUT' &&
+              String(init.body).includes('"notes":"Observacoes"') &&
+              String(init.body).includes('"reconciliationStatus":"pending"'),
+          ),
+      ).toBe(true),
+    )
   })
 })
