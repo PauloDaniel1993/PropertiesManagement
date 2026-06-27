@@ -76,7 +76,8 @@
     "table": {
       "actions": "Actions",
       "empty": "No records found.",
-      "loading": "Loading records..."
+      "loading": "Loading records...",
+      "sortBy": "Sort by {{column}}"
     },
     "tabs": {
       "ariaLabel": "Sections"
@@ -298,7 +299,8 @@
       "toggle": "Toggle language"
     },
     "navigation": {
-      "admin": "Administration"
+      "admin": "Administration",
+      "skipToContent": "Skip to main content"
     },
     "states": {
       "archived": "Archived",

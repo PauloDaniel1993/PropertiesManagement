@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Bell,
@@ -74,6 +75,8 @@ export function AdminShell() {
   const visibleMenuItems = adminMenuItems.filter((item) =>
     hasAnyPermission([item.requiredPermission], user),
   )
+  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
 
   function handleLocaleToggle() {
     setLocale(nextLocale)
@@ -95,13 +98,17 @@ export function AdminShell() {
       data-sidebar={isSidebarCollapsed ? 'collapsed' : 'expanded'}
       data-theme={theme}
     >
+      <a className="skip-link" href="#admin-content">
+        {t('shell.navigation.skipToContent')}
+      </a>
+
       <button
         aria-label={t('shell.topbar.openNavigation')}
         className="mobile-nav-button"
         onClick={openMobileNavigation}
         type="button"
       >
-        <Menu size={20} />
+        <Menu aria-hidden="true" size={20} />
       </button>
 
       <aside className="admin-sidebar" data-mobile-open={isMobileNavigationOpen}>
@@ -144,7 +151,11 @@ export function AdminShell() {
           onClick={toggleSidebarCollapsed}
           type="button"
         >
-          {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          {isSidebarCollapsed ? (
+            <PanelLeftOpen aria-hidden="true" size={18} />
+          ) : (
+            <PanelLeftClose aria-hidden="true" size={18} />
+          )}
           <span>{isSidebarCollapsed ? t('shell.topbar.expand') : t('shell.topbar.collapse')}</span>
         </button>
 
@@ -154,7 +165,7 @@ export function AdminShell() {
           onClick={closeMobileNavigation}
           type="button"
         >
-          <X size={20} />
+          <X aria-hidden="true" size={20} />
         </button>
       </aside>
 
@@ -175,19 +186,28 @@ export function AdminShell() {
               onClick={handleLocaleToggle}
               type="button"
             >
-              <Languages size={18} />
+              <Languages aria-hidden="true" size={18} />
             </button>
             <button aria-label={t('shell.theme.toggle')} onClick={toggleTheme} type="button">
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? (
+                <Sun aria-hidden="true" size={18} />
+              ) : (
+                <Moon aria-hidden="true" size={18} />
+              )}
             </button>
-            <details className="notification-menu">
+            <details
+              className="notification-menu"
+              onToggle={(event) => setIsNotificationMenuOpen(event.currentTarget.open)}
+            >
               <summary
+                aria-controls="notification-menu-content"
+                aria-expanded={isNotificationMenuOpen}
                 aria-label={t('shell.topbar.unreadNotifications', {
                   count: unreadNotificationCount,
                 })}
                 className="notification-button"
               >
-                <Bell size={18} />
+                <Bell aria-hidden="true" size={18} />
                 {unreadNotificationCount > 0 ? (
                   <span
                     aria-label={t('shell.topbar.unreadNotifications', {
@@ -198,7 +218,7 @@ export function AdminShell() {
                   </span>
                 ) : null}
               </summary>
-              <div className="notification-menu__content" role="menu">
+              <div id="notification-menu-content" className="notification-menu__content">
                 <div className="notification-menu__header">
                   <strong>{t('shell.topbar.notifications')}</strong>
                   <small>
@@ -221,7 +241,6 @@ export function AdminShell() {
                     <button
                       key={notification.id}
                       onClick={() => navigate(notification.deepLink ?? '/notificacoes')}
-                      role="menuitem"
                       type="button"
                     >
                       <strong>{notification.title}</strong>
@@ -233,29 +252,35 @@ export function AdminShell() {
                 <button
                   className="notification-menu__all"
                   onClick={() => navigate('/notificacoes')}
-                  role="menuitem"
                   type="button"
                 >
                   {t('shell.topbar.viewNotifications')}
                 </button>
               </div>
             </details>
-            <details className="profile-menu">
-              <summary aria-label={t('shell.topbar.profile')}>
-                <UserCircle size={20} />
+            <details
+              className="profile-menu"
+              onToggle={(event) => setIsProfileMenuOpen(event.currentTarget.open)}
+            >
+              <summary
+                aria-controls="profile-menu-content"
+                aria-expanded={isProfileMenuOpen}
+                aria-label={t('shell.topbar.profile')}
+              >
+                <UserCircle aria-hidden="true" size={20} />
                 <span>{user?.displayName ?? t('shell.auth.userFallback')}</span>
               </summary>
-              <div className="profile-menu__content" role="menu">
-                <button role="menuitem" type="button">
-                  <UserCircle size={18} />
+              <div id="profile-menu-content" className="profile-menu__content">
+                <button type="button">
+                  <UserCircle aria-hidden="true" size={18} />
                   {t('shell.topbar.menu.account')}
                 </button>
-                <button role="menuitem" type="button">
-                  <Settings size={18} />
+                <button type="button">
+                  <Settings aria-hidden="true" size={18} />
                   {t('shell.topbar.menu.settings')}
                 </button>
-                <button onClick={() => void handleSignOut()} role="menuitem" type="button">
-                  <LogOut size={18} />
+                <button onClick={() => void handleSignOut()} type="button">
+                  <LogOut aria-hidden="true" size={18} />
                   {t('shell.topbar.menu.signOut')}
                 </button>
               </div>
@@ -263,7 +288,7 @@ export function AdminShell() {
           </div>
         </header>
 
-        <main className="admin-content">
+        <main id="admin-content" className="admin-content" tabIndex={-1}>
           <Outlet />
         </main>
       </div>
