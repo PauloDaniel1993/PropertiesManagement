@@ -286,18 +286,18 @@
 
 ## 20. Configuracoes Module
 
-- [ ] 20.1 Model organization settings, tenant isolation defaults, localization settings, resident portal settings, security settings, notification settings, and domain catalog settings
-- [ ] 20.2 Add settings migrations and seed defaults for organization, white-label branding, locale, security, notification, and catalogs
-- [ ] 20.3 Implement organization profile settings endpoints with audit events
-- [ ] 20.4 Implement locale enablement, default locale, user locale preference, and fallback behavior endpoints
-- [ ] 20.5 Implement domain catalog endpoints for property types, occurrence types, inspection types, document categories, utility types, and other configurable labels
-- [ ] 20.6 Implement security settings endpoints for session timeout, password rules, and MFA policy placeholders
-- [ ] 20.7 Implement notification settings endpoints for categories and channels
-- [ ] 20.8 Build Configuracoes page with tabs for organization, tenant behavior, resident portal, localization, catalogs, notifications, security, and profile preferences
-- [ ] 20.9 Add localized forms for editing settings, white-label branding, and catalog labels
-- [ ] 20.10 Add tests for settings permissions, audit events, tenant-specific settings, resident portal settings, white-label branding, locale behavior, catalog updates, validation, and frontend tab navigation
-- [ ] 20.11 Add backend validation for brand asset type, size, dimensions, allowed color values, and contrast-safe color combinations
-- [ ] 20.12 Add organization branding endpoints for logo upload/removal, brand token update, default design reset, and support/contact metadata
+- [x] 20.1 Model organization settings, tenant isolation defaults, localization settings, resident portal settings, security settings, notification settings, and domain catalog settings
+- [x] 20.2 Add settings migrations and seed defaults for organization, white-label branding, locale, security, notification, and catalogs
+- [x] 20.3 Implement organization profile settings endpoints with audit events
+- [x] 20.4 Implement locale enablement, default locale, user locale preference, and fallback behavior endpoints
+- [x] 20.5 Implement domain catalog endpoints for property types, occurrence types, inspection types, document categories, utility types, and other configurable labels
+- [x] 20.6 Implement security settings endpoints for session timeout, password rules, and MFA policy placeholders
+- [x] 20.7 Implement notification settings endpoints for categories and channels
+- [x] 20.8 Build Configuracoes page with tabs for organization, tenant behavior, resident portal, localization, catalogs, notifications, security, and profile preferences
+- [x] 20.9 Add localized forms for editing settings, white-label branding, and catalog labels
+- [x] 20.10 Add tests for settings permissions, audit events, tenant-specific settings, resident portal settings, white-label branding, locale behavior, catalog updates, validation, and frontend tab navigation
+- [x] 20.11 Add backend validation for brand asset type, size, dimensions, allowed color values, and contrast-safe color combinations
+- [x] 20.12 Add organization branding endpoints for logo upload/removal, brand token update, default design reset, and support/contact metadata
 
 ## 21. Cross-Module Relationship Integration
 

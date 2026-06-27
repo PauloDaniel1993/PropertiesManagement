@@ -12,6 +12,7 @@ using Alsappan.Domain.Payments;
 using Alsappan.Domain.Pets;
 using Alsappan.Domain.Properties;
 using Alsappan.Domain.Residents;
+using Alsappan.Domain.Settings;
 using Alsappan.Domain.UtilityAccounts;
 using Alsappan.Domain.Vehicles;
 using Alsappan.Infrastructure.Audit;
@@ -145,6 +146,12 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<InspectionSignatureSlot> InspectionSignatureSlots => Set<InspectionSignatureSlot>();
 
   public DbSet<Occurrence> Occurrences => Set<Occurrence>();
+
+  public DbSet<OrganizationSettings> OrganizationSettings => Set<OrganizationSettings>();
+
+  public DbSet<DomainCatalogSetting> DomainCatalogSettings => Set<DomainCatalogSetting>();
+
+  public DbSet<UserLocalePreference> UserLocalePreferences => Set<UserLocalePreference>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 
