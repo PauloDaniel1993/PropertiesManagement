@@ -181,17 +181,17 @@
 
 ## 12. Pets Module
 
-- [ ] 12.1 Model pets with resident owner, optional property/contract context, name, species, breed, authorization state, notes, and lifecycle metadata
-- [ ] 12.2 Add pet species and authorization status catalogs with localized labels
-- [ ] 12.3 Add pet migrations, indexes for resident, property, species, authorization state, and organization scoping
-- [ ] 12.4 Implement pet create, list, detail, update, authorize, deny, archive, and restore use cases
-- [ ] 12.5 Implement pet document link use cases for vaccination records and authorization forms
-- [ ] 12.6 Implement pet API endpoints with filters for resident, property, species, authorization state, and active contract context
-- [ ] 12.7 Emit pet audit, timeline, and notification events for registration and authorization changes
-- [ ] 12.8 Build Pets list page with owner, property, species, and authorization filters
-- [ ] 12.9 Build pet create/edit form with resident picker, property context, authorization state, and document links
-- [ ] 12.10 Build pet detail page with owner, documents, authorization history, timeline, and audit links
-- [ ] 12.11 Add tests for pet CRUD, authorization flow, resident/property relationships, document links, permissions, and localization
+- [x] 12.1 Model pets with resident owner, optional property/contract context, name, species, breed, authorization state, notes, and lifecycle metadata
+- [x] 12.2 Add pet species and authorization status catalogs with localized labels
+- [x] 12.3 Add pet migrations, indexes for resident, property, species, authorization state, and organization scoping
+- [x] 12.4 Implement pet create, list, detail, update, authorize, deny, archive, and restore use cases
+- [x] 12.5 Implement pet document link use cases for vaccination records and authorization forms
+- [x] 12.6 Implement pet API endpoints with filters for resident, property, species, authorization state, and active contract context
+- [x] 12.7 Emit pet audit, timeline, and notification events for registration and authorization changes
+- [x] 12.8 Build Pets list page with owner, property, species, and authorization filters
+- [x] 12.9 Build pet create/edit form with resident picker, property context, authorization state, and document links
+- [x] 12.10 Build pet detail page with owner, documents, authorization history, timeline, and audit links
+- [x] 12.11 Add tests for pet CRUD, authorization flow, resident/property relationships, document links, permissions, and localization
 
 ## 13. Veiculos Module
 
