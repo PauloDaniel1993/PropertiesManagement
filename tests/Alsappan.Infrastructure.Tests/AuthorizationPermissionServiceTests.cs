@@ -62,7 +62,7 @@ public sealed class AuthorizationPermissionServiceTests
   }
 
   [Fact]
-  public void ResidentUserRoleDoesNotGrantAdminPetOrVehicleModulePermissions()
+  public void ResidentUserRoleDoesNotGrantAdminPetVehicleOrInspectionModulePermissions()
   {
     var catalog = new DefaultRolePermissionCatalog();
     var permissions = catalog.GetPermissionsForRoles([RoleCodes.ResidentUser]);
@@ -73,6 +73,9 @@ public sealed class AuthorizationPermissionServiceTests
     Assert.DoesNotContain(PermissionCodes.Read(PermissionModules.Vehicles), permissions);
     Assert.DoesNotContain(PermissionCodes.Write(PermissionModules.Vehicles), permissions);
     Assert.DoesNotContain(PermissionCodes.Manage(PermissionModules.Vehicles), permissions);
+    Assert.DoesNotContain(PermissionCodes.Read(PermissionModules.Inspections), permissions);
+    Assert.DoesNotContain(PermissionCodes.Write(PermissionModules.Inspections), permissions);
+    Assert.DoesNotContain(PermissionCodes.Manage(PermissionModules.Inspections), permissions);
   }
 
   private static ActiveOrganizationContext BuildContext(

@@ -6,6 +6,7 @@ using Alsappan.Domain.Documents;
 using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
+using Alsappan.Domain.Inspections;
 using Alsappan.Domain.Payments;
 using Alsappan.Domain.Pets;
 using Alsappan.Domain.Properties;
@@ -133,6 +134,14 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<PetDocumentLink> PetDocumentLinks => Set<PetDocumentLink>();
 
   public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+
+  public DbSet<Inspection> Inspections => Set<Inspection>();
+
+  public DbSet<InspectionChecklistItem> InspectionChecklistItems => Set<InspectionChecklistItem>();
+
+  public DbSet<InspectionDocumentLink> InspectionDocumentLinks => Set<InspectionDocumentLink>();
+
+  public DbSet<InspectionSignatureSlot> InspectionSignatureSlots => Set<InspectionSignatureSlot>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 
