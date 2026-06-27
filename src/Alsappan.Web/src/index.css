@@ -380,6 +380,15 @@ p {
   align-items: center;
 }
 
+.global-search {
+  position: relative;
+  min-width: 0;
+}
+
+.global-search .topbar-search {
+  width: 100%;
+}
+
 .topbar-search svg {
   position: absolute;
   left: 13px;
@@ -394,6 +403,98 @@ p {
 
 .topbar-search input {
   padding-left: 42px;
+}
+
+.global-search__panel {
+  position: absolute;
+  z-index: 9;
+  top: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  width: min(560px, calc(100vw - 24px));
+  max-height: min(560px, calc(100vh - 120px));
+  overflow: auto;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  padding: 8px;
+}
+
+.global-search__panel p {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 6px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.global-search__group {
+  display: grid;
+  gap: 4px;
+}
+
+.global-search__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+}
+
+.global-search__group-header strong {
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.global-search__group-header button {
+  min-height: 30px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  padding-inline: 8px;
+}
+
+.global-search__result {
+  display: grid;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: stretch;
+  gap: 10px;
+  border-color: transparent;
+  background: transparent;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.global-search__result[data-active='true'],
+.global-search__result:hover {
+  background: var(--color-surface-muted);
+}
+
+.global-search__result span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.global-search__result strong,
+.global-search__result small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-search__result small {
+  color: var(--color-text-muted);
+  font-weight: 600;
 }
 
 .organization-select select {
@@ -689,6 +790,11 @@ p {
   }
 
   .topbar-search {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .global-search {
     grid-column: 1 / -1;
     order: 3;
   }

@@ -8,7 +8,6 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
-  Search,
   Settings,
   Sun,
   UserCircle,
@@ -18,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { OrganizationSwitcher } from '../features/identity'
 import { hasAnyPermission } from '../features/identity/session'
+import { GlobalSearch } from '../features/search'
 import { useApiClient } from '../lib/api/ApiClientContext'
 import { logoutAuthSession } from '../lib/api/identity'
 import { getNotificationUnreadCount, listNotifications } from '../lib/api/notifications'
@@ -165,11 +165,7 @@ export function AdminShell() {
             <strong>{activeItem ? t(activeItem.menuLabelKey) : t('shell.brand.name')}</strong>
           </div>
 
-          <label className="topbar-search">
-            <Search aria-hidden="true" size={18} />
-            <span className="sr-only">{t('shell.topbar.searchLabel')}</span>
-            <input placeholder={t('shell.topbar.searchPlaceholder')} type="search" />
-          </label>
+          <GlobalSearch />
 
           <OrganizationSwitcher className="organization-select" />
 

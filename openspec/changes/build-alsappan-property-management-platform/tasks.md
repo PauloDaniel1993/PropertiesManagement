@@ -274,15 +274,15 @@
 
 ## 19. Dashboard and Global Search
 
-- [ ] 19.1 Implement dashboard metrics queries for occupancy, overdue payments, contract expirations, open occurrences, pending inspections, and recent activity
-- [ ] 19.2 Implement permission-aware dashboard API responses with hidden or masked metrics where required
-- [ ] 19.3 Build dashboard widgets, empty states, loading states, error states, and deep links to filtered module views
-- [ ] 19.4 Add dashboard tests for metric accuracy, empty data, permission masking, localization, and deep links
-- [ ] 19.5 Define global search result contract with entity type, localized label, summary, matched field, and target route
-- [ ] 19.6 Implement global search backend across properties, residents, contracts, payments, documents, occurrences, and inspections
-- [ ] 19.7 Add search indexes or optimized queries for all included entity fields
-- [ ] 19.8 Integrate top-bar global search UI with keyboard behavior, grouped results, loading, empty, and permission-safe states
-- [ ] 19.9 Add tests for global search matching, permission filtering, localization, and deep links
+- [x] 19.1 Implement dashboard metrics queries for occupancy, overdue payments, contract expirations, open occurrences, pending inspections, and recent activity
+- [x] 19.2 Implement permission-aware dashboard API responses with hidden or masked metrics where required
+- [x] 19.3 Build dashboard widgets, empty states, loading states, error states, and deep links to filtered module views
+- [x] 19.4 Add dashboard tests for metric accuracy, empty data, permission masking, localization, and deep links
+- [x] 19.5 Define global search result contract with entity type, localized label, summary, matched field, and target route
+- [x] 19.6 Implement global search backend across properties, residents, contracts, payments, documents, occurrences, and inspections
+- [x] 19.7 Add search indexes or optimized queries for all included entity fields
+- [x] 19.8 Integrate top-bar global search UI with keyboard behavior, grouped results, loading, empty, and permission-safe states
+- [x] 19.9 Add tests for global search matching, permission filtering, localization, and deep links
 
 ## 20. Configuracoes Module
 
