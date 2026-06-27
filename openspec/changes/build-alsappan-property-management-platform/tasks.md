@@ -117,17 +117,17 @@
 
 ## 8. Contratos Module
 
-- [ ] 8.1 Model contracts, contract residents, primary responsible resident, lifecycle status, dates, rent terms, due day, deposit, adjustment data, and notes
-- [ ] 8.2 Add contract statuses and adjustment/indexer catalogs with localized labels
-- [ ] 8.3 Add contract migrations, indexes for property, resident, status, start date, end date, and organization scoping
-- [ ] 8.4 Implement contract create, list, detail, update, activate, terminate, cancel, archive, and restore use cases
-- [ ] 8.5 Implement contract validation for property availability, resident associations, date ranges, and lifecycle transitions
-- [ ] 8.6 Implement contract API endpoints with search, filters, relationship summaries, and document link summaries
-- [ ] 8.7 Emit contract audit, timeline, outbox, property status update, and notification events for lifecycle changes
-- [ ] 8.8 Build Contratos list page with filters for status, property, resident, date range, and ending soon
-- [ ] 8.9 Build contract create/edit form with property picker, resident picker, terms, lifecycle action, and document link section
-- [ ] 8.10 Build contract detail page with residents, property, payments, utility accounts, documents, timeline, and audit links
-- [ ] 8.11 Add tests for contract lifecycle, property availability, multi-resident contracts, permissions, localization, and relationship display
+- [x] 8.1 Model contracts, contract residents, primary responsible resident, lifecycle status, dates, rent terms, due day, deposit, adjustment data, and notes
+- [x] 8.2 Add contract statuses and adjustment/indexer catalogs with localized labels
+- [x] 8.3 Add contract migrations, indexes for property, resident, status, start date, end date, and organization scoping
+- [x] 8.4 Implement contract create, list, detail, update, activate, terminate, cancel, archive, and restore use cases
+- [x] 8.5 Implement contract validation for property availability, resident associations, date ranges, and lifecycle transitions
+- [x] 8.6 Implement contract API endpoints with search, filters, relationship summaries, and document link summaries
+- [x] 8.7 Emit contract audit, timeline, outbox, property status update, and notification events for lifecycle changes
+- [x] 8.8 Build Contratos list page with filters for status, property, resident, date range, and ending soon
+- [x] 8.9 Build contract create/edit form with property picker, resident picker, terms, lifecycle action, and document link section
+- [x] 8.10 Build contract detail page with residents, property, payments, utility accounts, documents, timeline, and audit links
+- [x] 8.11 Add tests for contract lifecycle, property availability, multi-resident contracts, permissions, localization, and relationship display
 
 ## 9. Documentos Module
 
