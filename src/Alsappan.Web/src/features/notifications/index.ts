@@ -1,0 +1,1 @@
+export { NotificationsListPage } from './NotificationsListPage'

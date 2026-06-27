@@ -254,14 +254,18 @@
         "settings": "Configurações",
         "signOut": "Sair"
       },
+      "noUnreadNotifications": "Nenhuma notificacao nao lida",
       "notifications": "Notificações",
+      "notificationsForbidden": "Voce nao tem permissao para ver notificacoes.",
+      "notificationsLoading": "Carregando notificacoes",
       "openNavigation": "Abrir navegação",
       "organizationLabel": "Organização",
       "profile": "Perfil",
       "searchPlaceholder": "Buscar",
       "searchLabel": "Buscar",
       "themeToggle": "Alternar tema",
-      "unreadNotifications": "Notificações não lidas: {{count}}"
+      "unreadNotifications": "Notificações não lidas: {{count}}",
+      "viewNotifications": "Ver todas"
     }
   },
   "validation": {

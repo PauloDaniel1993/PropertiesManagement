@@ -19,7 +19,7 @@ public sealed class NotificationRecord : IOrganizationScoped, ISoftDeletable
     Category = envelope.ModuleName;
     EventName = envelope.EventName;
     Channel = "in-app";
-    DeliveryStatus = "pending";
+    DeliveryStatus = "delivered";
     PayloadJson = InfrastructureJsonSerializer.Serialize(envelope.Data);
     SubjectEntityType = envelope.Subject.EntityType;
     SubjectEntityId = envelope.Subject.EntityId;
