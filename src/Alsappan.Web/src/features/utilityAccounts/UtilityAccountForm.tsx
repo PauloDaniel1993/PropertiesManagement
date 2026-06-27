@@ -19,11 +19,13 @@ import type {
 } from '../../lib/api/utilityAccounts'
 import { utilityAccountResponsibilities, utilityAccountTypes } from '../../lib/api/utilityAccounts'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { UtilityAccountDocumentAttachmentField } from './UtilityAccountDocumentAttachmentField'
 import { getUtilityAccountCopy } from './utilityAccountCopy'
 
 export type UtilityAccountFormMode = 'create' | 'edit'
 
 export type UtilityAccountFormProps = {
+  canReadDocuments?: boolean
   initialValue?: Partial<UtilityAccountDetail | UtilityAccountListItem>
   isSubmitting?: boolean
   mode: UtilityAccountFormMode
@@ -178,6 +180,7 @@ function getDefaultValues(
 }
 
 export function UtilityAccountForm({
+  canReadDocuments = false,
   initialValue,
   isSubmitting = false,
   mode,
@@ -192,6 +195,7 @@ export function UtilityAccountForm({
     defaultValues: getDefaultValues(initialValue),
   })
   const errorSummary = buildErrorSummary(form.formState.errors, copy)
+  const billDocumentId = form.watch('billDocumentId')
 
   useEffect(() => {
     form.reset(getDefaultValues(initialValue))
@@ -401,16 +405,17 @@ export function UtilityAccountForm({
         <p style={{ color: 'var(--als-color-text-muted, #64748b)', margin: 0 }}>
           {copy.form.documentHint}
         </p>
-        <FormField label={copy.form.billDocumentId}>
-          {({ describedBy, id, isInvalid }) => (
-            <TextInput
-              {...form.register('billDocumentId')}
-              id={id}
-              aria-describedby={describedBy}
-              isInvalid={isInvalid}
-            />
-          )}
-        </FormField>
+        <UtilityAccountDocumentAttachmentField
+          canReadDocuments={canReadDocuments}
+          label={copy.form.billDocumentId}
+          onChange={(documentId) =>
+            form.setValue('billDocumentId', documentId, {
+              shouldDirty: true,
+              shouldTouch: true,
+            })
+          }
+          value={billDocumentId}
+        />
       </fieldset>
 
       <FormField label={copy.form.description}>

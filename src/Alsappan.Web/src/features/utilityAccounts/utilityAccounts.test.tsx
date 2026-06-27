@@ -89,6 +89,43 @@ const apiUtilityAccountListItem = (() => {
   return item
 })()
 
+const apiBillDocument = {
+  category: 'utility-account',
+  categoryLabel: 'Conta de consumo',
+  contentType: 'application/pdf',
+  currentVersionNumber: 1,
+  fileName: 'fatura-cpfl-junho.pdf',
+  id: billDocumentId,
+  isArchived: false,
+  links: [
+    {
+      entityId: utilityAccountId,
+      entityType: 'utility-account',
+      label: 'Faturas',
+      route: `/contas-de-consumo?id=${utilityAccountId}`,
+    },
+  ],
+  sizeBytes: 2048,
+  status: { code: 'active', label: 'Ativo', tone: 'success' },
+  title: 'Fatura CPFL junho',
+  uploadedAt: '2026-06-27T10:00:00.000Z',
+}
+
+const apiReceiptDocument = {
+  ...apiBillDocument,
+  fileName: 'recibo-cpfl-junho.pdf',
+  id: receiptDocumentId,
+  links: [
+    {
+      entityId: utilityAccountId,
+      entityType: 'utility-account',
+      label: 'Recibos',
+      route: `/contas-de-consumo?id=${utilityAccountId}`,
+    },
+  ],
+  title: 'Recibo CPFL junho',
+}
+
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
     new Response(JSON.stringify(body), {
@@ -138,7 +175,16 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   )
 }
 
-function buildUtilityAccountSession(): AuthSessionDto {
+function buildUtilityAccountSession(options: { canReadDocuments?: boolean } = {}): AuthSessionDto {
+  const canReadDocuments = options.canReadDocuments ?? true
+  const organizationPermissions = [
+    'utilityAccounts.read',
+    'utilityAccounts.write',
+    'utilityAccounts.manage',
+    'utilityAccounts.archive',
+    ...(canReadDocuments ? ['documents.read'] : []),
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -157,22 +203,12 @@ function buildUtilityAccountSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: [
-            'utilityAccounts.read',
-            'utilityAccounts.write',
-            'utilityAccounts.manage',
-            'utilityAccounts.archive',
-          ],
+          permissionCodes: organizationPermissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: [
-        'utilityAccounts.read',
-        'utilityAccounts.write',
-        'utilityAccounts.manage',
-        'utilityAccounts.archive',
-      ],
+      permissions: organizationPermissions,
     },
   }
 }
@@ -180,6 +216,10 @@ function buildUtilityAccountSession(): AuthSessionDto {
 function createUtilityAccountsFetch() {
   return vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input))
+
+    if (url.pathname === '/v1/documents') {
+      return jsonResponse(paged([apiBillDocument, apiReceiptDocument]))
+    }
 
     if (url.pathname === '/v1/utility-accounts/type-options') {
       return jsonResponse([
@@ -302,7 +342,10 @@ describe('utility accounts management UI', () => {
     await user.type(paidAmountInput, '350')
     await user.selectOptions(within(markPaidDialog).getByLabelText(/Metodo de pagamento/), 'pix')
     await user.type(within(markPaidDialog).getByLabelText(/Referencia bancaria/), 'PIX-CPFL-1')
-    await user.type(within(markPaidDialog).getByLabelText(/ID do recibo/), receiptDocumentId)
+    expect(
+      await within(markPaidDialog).findByText('Recibo CPFL junho - recibo-cpfl-junho.pdf'),
+    ).toBeInTheDocument()
+    await user.selectOptions(within(markPaidDialog).getByLabelText('Recibo'), receiptDocumentId)
     await user.click(within(markPaidDialog).getByRole('button', { name: 'Marcar como paga' }))
 
     await waitFor(() =>
@@ -325,6 +368,46 @@ describe('utility accounts management UI', () => {
             String(init.body).includes(`"receiptDocumentId":"${receiptDocumentId}"`),
         ),
     ).toBe(true)
+  })
+
+  it('preserves manual document attachment without document read permission', async () => {
+    const user = userEvent.setup()
+    applyAuthSession(buildUtilityAccountSession({ canReadDocuments: false }))
+    const fetchImpl = createUtilityAccountsFetch()
+
+    renderWithApi(<UtilityAccountsListPage />, fetchImpl)
+
+    expect(await screen.findByText('Energia junho')).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Pagar Energia junho - Casa Calabria'))
+
+    const markPaidDialog = await screen.findByRole('dialog', {
+      name: 'Marcar conta como paga',
+    })
+    const paidAmountInput = within(markPaidDialog).getByLabelText(/Valor pago/)
+
+    await user.clear(paidAmountInput)
+    await user.type(paidAmountInput, '350')
+    await user.type(within(markPaidDialog).getByLabelText('Recibo'), receiptDocumentId)
+    await user.click(within(markPaidDialog).getByRole('button', { name: 'Marcar como paga' }))
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input, init]) =>
+              String(input) ===
+                `https://api.alsappan.test/v1/utility-accounts/${utilityAccountId}/mark-paid?locale=pt-BR` &&
+              init?.method === 'POST' &&
+              String(init.body).includes(`"receiptDocumentId":"${receiptDocumentId}"`),
+          ),
+      ).toBe(true),
+    )
+
+    expect(
+      vi.mocked(fetchImpl).mock.calls.some(([input]) => String(input).includes('/v1/documents')),
+    ).toBe(false)
   })
 
   it('opens details and preserves detail-only fields when editing from the list', async () => {
