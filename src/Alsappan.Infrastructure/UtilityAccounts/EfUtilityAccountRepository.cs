@@ -236,10 +236,12 @@ public sealed class EfUtilityAccountRepository : IUtilityAccountRepository
       query = status switch
       {
         UtilityAccountStatus.Overdue => query.Where(account =>
-          account.Status == UtilityAccountStatus.Open && account.DueDate < today),
+          account.DeletedAt == null && account.Status == UtilityAccountStatus.Open && account.DueDate < today),
         UtilityAccountStatus.Open => query.Where(account =>
-          account.Status == UtilityAccountStatus.Open && account.DueDate >= today),
-        _ => query.Where(account => account.Status == status)
+          account.DeletedAt == null && account.Status == UtilityAccountStatus.Open && account.DueDate >= today),
+        UtilityAccountStatus.Archived => query.Where(account =>
+          account.DeletedAt != null || account.Status == UtilityAccountStatus.Archived),
+        _ => query.Where(account => account.DeletedAt == null && account.Status == status)
       };
     }
 

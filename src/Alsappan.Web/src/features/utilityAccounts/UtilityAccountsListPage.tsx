@@ -472,39 +472,63 @@ export function UtilityAccountsListPage() {
     return actions
   }
 
+  const markPaidDialog = (
+    <UtilityAccountMarkPaidDialog
+      isOpen={Boolean(markPaidUtilityAccount)}
+      isSubmitting={markPaidMutation.isPending}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          setMarkPaidUtilityAccount(null)
+        }
+      }}
+      onSubmit={async (values) => {
+        if (markPaidUtilityAccount) {
+          await markPaidMutation.mutateAsync({
+            utilityAccountId: markPaidUtilityAccount.id,
+            values,
+          })
+        }
+      }}
+      utilityAccount={markPaidUtilityAccount ?? undefined}
+    />
+  )
+
   if (detailUtilityAccountId) {
     return (
-      <UtilityAccountDetailPage
-        utilityAccountId={detailUtilityAccountId}
-        onBack={() => setDetailUtilityAccountId(null)}
-        onCancel={
-          canManageUtilities
-            ? (utilityAccount) =>
-                lifecycleMutation.mutate({
-                  action: 'cancel',
-                  utilityAccountId: utilityAccount.id,
-                })
-            : undefined
-        }
-        onEdit={
-          canWriteUtilities
-            ? (utilityAccount) => {
-                setDetailUtilityAccountId(null)
-                setFormState({
-                  mode: 'edit',
-                  utilityAccount: getFormInitialValue(
-                    utilityAccount,
-                  ) as FormState['utilityAccount'],
-                })
-              }
-            : undefined
-        }
-        onMarkPaid={
-          canManageUtilities
-            ? (utilityAccount) => setMarkPaidUtilityAccount(utilityAccount)
-            : undefined
-        }
-      />
+      <>
+        <UtilityAccountDetailPage
+          utilityAccountId={detailUtilityAccountId}
+          onBack={() => setDetailUtilityAccountId(null)}
+          onCancel={
+            canManageUtilities
+              ? (utilityAccount) =>
+                  lifecycleMutation.mutate({
+                    action: 'cancel',
+                    utilityAccountId: utilityAccount.id,
+                  })
+              : undefined
+          }
+          onEdit={
+            canWriteUtilities
+              ? (utilityAccount) => {
+                  setDetailUtilityAccountId(null)
+                  setFormState({
+                    mode: 'edit',
+                    utilityAccount: getFormInitialValue(
+                      utilityAccount,
+                    ) as FormState['utilityAccount'],
+                  })
+                }
+              : undefined
+          }
+          onMarkPaid={
+            canManageUtilities
+              ? (utilityAccount) => setMarkPaidUtilityAccount(utilityAccount)
+              : undefined
+          }
+        />
+        {markPaidDialog}
+      </>
     )
   }
 
@@ -773,24 +797,7 @@ export function UtilityAccountsListPage() {
         ) : null}
       </Drawer>
 
-      <UtilityAccountMarkPaidDialog
-        isOpen={Boolean(markPaidUtilityAccount)}
-        isSubmitting={markPaidMutation.isPending}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setMarkPaidUtilityAccount(null)
-          }
-        }}
-        onSubmit={async (values) => {
-          if (markPaidUtilityAccount) {
-            await markPaidMutation.mutateAsync({
-              utilityAccountId: markPaidUtilityAccount.id,
-              values,
-            })
-          }
-        }}
-        utilityAccount={markPaidUtilityAccount ?? undefined}
-      />
+      {markPaidDialog}
     </section>
   )
 }

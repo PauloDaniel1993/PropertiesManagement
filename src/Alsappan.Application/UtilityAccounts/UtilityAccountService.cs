@@ -538,13 +538,14 @@ public sealed class UtilityAccountService : IUtilityAccountService
     UtilityContractSnapshot? contract = null;
     UtilityPropertySnapshot? property = null;
     UtilityResidentSnapshot? resident = null;
+    var contractId = ToEntityIdOrNull(contractIdValue);
     var propertyId = ToEntityIdOrNull(propertyIdValue);
     var residentId = ToEntityIdOrNull(residentIdValue);
 
-    if (contractIdValue.HasValue && contractIdValue.Value != Guid.Empty)
+    if (contractId.HasValue)
     {
       contract = await utilityAccountRepository.GetContractSnapshotAsync(
-          new EntityId(contractIdValue.Value),
+          contractId.Value,
           organizationId,
           cancellationToken)
         .ConfigureAwait(false);
@@ -558,6 +559,16 @@ public sealed class UtilityAccountService : IUtilityAccountService
       }
       else
       {
+        if (propertyId.HasValue && propertyId.Value != contract.PropertyId)
+        {
+          errors.Add(new ValidationFailure("propertyId", "validation.propertyContractMismatch"));
+        }
+
+        if (residentId.HasValue && residentId.Value != contract.PrimaryResidentId)
+        {
+          errors.Add(new ValidationFailure("residentId", "validation.residentContractMismatch"));
+        }
+
         propertyId ??= contract.PropertyId;
         residentId ??= contract.PrimaryResidentId;
       }
@@ -585,7 +596,7 @@ public sealed class UtilityAccountService : IUtilityAccountService
 
     return new ResolvedUtilityEntities(
       errors,
-      ToEntityIdOrNull(contractIdValue),
+      contractId,
       propertyId,
       residentId,
       property,
@@ -744,7 +755,7 @@ public sealed class UtilityAccountService : IUtilityAccountService
       document.Kind == UtilityDocumentKind.Receipt ? "receipt" : "bill",
       UtilityAccountCatalog.GetDocumentKindLabel(document.Kind, locale),
       document.Label,
-      $"/documentos?utilityAccountId={id}");
+      $"/documentos?entityType=utility-account&entityId={id}");
 
   private static UtilityEntitySummaryDto? ToPropertySummary(UtilityPropertySnapshot? property) =>
     property is null
@@ -810,6 +821,10 @@ public sealed class UtilityAccountService : IUtilityAccountService
     DateOnly dueDate,
     UtilityMoneyDto amount)
   {
+    var hasContractId = HasNonEmptyId(contractId);
+    var hasPropertyId = HasNonEmptyId(propertyId);
+    var hasResidentId = HasNonEmptyId(residentId);
+
     if (string.IsNullOrWhiteSpace(title))
     {
       yield return new ValidationFailure(nameof(title), ValidationMessageKeys.Required);
@@ -845,17 +860,17 @@ public sealed class UtilityAccountService : IUtilityAccountService
       yield return failure;
     }
 
-    if (parsedResponsibility == UtilityResponsibility.Contract && !contractId.HasValue)
+    if (parsedResponsibility == UtilityResponsibility.Contract && !hasContractId)
     {
       yield return new ValidationFailure(nameof(contractId), "validation.contract");
     }
 
-    if (parsedResponsibility == UtilityResponsibility.Property && !propertyId.HasValue && !contractId.HasValue)
+    if (parsedResponsibility == UtilityResponsibility.Property && !hasPropertyId && !hasContractId)
     {
       yield return new ValidationFailure(nameof(propertyId), "validation.property");
     }
 
-    if (parsedResponsibility == UtilityResponsibility.Resident && !residentId.HasValue && !contractId.HasValue)
+    if (parsedResponsibility == UtilityResponsibility.Resident && !hasResidentId && !hasContractId)
     {
       yield return new ValidationFailure(nameof(residentId), "validation.resident");
     }
@@ -908,6 +923,8 @@ public sealed class UtilityAccountService : IUtilityAccountService
 
   private static EntityId? ToEntityIdOrNull(Guid? id) =>
     id.HasValue && id.Value != Guid.Empty ? new EntityId(id.Value) : null;
+
+  private static bool HasNonEmptyId(Guid? id) => id.HasValue && id.Value != Guid.Empty;
 
   private static UtilityMoneyDto ToMoneyDto(Money money) => new(money.Amount, money.Currency);
 

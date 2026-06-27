@@ -33,7 +33,7 @@ const apiUtilityAccount = {
     {
       documentId: billDocumentId,
       label: 'Fatura CPFL junho',
-      route: `/documentos?entityType=utilityAccount&entityId=${utilityAccountId}`,
+      route: `/documentos?entityType=utility-account&entityId=${utilityAccountId}`,
     },
   ],
   billingPeriodEnd: '2026-06-30',
@@ -64,7 +64,7 @@ const apiUtilityAccount = {
     {
       documentId: receiptDocumentId,
       label: 'Recibo CPFL junho',
-      route: `/documentos?entityType=utilityAccount&entityId=${utilityAccountId}`,
+      route: `/documentos?entityType=utility-account&entityId=${utilityAccountId}`,
     },
   ],
   resident: {
@@ -341,6 +341,12 @@ describe('utility accounts management UI', () => {
     expect(await screen.findByText('Resumo da conta de consumo')).toBeInTheDocument()
     expect(screen.getByText('Fatura CPFL junho')).toBeInTheDocument()
     expect(screen.getByText('Recibo CPFL junho')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Marcar como paga' }))
+    expect(
+      await screen.findByRole('dialog', { name: 'Marcar conta como paga' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
 
     await user.click(screen.getByRole('button', { name: 'Voltar para contas de consumo' }))
     await user.click(screen.getByLabelText('Editar Energia junho - Casa Calabria'))

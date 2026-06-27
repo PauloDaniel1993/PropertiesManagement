@@ -71,6 +71,20 @@ public sealed class UtilityAccountTests
     Assert.Equal(UtilityAccountStatus.Open, account.Status);
   }
 
+  [Fact]
+  public void RestorePreservesCancelledStatus()
+  {
+    var account = CreateAccount();
+    var now = DateTimeOffset.Parse("2026-06-27T09:00:00Z", System.Globalization.CultureInfo.InvariantCulture);
+
+    account.Cancel(now, null, "Cancelada");
+    account.Archive(now.AddMinutes(1), null);
+    account.Restore(now.AddMinutes(2), null);
+
+    Assert.False(account.IsDeleted);
+    Assert.Equal(UtilityAccountStatus.Cancelled, account.Status);
+  }
+
   private static UtilityAccount CreateAccount(DateOnly? dueDate = null) =>
     UtilityAccount.Create(
       EntityId.New(),

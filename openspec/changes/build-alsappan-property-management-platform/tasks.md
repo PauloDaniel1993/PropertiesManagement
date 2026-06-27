@@ -175,7 +175,7 @@
 - [x] 11.6 Implement utility account API endpoints with filters for type, status, responsible party, property, contract, and billing period
 - [x] 11.7 Emit utility audit, timeline, outbox, notification, and dashboard projection events
 - [x] 11.8 Build Contas de Consumo list page with type, status, due date, property, and responsible party filters
-- [x] 11.9 Build utility account create/edit and mark-paid forms with bill/receipt document attachment
+- [ ] 11.9 Build utility account create/edit and mark-paid forms with bill/receipt document attachment
 - [x] 11.10 Build utility account detail page with linked property, contract, responsible party, documents, timeline, and audit links
 - [x] 11.11 Add tests for utility lifecycle, responsibility assignment, document links, overdue state, permissions, and localization
 

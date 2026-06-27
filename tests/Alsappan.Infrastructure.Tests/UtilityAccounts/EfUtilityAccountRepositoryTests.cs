@@ -86,6 +86,40 @@ public sealed class EfUtilityAccountRepositoryTests
     Assert.Equal(document.Id, Assert.Single(snapshot!.Documents).DocumentId);
   }
 
+  [Fact]
+  public async Task ArchivedStatusFilterUsesDeletedStateInsteadOfStoredLifecycleStatus()
+  {
+    var databaseName = Guid.NewGuid().ToString("N");
+    var organizationId = OrganizationId.New();
+    var related = CreateRelatedRecords(organizationId);
+    var archived = CreateAccount(organizationId, related.Contract, "Energia arquivada", new DateOnly(2026, 7, 10));
+    archived.Archive(DateTimeOffset.UtcNow, null);
+
+    await using (var setup = CreateContext(organizationId, databaseName))
+    {
+      setup.Properties.Add(related.Property);
+      setup.Residents.Add(related.Resident);
+      setup.Contracts.Add(related.Contract);
+      setup.UtilityAccounts.Add(archived);
+      await setup.SaveChangesAsync();
+    }
+
+    await using var context = CreateContext(organizationId, databaseName);
+    var repository = new EfUtilityAccountRepository(context);
+
+    var archivedPage = await repository.ListAsync(
+      new UtilityAccountListRequestDto(Status: "archived", IncludeArchived: true),
+      organizationId,
+      new DateOnly(2026, 6, 27));
+    var openPage = await repository.ListAsync(
+      new UtilityAccountListRequestDto(Status: "open", IncludeArchived: true),
+      organizationId,
+      new DateOnly(2026, 6, 27));
+
+    Assert.Single(archivedPage.Items);
+    Assert.Empty(openPage.Items);
+  }
+
   private static AlsappanDbContext CreateContext(OrganizationId organizationId, string databaseName)
   {
     var options = new DbContextOptionsBuilder<AlsappanDbContext>()

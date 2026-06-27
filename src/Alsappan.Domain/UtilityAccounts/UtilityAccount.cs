@@ -269,7 +269,6 @@ public sealed class UtilityAccount : TenantScopedEntity<EntityId>
       return;
     }
 
-    Status = UtilityAccountStatus.Archived;
     MarkDeleted(deletedAt, deletedByUserId);
   }
 
@@ -282,7 +281,11 @@ public sealed class UtilityAccount : TenantScopedEntity<EntityId>
 
     DeletedAt = null;
     DeletedByUserId = null;
-    Status = PaidAmount.Amount >= Amount.Amount ? UtilityAccountStatus.Paid : UtilityAccountStatus.Open;
+    if (Status == UtilityAccountStatus.Archived)
+    {
+      Status = PaidAmount.Amount >= Amount.Amount ? UtilityAccountStatus.Paid : UtilityAccountStatus.Open;
+    }
+
     MarkUpdated(restoredAt, restoredByUserId);
   }
 

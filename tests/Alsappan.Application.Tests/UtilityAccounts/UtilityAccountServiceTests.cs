@@ -38,7 +38,8 @@ public sealed class UtilityAccountServiceTests
     Assert.Single(repository.Accounts);
     Assert.Equal(repository.Contract.PropertyId.Value, result.Value!.Property!.Id);
     Assert.Equal(repository.Contract.PrimaryResidentId.Value, result.Value.Resident!.Id);
-    Assert.Single(result.Value.BillDocuments);
+    var bill = Assert.Single(result.Value.BillDocuments);
+    Assert.Contains("entityType=utility-account", bill.Route, StringComparison.Ordinal);
     Assert.Single(audit.Entries);
     Assert.Single(outbox.Envelopes);
     Assert.Equal("utility-account.created", outbox.Envelopes[0].EventName);
@@ -99,6 +100,53 @@ public sealed class UtilityAccountServiceTests
   }
 
   [Fact]
+  public async Task CreateAsyncRejectsEmptyRequiredContractId()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeUtilityAccountRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.UtilityAccounts)]);
+
+    var result = await service.CreateAsync(CreateRequest(Guid.Empty, null));
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("contractId", result.Errors!.Keys);
+    Assert.Empty(repository.Accounts);
+  }
+
+  [Fact]
+  public async Task CreateAsyncRejectsPropertyOrResidentThatDoesNotBelongToContract()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeUtilityAccountRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.UtilityAccounts)]);
+
+    var request = CreateRequest(repository.Contract.ContractId.Value, null) with
+    {
+      PropertyId = repository.OtherProperty.PropertyId.Value,
+      ResidentId = repository.OtherResident.ResidentId.Value
+    };
+
+    var result = await service.CreateAsync(request);
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("propertyId", result.Errors!.Keys);
+    Assert.Contains("residentId", result.Errors.Keys);
+    Assert.Empty(repository.Accounts);
+  }
+
+  [Fact]
   public async Task ListAsyncRequiresReadPermission()
   {
     var service = CreateService(
@@ -145,7 +193,7 @@ public sealed class UtilityAccountServiceTests
       outboxWriter,
       TimeProvider.System);
 
-  private static UtilityAccountCreateRequestDto CreateRequest(Guid contractId, Guid billDocumentId) =>
+  private static UtilityAccountCreateRequestDto CreateRequest(Guid contractId, Guid? billDocumentId) =>
     new(
       "Energia junho",
       "Conta de energia",
@@ -199,6 +247,8 @@ public sealed class UtilityAccountServiceTests
         true);
       Property = new UtilityPropertySnapshot(Contract.PropertyId, "Casa Calabria", "Rua Calabria, 82");
       Resident = new UtilityResidentSnapshot(Contract.PrimaryResidentId, "Joao da Silva");
+      OtherProperty = new UtilityPropertySnapshot(EntityId.New(), "Apartamento Centro", "Rua Central, 10");
+      OtherResident = new UtilityResidentSnapshot(EntityId.New(), "Maria Souza");
     }
 
     public OrganizationId OrganizationId { get; }
@@ -207,7 +257,11 @@ public sealed class UtilityAccountServiceTests
 
     public UtilityPropertySnapshot Property { get; }
 
+    public UtilityPropertySnapshot OtherProperty { get; }
+
     public UtilityResidentSnapshot Resident { get; }
+
+    public UtilityResidentSnapshot OtherResident { get; }
 
     public List<EntityId> Documents { get; } = [];
 
@@ -272,7 +326,9 @@ public sealed class UtilityAccountServiceTests
     {
       cancellationToken.ThrowIfCancellationRequested();
       return Task.FromResult<UtilityPropertySnapshot?>(
-        organizationId == OrganizationId && propertyId == Property.PropertyId ? Property : null);
+        organizationId == OrganizationId
+          ? propertyId == Property.PropertyId ? Property : propertyId == OtherProperty.PropertyId ? OtherProperty : null
+          : null);
     }
 
     public Task<UtilityResidentSnapshot?> GetResidentSnapshotAsync(
@@ -282,7 +338,9 @@ public sealed class UtilityAccountServiceTests
     {
       cancellationToken.ThrowIfCancellationRequested();
       return Task.FromResult<UtilityResidentSnapshot?>(
-        organizationId == OrganizationId && residentId == Resident.ResidentId ? Resident : null);
+        organizationId == OrganizationId
+          ? residentId == Resident.ResidentId ? Resident : residentId == OtherResident.ResidentId ? OtherResident : null
+          : null);
     }
 
     public Task<bool> DocumentExistsAsync(
