@@ -5,6 +5,7 @@ using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
 using Alsappan.Domain.Properties;
+using Alsappan.Domain.Residents;
 using Alsappan.Infrastructure.Audit;
 using Alsappan.Infrastructure.Auth;
 using Alsappan.Infrastructure.Notifications;
@@ -95,6 +96,8 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<NotificationRecord> NotificationRecords => Set<NotificationRecord>();
 
   public DbSet<RentalProperty> Properties => Set<RentalProperty>();
+
+  public DbSet<Resident> Residents => Set<Resident>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 
