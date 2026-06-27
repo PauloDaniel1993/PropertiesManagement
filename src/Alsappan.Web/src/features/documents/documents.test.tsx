@@ -95,7 +95,7 @@ function createQueryClient() {
   })
 }
 
-function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
+function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = ['/']) {
   const apiClient = new ApiClient({
     baseUrl: 'https://api.alsappan.test',
     fetchImpl,
@@ -104,7 +104,7 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <ApiClientContext.Provider value={apiClient}>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </ApiClientContext.Provider>
     </QueryClientProvider>,
   )
@@ -313,10 +313,11 @@ describe('documents management UI', () => {
 
   it('applies category and linked entity route filters to the list query', async () => {
     applyAuthSession(buildDocumentSession())
-    window.history.pushState({}, '', `/documentos?contractId=${contractId}&category=contract`)
     const fetchImpl = createDocumentsFetch()
 
-    renderWithApi(<DocumentsListPage />, fetchImpl)
+    renderWithApi(<DocumentsListPage />, fetchImpl, [
+      `/documentos?contractId=${contractId}&category=contract`,
+    ])
 
     expect(await screen.findByText('Contrato assinado')).toBeInTheDocument()
 

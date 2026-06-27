@@ -60,7 +60,7 @@ function createQueryClient() {
   })
 }
 
-function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
+function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = ['/']) {
   const apiClient = new ApiClient({
     baseUrl: 'https://api.alsappan.test',
     fetchImpl,
@@ -69,7 +69,7 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <ApiClientContext.Provider value={apiClient}>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </ApiClientContext.Provider>
     </QueryClientProvider>,
   )
@@ -269,6 +269,33 @@ describe('properties management UI', () => {
     expect(screen.getByRole('link', { name: 'Abrir auditoria do imovel' })).toHaveAttribute(
       'href',
       '/auditoria?propertyId=property-a',
+    )
+  })
+
+  it('applies dashboard and search route state to filters and details', async () => {
+    applyAuthSession(buildPropertySession())
+    const fetchImpl = createPropertiesFetch()
+
+    renderWithApi(<PropertiesListPage />, fetchImpl, [
+      '/imoveis?status=rented&propertyId=property-a',
+    ])
+
+    expect(await screen.findByText('Resumo do imovel')).toBeInTheDocument()
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input]) =>
+              String(input).includes('/v1/properties?') && String(input).includes('status=rented'),
+          ),
+      ).toBe(true),
+    )
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://api.alsappan.test/v1/properties/property-a',
+      expect.objectContaining({ method: 'GET' }),
     )
   })
 })

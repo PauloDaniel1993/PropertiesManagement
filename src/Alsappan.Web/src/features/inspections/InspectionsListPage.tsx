@@ -38,6 +38,7 @@ import {
   type InspectionStatus,
   type InspectionType,
 } from '../../lib/api/inspections'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -47,6 +48,21 @@ import { InspectionForm, type InspectionFormMode } from './InspectionForm'
 import { getInspectionCopy } from './inspectionCopy'
 
 const inspectionFilterScope = 'inspections.list'
+const inspectionDetailRouteParams = ['id', 'inspectionId'] as const
+
+const inspectionRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'type', params: ['type'] },
+  { filterKey: 'status', params: ['status'] },
+  { filterKey: 'propertyId', params: ['propertyId'] },
+  { filterKey: 'contractId', params: ['contractId'] },
+  { filterKey: 'residentId', params: ['residentId'] },
+  { filterKey: 'assignedUserId', params: ['assignedUserId'] },
+  { filterKey: 'scheduledFrom', params: ['scheduledFrom'] },
+  { filterKey: 'scheduledTo', params: ['scheduledTo'] },
+  { filterKey: 'pendingOnly', params: ['pendingOnly'], type: 'boolean' },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: InspectionListFilters = {
   includeArchived: false,
@@ -283,6 +299,14 @@ export function InspectionsListPage() {
   )
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailInspectionId, setDetailInspectionId] = useState<string | null>(null)
+  useListRouteState({
+    detailParams: inspectionDetailRouteParams,
+    onDetailIdChange: setDetailInspectionId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: inspectionRouteFilters,
+    scope: inspectionFilterScope,
+    setFilters: setStoredFilters,
+  })
   const inspectionsQuery = useQuery({
     queryFn: () => listInspections(apiClient, apiFilters),
     queryKey: ['inspections', 'list', apiFilters],

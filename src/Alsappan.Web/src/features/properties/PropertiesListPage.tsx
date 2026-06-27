@@ -41,6 +41,7 @@ import {
 } from '../../lib/api/properties'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatMoney } from '../../lib/format'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -50,6 +51,16 @@ import { PropertyForm, type PropertyFormMode } from './PropertyForm'
 import { getPropertyCopy } from './propertyCopy'
 
 const propertyFilterScope = 'properties.list'
+const propertyDetailRouteParams = ['id', 'propertyId'] as const
+
+const propertyRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'status', params: ['status'] },
+  { filterKey: 'type', params: ['type'] },
+  { filterKey: 'hasGarage', params: ['hasGarage'], type: 'boolean' },
+  { filterKey: 'minRent', params: ['minRent'], type: 'number' },
+  { filterKey: 'maxRent', params: ['maxRent'], type: 'number' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: PropertyListFilters = {
   hasGarage: '',
@@ -262,6 +273,14 @@ export function PropertiesListPage() {
   const filters = useMemo(() => normalizePropertyFilters(storedFilters), [storedFilters])
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailPropertyId, setDetailPropertyId] = useState<string | null>(null)
+  useListRouteState({
+    detailParams: propertyDetailRouteParams,
+    onDetailIdChange: setDetailPropertyId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: propertyRouteFilters,
+    scope: propertyFilterScope,
+    setFilters: setStoredFilters,
+  })
   const propertiesQuery = useQuery({
     queryFn: () => listProperties(apiClient, filters),
     queryKey: getMutationKey(filters),

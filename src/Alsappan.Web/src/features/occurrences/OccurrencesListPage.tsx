@@ -39,6 +39,7 @@ import {
   type OccurrenceType,
 } from '../../lib/api/occurrences'
 import { formatDate } from '../../lib/format'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -48,6 +49,22 @@ import { OccurrenceForm, type OccurrenceFormMode } from './OccurrenceForm'
 import { getOccurrenceCopy } from './occurrenceCopy'
 
 const occurrenceFilterScope = 'occurrences.list'
+const occurrenceDetailRouteParams = ['id', 'occurrenceId'] as const
+
+const occurrenceRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'type', params: ['type'] },
+  { filterKey: 'priority', params: ['priority'] },
+  { filterKey: 'status', params: ['status'] },
+  { filterKey: 'assignedUserId', params: ['assignedUserId'] },
+  { filterKey: 'propertyId', params: ['propertyId'] },
+  { filterKey: 'residentId', params: ['residentId'] },
+  { filterKey: 'contractId', params: ['contractId'] },
+  { filterKey: 'dateFrom', params: ['dateFrom'] },
+  { filterKey: 'dateTo', params: ['dateTo'] },
+  { filterKey: 'unresolvedOnly', params: ['unresolvedOnly'], type: 'boolean' },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: OccurrenceListFilters = {
   includeArchived: false,
@@ -289,6 +306,14 @@ export function OccurrencesListPage() {
   )
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailOccurrenceId, setDetailOccurrenceId] = useState<string | null>(null)
+  useListRouteState({
+    detailParams: occurrenceDetailRouteParams,
+    onDetailIdChange: setDetailOccurrenceId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: occurrenceRouteFilters,
+    scope: occurrenceFilterScope,
+    setFilters: setStoredFilters,
+  })
   const occurrencesQuery = useQuery({
     queryFn: () => listOccurrences(apiClient, apiFilters),
     queryKey: ['occurrences', 'list', apiFilters],
