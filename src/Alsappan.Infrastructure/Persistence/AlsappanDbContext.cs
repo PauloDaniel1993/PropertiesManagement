@@ -3,6 +3,7 @@ using System.Text;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
+using Alsappan.Domain.Identity;
 using Alsappan.Infrastructure.Audit;
 using Alsappan.Infrastructure.Auth;
 using Alsappan.Infrastructure.Notifications;
@@ -67,6 +68,22 @@ public sealed class AlsappanDbContext : DbContext
   public OrganizationId? ActiveOrganizationId => _activeOrganizationContext.OrganizationId;
 
   public DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
+
+  public DbSet<IdentityOrganization> IdentityOrganizations => Set<IdentityOrganization>();
+
+  public DbSet<IdentityUser> IdentityUsers => Set<IdentityUser>();
+
+  public DbSet<IdentityMembership> IdentityMemberships => Set<IdentityMembership>();
+
+  public DbSet<IdentityRole> IdentityRoles => Set<IdentityRole>();
+
+  public DbSet<IdentityPermission> IdentityPermissions => Set<IdentityPermission>();
+
+  public DbSet<IdentityRolePermission> IdentityRolePermissions => Set<IdentityRolePermission>();
+
+  public DbSet<ResidentAccountLink> ResidentAccountLinks => Set<ResidentAccountLink>();
+
+  public DbSet<UserInvitation> UserInvitations => Set<UserInvitation>();
 
   public DbSet<RefreshSession> RefreshSessions => Set<RefreshSession>();
 

@@ -34,20 +34,20 @@ describe('App shell routing', () => {
     )
 
     expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
-    expect(screen.getByLabelText('Senha')).toBeInTheDocument()
+    expect(screen.getByLabelText(/E-mail/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Senha/)).toBeInTheDocument()
   })
 
-  it('enters the authenticated admin shell after demo sign in', async () => {
+  it('renders the authenticated admin shell with an existing session', async () => {
     const user = userEvent.setup()
+    useAuthSessionStore.getState().signInDemo()
+    window.history.replaceState({}, '', '/dashboard')
 
     render(
       <AppProviders>
         <App />
       </AppProviders>,
     )
-
-    await user.click(await screen.findByRole('button', { name: 'Entrar' }))
 
     expect(await screen.findByRole('navigation', { name: 'Administração' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
