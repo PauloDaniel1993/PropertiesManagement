@@ -163,6 +163,19 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
 }
 
 function buildVehicleSession(): AuthSessionDto {
+  const permissions = [
+    'vehicles.read',
+    'vehicles.write',
+    'vehicles.manage',
+    'vehicles.archive',
+    'residents.read',
+    'properties.read',
+    'contracts.read',
+    'documents.read',
+    'timeline.read',
+    'audit.read',
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -181,17 +194,12 @@ function buildVehicleSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: [
-            'vehicles.read',
-            'vehicles.write',
-            'vehicles.manage',
-            'vehicles.archive',
-          ],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: ['vehicles.read', 'vehicles.write', 'vehicles.manage', 'vehicles.archive'],
+      permissions,
     },
   }
 }

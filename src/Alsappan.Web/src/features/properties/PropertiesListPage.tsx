@@ -20,6 +20,7 @@ import {
   Pagination,
   SearchInput,
   StatusBadge,
+  CheckboxInput,
   TextInput,
   type StatusBadgeTone,
 } from '../../components'
@@ -58,12 +59,14 @@ const propertyRouteFilters = [
   { filterKey: 'status', params: ['status'] },
   { filterKey: 'type', params: ['type'] },
   { filterKey: 'hasGarage', params: ['hasGarage'], type: 'boolean' },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
   { filterKey: 'minRent', params: ['minRent'], type: 'number' },
   { filterKey: 'maxRent', params: ['maxRent'], type: 'number' },
 ] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: PropertyListFilters = {
   hasGarage: '',
+  includeArchived: false,
   page: 1,
   pageSize: 10,
   search: '',
@@ -149,6 +152,7 @@ function normalizePropertyFilters(filters: FilterSet | undefined): PropertyListF
 
   return {
     hasGarage: getGarageFilter(filters?.hasGarage),
+    includeArchived: filters?.includeArchived === true,
     maxRent: getNumberFilter(filters?.maxRent),
     minRent: getNumberFilter(filters?.minRent),
     page: getPageFilter(filters?.page, defaultFilters.page ?? 1),
@@ -167,6 +171,10 @@ function toFilterSet(filters: PropertyListFilters): FilterSet {
 
   if (filters.hasGarage !== undefined && filters.hasGarage !== '') {
     nextFilters.hasGarage = filters.hasGarage
+  }
+
+  if (filters.includeArchived) {
+    nextFilters.includeArchived = true
   }
 
   if (filters.maxRent !== undefined) {
@@ -270,7 +278,16 @@ export function PropertiesListPage() {
   const setStoredFilters = useFiltersStore((state) => state.setFilters)
   const copy = getPropertyCopy(locale)
   const canWriteProperties = hasAnyPermission(['properties.write'], authUser)
+  const canManageProperties = hasAnyPermission(['properties.manage'], authUser)
+  const canArchiveProperties = hasAnyPermission(['properties.archive'], authUser)
   const filters = useMemo(() => normalizePropertyFilters(storedFilters), [storedFilters])
+  const apiFilters = useMemo(
+    () => ({
+      ...filters,
+      includeArchived: filters.includeArchived || filters.status === 'archived',
+    }),
+    [filters],
+  )
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailPropertyId, setDetailPropertyId] = useState<string | null>(null)
   useListRouteState({
@@ -282,14 +299,15 @@ export function PropertiesListPage() {
     setFilters: setStoredFilters,
   })
   const propertiesQuery = useQuery({
-    queryFn: () => listProperties(apiClient, filters),
-    queryKey: getMutationKey(filters),
+    queryFn: () => listProperties(apiClient, apiFilters),
+    queryKey: getMutationKey(apiFilters),
   })
   const activeFilterCount = [
     filters.search,
     filters.status,
     filters.type,
     filters.hasGarage === '' ? '' : String(filters.hasGarage),
+    filters.includeArchived ? 'archived' : '',
     filters.minRent,
     filters.maxRent,
   ].filter((value) => value !== undefined && value !== '').length
@@ -395,22 +413,20 @@ export function PropertiesListPage() {
       />,
     ]
 
-    if (!canWriteProperties) {
-      return actions
-    }
-
     const statusAction = getStatusAction(row, copy)
 
-    actions.push(
-      <IconActionButton
-        key="edit"
-        icon={<Pencil aria-hidden="true" size={16} />}
-        label={`${copy.list.edit} ${row.name}`}
-        onClick={() => setFormState({ mode: 'edit', property: row })}
-      />,
-    )
+    if (canWriteProperties && row.status !== 'archived') {
+      actions.push(
+        <IconActionButton
+          key="edit"
+          icon={<Pencil aria-hidden="true" size={16} />}
+          label={`${copy.list.edit} ${row.name}`}
+          onClick={() => setFormState({ mode: 'edit', property: row })}
+        />,
+      )
+    }
 
-    if (statusAction) {
+    if (canManageProperties && statusAction) {
       const StatusIcon: LucideIcon = statusAction.Icon
 
       actions.push(
@@ -429,24 +445,26 @@ export function PropertiesListPage() {
       )
     }
 
-    actions.push(
-      row.status === 'archived' ? (
-        <IconActionButton
-          key="restore"
-          icon={<RotateCcw aria-hidden="true" size={16} />}
-          label={`${copy.list.restore} ${row.name}`}
-          onClick={() => lifecycleMutation.mutate({ action: 'restore', id: row.id })}
-        />
-      ) : (
-        <IconActionButton
-          key="archive"
-          icon={<Archive aria-hidden="true" size={16} />}
-          isDestructive
-          label={`${copy.list.archive} ${row.name}`}
-          onClick={() => lifecycleMutation.mutate({ action: 'archive', id: row.id })}
-        />
-      ),
-    )
+    if (canArchiveProperties) {
+      actions.push(
+        row.status === 'archived' ? (
+          <IconActionButton
+            key="restore"
+            icon={<RotateCcw aria-hidden="true" size={16} />}
+            label={`${copy.list.restore} ${row.name}`}
+            onClick={() => lifecycleMutation.mutate({ action: 'restore', id: row.id })}
+          />
+        ) : (
+          <IconActionButton
+            key="archive"
+            icon={<Archive aria-hidden="true" size={16} />}
+            isDestructive
+            label={`${copy.list.archive} ${row.name}`}
+            onClick={() => lifecycleMutation.mutate({ action: 'archive', id: row.id })}
+          />
+        ),
+      )
+    }
 
     return actions
   }
@@ -580,6 +598,11 @@ export function PropertiesListPage() {
             value={filters.maxRent ?? ''}
           />
         </label>
+        <CheckboxInput
+          checked={Boolean(filters.includeArchived)}
+          label={copy.list.includeArchived}
+          onChange={(event) => updateFilters({ includeArchived: event.currentTarget.checked })}
+        />
       </FilterBar>
 
       <DataTable

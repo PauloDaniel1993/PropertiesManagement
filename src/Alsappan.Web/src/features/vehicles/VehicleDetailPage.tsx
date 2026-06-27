@@ -13,6 +13,8 @@ import {
   type RelationshipPanelItem,
   type StatusBadgeTone,
 } from '../../components'
+import type { AppLocale } from '../../i18n'
+import type { CurrentUserDto } from '../../lib/api/identity'
 import {
   getVehicle,
   type VehicleAuthorizationStatus,
@@ -21,6 +23,16 @@ import {
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDateTime } from '../../lib/format'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
+import { EntityTimelinePanel } from '../timeline'
 import { getVehicleCopy } from './vehicleCopy'
 
 export type VehicleDetailPageProps = {
@@ -53,9 +65,15 @@ function formatBrandModel(vehicle: VehicleDetail, emptyLabel: string) {
   return values.length > 0 ? values.join(' / ') : emptyLabel
 }
 
-function getRelationshipPanels(vehicle: VehicleDetail, copy: ReturnType<typeof getVehicleCopy>) {
+function getRelationshipPanels(
+  vehicle: VehicleDetail,
+  copy: ReturnType<typeof getVehicleCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
+) {
+  const context: RelationshipContext = { entityId: vehicle.id, entityType: 'vehicle' }
   const relationshipItems: Array<RelationshipPanelItem | undefined> = [
-    vehicle.resident
+    vehicle.resident && canReadRelationshipModule('residents', authUser)
       ? {
           description: vehicle.resident.description,
           href: vehicle.resident.route,
@@ -63,7 +81,7 @@ function getRelationshipPanels(vehicle: VehicleDetail, copy: ReturnType<typeof g
           title: vehicle.resident.name,
         }
       : undefined,
-    vehicle.property
+    vehicle.property && canReadRelationshipModule('properties', authUser)
       ? {
           description: vehicle.property.description,
           href: vehicle.property.route,
@@ -71,7 +89,7 @@ function getRelationshipPanels(vehicle: VehicleDetail, copy: ReturnType<typeof g
           title: vehicle.property.name,
         }
       : undefined,
-    vehicle.contract
+    vehicle.contract && canReadRelationshipModule('contracts', authUser)
       ? {
           description: vehicle.contract.description,
           href: vehicle.contract.route,
@@ -80,6 +98,7 @@ function getRelationshipPanels(vehicle: VehicleDetail, copy: ReturnType<typeof g
         }
       : undefined,
   ]
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
 
   return (
     <div
@@ -95,29 +114,44 @@ function getRelationshipPanels(vehicle: VehicleDetail, copy: ReturnType<typeof g
         title={copy.detail.relationshipTitle}
       />
 
-      <RelationshipPanel
-        items={[
-          {
-            description: vehicle.timelineRoute,
-            href: vehicle.timelineRoute,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline,
-          },
-        ]}
-        title={copy.detail.relationships.timeline}
-      />
+      {canReadRelationshipModule('documents', authUser) ? (
+        <RelationshipPanel
+          action={
+            canLinkDocuments ? <DocumentLinkAction context={context} locale={locale} /> : undefined
+          }
+          emptyState={copy.detail.emptyRelationship}
+          items={[]}
+          title={copy.detail.documentsTitle}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: vehicle.auditRoute,
-            href: vehicle.auditRoute,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit,
-          },
-        ]}
-        title={copy.detail.relationships.audit}
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: vehicle.timelineRoute,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline,
+            },
+          ]}
+          title={copy.detail.relationships.timeline}
+        />
+      ) : null}
+
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: vehicle.auditRoute,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit,
+            },
+          ]}
+          title={copy.detail.relationships.audit}
+        />
+      ) : null}
     </div>
   )
 }
@@ -131,12 +165,14 @@ export function VehicleDetailPage({
 }: VehicleDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getVehicleCopy(locale)
   const vehicleQuery = useQuery({
     queryFn: () => getVehicle(apiClient, vehicleId, locale),
     queryKey: ['vehicles', 'detail', vehicleId, locale],
   })
   const vehicle = vehicleQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (vehicleQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -276,10 +312,19 @@ export function VehicleDetailPage({
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(vehicle, copy),
+            content: getRelationshipPanels(vehicle, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={vehicle.id} entityType="vehicle" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline,
+                },
+              ]
+            : []),
         ]}
       />
     </section>

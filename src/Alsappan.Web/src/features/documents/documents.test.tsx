@@ -111,6 +111,15 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = 
 }
 
 function buildDocumentSession(): AuthSessionDto {
+  const permissions = [
+    'documents.read',
+    'documents.write',
+    'documents.archive',
+    'contracts.read',
+    'timeline.read',
+    'audit.read',
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -129,17 +138,12 @@ function buildDocumentSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: [
-            'documents.read',
-            'documents.write',
-            'documents.archive',
-            'contracts.read',
-          ],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: ['documents.read', 'documents.write', 'documents.archive', 'contracts.read'],
+      permissions,
     },
   }
 }

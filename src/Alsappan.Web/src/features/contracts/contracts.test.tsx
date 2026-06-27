@@ -83,10 +83,34 @@ const apiContract = {
   },
   relationships: [
     {
+      count: 1,
+      label: 'Imovel',
+      module: 'properties',
+      route: `/imoveis?contractId=${contractId}`,
+    },
+    {
+      count: 1,
+      label: 'Moradores',
+      module: 'residents',
+      route: `/moradores?contractId=${contractId}`,
+    },
+    {
       count: 0,
       label: 'Pagamentos',
       module: 'payments',
       route: `/pagamentos?contractId=${contractId}`,
+    },
+    {
+      count: 0,
+      label: 'Contas de consumo',
+      module: 'utility-accounts',
+      route: `/contas-de-consumo?contractId=${contractId}`,
+    },
+    {
+      count: 0,
+      label: 'Vistorias',
+      module: 'inspections',
+      route: `/vistorias?contractId=${contractId}`,
     },
     {
       count: 0,
@@ -159,6 +183,21 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = 
 }
 
 function buildContractSession(): AuthSessionDto {
+  const permissions = [
+    'contracts.read',
+    'contracts.write',
+    'contracts.manage',
+    'contracts.archive',
+    'properties.read',
+    'residents.read',
+    'payments.read',
+    'utility-accounts.read',
+    'documents.read',
+    'inspections.read',
+    'timeline.read',
+    'audit.read',
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -177,26 +216,12 @@ function buildContractSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: [
-            'contracts.read',
-            'contracts.write',
-            'contracts.manage',
-            'contracts.archive',
-            'properties.read',
-            'residents.read',
-          ],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: [
-        'contracts.read',
-        'contracts.write',
-        'contracts.manage',
-        'contracts.archive',
-        'properties.read',
-        'residents.read',
-      ],
+      permissions,
     },
   }
 }
@@ -397,6 +422,10 @@ describe('contracts management UI', () => {
 
     expect(await screen.findByText('Resumo do contrato')).toBeInTheDocument()
     expect(screen.getByText('Vinculos de documentos')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir documentos vinculados' })).toHaveAttribute(
+      'href',
+      `/documentos?entityType=contract&entityId=${contractId}`,
+    )
     expect(screen.getByRole('link', { name: 'Contrato assinado' })).toHaveAttribute(
       'href',
       `/documentos?contractId=${contractId}&category=contract`,

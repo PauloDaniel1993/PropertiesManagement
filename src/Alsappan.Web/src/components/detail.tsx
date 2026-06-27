@@ -273,20 +273,16 @@ export function Tabs({
         })}
       </div>
 
-      {tabs.map((tab) => (
-        <div
-          key={tab.id}
-          id={`${tabsId}-${tab.id}-panel`}
-          aria-labelledby={`${tabsId}-${tab.id}-tab`}
-          className={cx('als-tabs__panel', tab.id === activeTab.id && 'als-tabs__panel--selected')}
-          hidden={tab.id !== activeTab.id}
-          role="tabpanel"
-          style={{ paddingBlock: 16 }}
-          tabIndex={0}
-        >
-          {tab.content}
-        </div>
-      ))}
+      <div
+        id={`${tabsId}-${activeTab.id}-panel`}
+        aria-labelledby={`${tabsId}-${activeTab.id}-tab`}
+        className={cx('als-tabs__panel', 'als-tabs__panel--selected')}
+        role="tabpanel"
+        style={{ paddingBlock: 16 }}
+        tabIndex={0}
+      >
+        {activeTab.content}
+      </div>
     </div>
   )
 }

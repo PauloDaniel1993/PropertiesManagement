@@ -12,6 +12,7 @@ import {
   Tabs,
   type StatusBadgeTone,
 } from '../../components'
+import type { AppLocale } from '../../i18n'
 import {
   getResident,
   type ResidentDetail,
@@ -19,9 +20,22 @@ import {
   type ResidentRelationshipSummary,
   type ResidentStatus,
 } from '../../lib/api/residents'
+import type { CurrentUserDto } from '../../lib/api/identity'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { formatDate, formatDateTime } from '../../lib/format'
+import { coerceStatusBadgeTone } from '../../lib/statusBadges'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { DocumentLinkAction } from '../crossModule/DocumentLinkAction'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canLinkDocumentsForEntity,
+  canReadRelationshipModule,
+  relationshipSummaryItems,
+  type RelationshipContext,
+} from '../crossModule/relationships'
+import { EntityTimelinePanel } from '../timeline'
 import { getResidentCopy } from './residentCopy'
 
 export type ResidentDetailPageProps = {
@@ -43,15 +57,6 @@ const portalStatusTones: Record<ResidentPortalStatus, StatusBadgeTone> = {
   'not-invited': 'neutral',
 }
 
-const allowedTones: StatusBadgeTone[] = [
-  'archived',
-  'danger',
-  'info',
-  'neutral',
-  'success',
-  'warning',
-]
-
 const relationshipModules = [
   'contracts',
   'properties',
@@ -61,10 +66,6 @@ const relationshipModules = [
   'vehicles',
   'occurrences',
 ] as const
-
-function coerceTone(tone: string | undefined, fallback: StatusBadgeTone) {
-  return allowedTones.includes(tone as StatusBadgeTone) ? (tone as StatusBadgeTone) : fallback
-}
 
 function getSensitiveValue(
   value: string | undefined,
@@ -125,7 +126,15 @@ function getRelationship(relationships: ResidentRelationshipSummary[], module: s
   return relationships.find((relationship) => relationship.module === module)
 }
 
-function getRelationshipPanels(resident: ResidentDetail, copy: ReturnType<typeof getResidentCopy>) {
+function getRelationshipPanels(
+  resident: ResidentDetail,
+  copy: ReturnType<typeof getResidentCopy>,
+  locale: AppLocale,
+  authUser: CurrentUserDto | null,
+) {
+  const context: RelationshipContext = { entityId: resident.id, entityType: 'resident' }
+  const canLinkDocuments = canLinkDocumentsForEntity(context, authUser)
+
   return (
     <div
       style={{
@@ -134,55 +143,62 @@ function getRelationshipPanels(resident: ResidentDetail, copy: ReturnType<typeof
         gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
       }}
     >
-      {relationshipModules.map((module) => {
-        const relationship = getRelationship(resident.relationships, module)
-        const relationshipCopy = copy.detail.relationships[module]
-        const hasLinkedRecords = relationship && relationship.count > 0
+      {relationshipModules
+        .filter((module) => canReadRelationshipModule(module, authUser))
+        .map((module) => {
+          const relationship = getRelationship(resident.relationships, module)
+          const relationshipCopy = copy.detail.relationships[module]
 
-        return (
-          <RelationshipPanel
-            key={module}
-            emptyState={copy.detail.emptyRelationship}
-            items={
-              hasLinkedRecords
-                ? [
-                    {
-                      description: relationship.label,
-                      href: relationship.route,
-                      id: `${module}-link`,
-                      title: copy.detail.relationshipCount(relationship.count),
-                    },
-                  ]
-                : []
-            }
-            title={relationshipCopy.title}
-          />
-        )
-      })}
+          return (
+            <RelationshipPanel
+              key={module}
+              action={
+                module === 'documents' && canLinkDocuments ? (
+                  <DocumentLinkAction context={context} locale={locale} />
+                ) : undefined
+              }
+              emptyState={copy.detail.emptyRelationship}
+              items={
+                relationship
+                  ? relationshipSummaryItems({
+                      context,
+                      countLabel: copy.detail.relationshipCount,
+                      relationship,
+                    })
+                  : []
+              }
+              title={relationshipCopy.title}
+            />
+          )
+        })}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: copy.detail.relationships.timeline.description,
-            href: `/timeline?residentId=${encodeURIComponent(resident.id)}`,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline.linkTitle,
-          },
-        ]}
-        title={copy.detail.relationships.timeline.title}
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: copy.detail.relationships.timeline.description,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline.linkTitle,
+            },
+          ]}
+          title={copy.detail.relationships.timeline.title}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: copy.detail.relationships.audit.description,
-            href: `/auditoria?residentId=${encodeURIComponent(resident.id)}`,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit.linkTitle,
-          },
-        ]}
-        title={copy.detail.relationships.audit.title}
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: copy.detail.relationships.audit.description,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit.linkTitle,
+            },
+          ]}
+          title={copy.detail.relationships.audit.title}
+        />
+      ) : null}
     </div>
   )
 }
@@ -190,12 +206,14 @@ function getRelationshipPanels(resident: ResidentDetail, copy: ReturnType<typeof
 export function ResidentDetailPage({ onBack, onEdit, residentId }: ResidentDetailPageProps) {
   const apiClient = useApiClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getResidentCopy(locale)
   const residentQuery = useQuery({
     queryFn: () => getResident(apiClient, residentId),
     queryKey: ['residents', 'detail', residentId],
   })
   const resident = residentQuery.data
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
 
   if (residentQuery.isLoading) {
     return <LoadingState title={copy.detail.loading} />
@@ -212,6 +230,8 @@ export function ResidentDetailPage({ onBack, onEdit, residentId }: ResidentDetai
     )
   }
 
+  const canEditResident = onEdit && !resident.isArchived && resident.status.code !== 'archived'
+
   return (
     <section style={{ display: 'grid', gap: 18 }}>
       <PageHeader
@@ -222,7 +242,7 @@ export function ResidentDetailPage({ onBack, onEdit, residentId }: ResidentDetai
         }
         description={copy.detail.pageDescription}
         primaryAction={
-          onEdit
+          canEditResident
             ? {
                 icon: <Pencil aria-hidden="true" size={18} />,
                 label: copy.detail.actions.edit,
@@ -246,7 +266,10 @@ export function ResidentDetailPage({ onBack, onEdit, residentId }: ResidentDetai
               value: (
                 <StatusBadge
                   label={resident.status.label}
-                  tone={coerceTone(resident.status.tone, statusTones[resident.status.code])}
+                  tone={coerceStatusBadgeTone(
+                    resident.status.tone,
+                    statusTones[resident.status.code],
+                  )}
                 />
               ),
             },
@@ -255,7 +278,7 @@ export function ResidentDetailPage({ onBack, onEdit, residentId }: ResidentDetai
               value: (
                 <StatusBadge
                   label={resident.portalStatus.label}
-                  tone={coerceTone(
+                  tone={coerceStatusBadgeTone(
                     resident.portalStatus.tone,
                     portalStatusTones[resident.portalStatus.code],
                   )}
@@ -324,10 +347,19 @@ export function ResidentDetailPage({ onBack, onEdit, residentId }: ResidentDetai
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(resident, copy),
+            content: getRelationshipPanels(resident, copy, locale, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={resident.id} entityType="resident" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline.title,
+                },
+              ]
+            : []),
         ]}
       />
     </section>

@@ -55,7 +55,14 @@ import {
 import { formatDate, formatDateTime } from '../../lib/format'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import {
+  buildEntityAuditRoute,
+  buildEntityTimelineRoute,
+  canReadRelationshipModule,
+  type RelationshipContext,
+} from '../crossModule/relationships'
 import { hasAnyPermission } from '../identity/session'
+import { EntityTimelinePanel } from '../timeline'
 import { getOccurrenceCopy } from './occurrenceCopy'
 
 export type OccurrenceDetailPageProps = {
@@ -161,9 +168,11 @@ function formatEntity(entity: OccurrenceDetail['property'], emptyLabel: string) 
 function getRelationshipPanels(
   occurrence: OccurrenceDetail,
   copy: ReturnType<typeof getOccurrenceCopy>,
+  authUser: ReturnType<typeof useAuthSessionStore.getState>['user'],
 ) {
+  const context: RelationshipContext = { entityId: occurrence.id, entityType: 'occurrence' }
   const relationshipItems: Array<RelationshipPanelItem | undefined> = [
-    occurrence.property
+    occurrence.property && canReadRelationshipModule('properties', authUser)
       ? {
           description: occurrence.property.description,
           href: occurrence.property.route,
@@ -171,7 +180,7 @@ function getRelationshipPanels(
           title: occurrence.property.name,
         }
       : undefined,
-    occurrence.resident
+    occurrence.resident && canReadRelationshipModule('residents', authUser)
       ? {
           description: occurrence.resident.description,
           href: occurrence.resident.route,
@@ -179,7 +188,7 @@ function getRelationshipPanels(
           title: occurrence.resident.name,
         }
       : undefined,
-    occurrence.contract
+    occurrence.contract && canReadRelationshipModule('contracts', authUser)
       ? {
           description: occurrence.contract.description,
           href: occurrence.contract.route,
@@ -203,29 +212,33 @@ function getRelationshipPanels(
         title={copy.detail.relationshipTitle}
       />
 
-      <RelationshipPanel
-        items={[
-          {
-            description: occurrence.timelineRoute,
-            href: occurrence.timelineRoute,
-            id: 'timeline-link',
-            title: copy.detail.relationships.timeline,
-          },
-        ]}
-        title={copy.detail.relationships.timeline}
-      />
+      {canReadRelationshipModule('timeline', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: occurrence.timelineRoute,
+              href: buildEntityTimelineRoute(context),
+              id: 'timeline-link',
+              title: copy.detail.relationships.timeline,
+            },
+          ]}
+          title={copy.detail.relationships.timeline}
+        />
+      ) : null}
 
-      <RelationshipPanel
-        items={[
-          {
-            description: occurrence.auditRoute,
-            href: occurrence.auditRoute,
-            id: 'audit-link',
-            title: copy.detail.relationships.audit,
-          },
-        ]}
-        title={copy.detail.relationships.audit}
-      />
+      {canReadRelationshipModule('audit', authUser) ? (
+        <RelationshipPanel
+          items={[
+            {
+              description: occurrence.auditRoute,
+              href: buildEntityAuditRoute(context),
+              id: 'audit-link',
+              title: copy.detail.relationships.audit,
+            },
+          ]}
+          title={copy.detail.relationships.audit}
+        />
+      ) : null}
     </div>
   )
 }
@@ -362,6 +375,8 @@ export function OccurrenceDetailPage({ occurrenceId, onBack, onEdit }: Occurrenc
   const canWriteOccurrences = hasAnyPermission(['occurrences.write'], authUser)
   const canManageOccurrences = hasAnyPermission(['occurrences.manage'], authUser)
   const canArchiveOccurrences = hasAnyPermission(['occurrences.archive'], authUser)
+  const canReadDocuments = hasAnyPermission(['documents.read'], authUser)
+  const canReadTimeline = canReadRelationshipModule('timeline', authUser)
   const [assignedUserId, setAssignedUserId] = useState('')
   const [assignmentNotes, setAssignmentNotes] = useState('')
   const [priority, setPriority] = useState<OccurrencePriority>('medium')
@@ -391,6 +406,7 @@ export function OccurrenceDetailPage({ occurrenceId, onBack, onEdit }: Occurrenc
     queryKey: ['administrators', 'occurrence-detail-assignees'],
   })
   const documentsQuery = useQuery({
+    enabled: canReadDocuments,
     queryFn: () =>
       listDocuments(apiClient, {
         category: 'occurrence',
@@ -569,6 +585,7 @@ export function OccurrenceDetailPage({ occurrenceId, onBack, onEdit }: Occurrenc
   const canEdit = onEdit && canWriteOccurrences && !isTerminal
   const canUseWorkflow = canManageOccurrences && !isTerminal
   const canWriteLinkedNotes = canWriteOccurrences && !isArchived
+  const canLinkDocuments = canWriteLinkedNotes && canReadDocuments
 
   return (
     <section style={{ display: 'grid', gap: 18 }}>
@@ -688,10 +705,19 @@ export function OccurrenceDetailPage({ occurrenceId, onBack, onEdit }: Occurrenc
         ariaLabel={copy.detail.relationshipTitle}
         tabs={[
           {
-            content: getRelationshipPanels(occurrence, copy),
+            content: getRelationshipPanels(occurrence, copy, authUser),
             id: 'relationships',
             label: copy.detail.relationshipTitle,
           },
+          ...(canReadTimeline
+            ? [
+                {
+                  content: <EntityTimelinePanel entityId={occurrence.id} entityType="occurrence" />,
+                  id: 'timeline',
+                  label: copy.detail.relationships.timeline,
+                },
+              ]
+            : []),
           {
             content: (
               <DetailSection title={copy.detail.workflow.title}>
@@ -951,73 +977,77 @@ export function OccurrenceDetailPage({ occurrenceId, onBack, onEdit }: Occurrenc
             id: 'comments',
             label: copy.detail.comments.title,
           },
-          {
-            content: (
-              <DetailSection title={copy.detail.attachment.title}>
-                <div style={{ display: 'grid', gap: 14 }}>
-                  {occurrence.attachments.length === 0 ? (
-                    <p>{copy.detail.attachment.empty}</p>
-                  ) : (
-                    <RelationshipPanel
-                      items={occurrence.attachments.map((attachment) => ({
-                        description: formatDateTime(attachment.createdAt, { locale }),
-                        href: attachment.route,
-                        id: attachment.documentId,
-                        title: attachment.label ?? attachment.documentId,
-                      }))}
-                      title={copy.detail.attachment.title}
-                    />
-                  )}
+          ...(canReadDocuments
+            ? [
+                {
+                  content: (
+                    <DetailSection title={copy.detail.attachment.title}>
+                      <div style={{ display: 'grid', gap: 14 }}>
+                        {occurrence.attachments.length === 0 ? (
+                          <p>{copy.detail.attachment.empty}</p>
+                        ) : (
+                          <RelationshipPanel
+                            items={occurrence.attachments.map((attachment) => ({
+                              description: formatDateTime(attachment.createdAt, { locale }),
+                              href: attachment.route,
+                              id: attachment.documentId,
+                              title: attachment.label ?? attachment.documentId,
+                            }))}
+                            title={copy.detail.attachment.title}
+                          />
+                        )}
 
-                  {canWriteLinkedNotes ? (
-                    <div style={formGridStyle}>
-                      <FormField label={copy.detail.attachment.documentId}>
-                        {({ describedBy, id, isInvalid }) => (
-                          <SelectInput
-                            id={id}
-                            aria-describedby={describedBy}
-                            isInvalid={isInvalid}
-                            onChange={(event) => setDocumentId(event.currentTarget.value)}
-                            options={documentOptions}
-                            placeholder={copy.detail.attachment.documentId}
-                            value={documentId}
-                          />
-                        )}
-                      </FormField>
-                      <FormField label={copy.detail.attachment.label}>
-                        {({ describedBy, id, isInvalid }) => (
-                          <TextInput
-                            id={id}
-                            aria-describedby={describedBy}
-                            isInvalid={isInvalid}
-                            onChange={(event) => setDocumentLabel(event.currentTarget.value)}
-                            value={documentLabel}
-                          />
-                        )}
-                      </FormField>
-                      <ActionButton
-                        disabled={!optionalText(documentId)}
-                        icon={<Paperclip aria-hidden="true" size={16} />}
-                        onClick={() =>
-                          workflowMutation.mutate({
-                            action: 'attach',
-                            documentId,
-                            label: optionalText(documentLabel),
-                          })
-                        }
-                        style={{ alignSelf: 'end' }}
-                        type="button"
-                      >
-                        {copy.detail.attachment.add}
-                      </ActionButton>
-                    </div>
-                  ) : null}
-                </div>
-              </DetailSection>
-            ),
-            id: 'attachments',
-            label: copy.detail.attachment.title,
-          },
+                        {canLinkDocuments ? (
+                          <div style={formGridStyle}>
+                            <FormField label={copy.detail.attachment.documentId}>
+                              {({ describedBy, id, isInvalid }) => (
+                                <SelectInput
+                                  id={id}
+                                  aria-describedby={describedBy}
+                                  isInvalid={isInvalid}
+                                  onChange={(event) => setDocumentId(event.currentTarget.value)}
+                                  options={documentOptions}
+                                  placeholder={copy.detail.attachment.documentId}
+                                  value={documentId}
+                                />
+                              )}
+                            </FormField>
+                            <FormField label={copy.detail.attachment.label}>
+                              {({ describedBy, id, isInvalid }) => (
+                                <TextInput
+                                  id={id}
+                                  aria-describedby={describedBy}
+                                  isInvalid={isInvalid}
+                                  onChange={(event) => setDocumentLabel(event.currentTarget.value)}
+                                  value={documentLabel}
+                                />
+                              )}
+                            </FormField>
+                            <ActionButton
+                              disabled={!optionalText(documentId)}
+                              icon={<Paperclip aria-hidden="true" size={16} />}
+                              onClick={() =>
+                                workflowMutation.mutate({
+                                  action: 'attach',
+                                  documentId,
+                                  label: optionalText(documentLabel),
+                                })
+                              }
+                              style={{ alignSelf: 'end' }}
+                              type="button"
+                            >
+                              {copy.detail.attachment.add}
+                            </ActionButton>
+                          </div>
+                        ) : null}
+                      </div>
+                    </DetailSection>
+                  ),
+                  id: 'attachments',
+                  label: copy.detail.attachment.title,
+                },
+              ]
+            : []),
           {
             content: (
               <div style={{ display: 'grid', gap: 14 }}>

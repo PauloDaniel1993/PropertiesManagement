@@ -76,6 +76,24 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = 
 }
 
 function buildPropertySession(): AuthSessionDto {
+  const permissions = [
+    'properties.read',
+    'properties.write',
+    'properties.manage',
+    'properties.archive',
+    'contracts.read',
+    'residents.read',
+    'payments.read',
+    'utility-accounts.read',
+    'documents.read',
+    'pets.read',
+    'vehicles.read',
+    'occurrences.read',
+    'inspections.read',
+    'timeline.read',
+    'audit.read',
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -94,12 +112,28 @@ function buildPropertySession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: ['properties.read', 'properties.write'],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: ['properties.read', 'properties.write'],
+      permissions,
+    },
+  }
+}
+
+function buildReadOnlyPropertySession(): AuthSessionDto {
+  return {
+    ...buildPropertySession(),
+    user: {
+      ...buildPropertySession().user,
+      organizations: [
+        {
+          ...buildPropertySession().user.organizations[0],
+          permissionCodes: ['properties.read'],
+        },
+      ],
+      permissions: ['properties.read'],
     },
   }
 }
@@ -129,6 +163,29 @@ function createPropertiesFetch() {
         ...propertyListItem,
         createdAt: '2026-06-01T10:00:00.000Z',
         notes: 'Sol da manha',
+        relationships: [
+          { count: 2, label: 'Contratos vinculados', module: 'contracts', route: '/contratos' },
+          { count: 1, label: 'Moradores vinculados', module: 'residents', route: '/moradores' },
+          { count: 3, label: 'Pagamentos vinculados', module: 'payments', route: '/pagamentos' },
+          {
+            count: 1,
+            label: 'Contas de consumo vinculadas',
+            module: 'utility-accounts',
+            route: '/contas-de-consumo',
+          },
+          { count: 1, label: 'Documentos vinculados', module: 'documents', route: '/documentos' },
+          { count: 0, label: 'Pets vinculados', module: 'pets', route: '/pets' },
+          { count: 0, label: 'Veiculos vinculados', module: 'vehicles', route: '/veiculos' },
+          {
+            count: 0,
+            label: 'Ocorrencias vinculadas',
+            module: 'occurrences',
+            route: '/ocorrencias',
+          },
+          { count: 0, label: 'Vistorias vinculadas', module: 'inspections', route: '/vistorias' },
+          { count: 1, label: 'Timeline', module: 'timeline', route: '/timeline' },
+          { count: 1, label: 'Auditoria', module: 'audit', route: '/auditoria' },
+        ],
       })
     }
 
@@ -262,13 +319,63 @@ describe('properties management UI', () => {
     expect(screen.getByText('Veiculos')).toBeInTheDocument()
     expect(screen.getByText('Ocorrencias')).toBeInTheDocument()
     expect(screen.getByText('Vistorias')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Contratos vinculados' })).toHaveAttribute(
+      'href',
+      '/contratos?propertyId=property-a',
+    )
+    expect(screen.getByRole('link', { name: 'Abrir documentos vinculados' })).toHaveAttribute(
+      'href',
+      '/documentos?entityType=property&entityId=property-a',
+    )
     expect(screen.getByRole('link', { name: 'Abrir timeline do imovel' })).toHaveAttribute(
       'href',
-      '/timeline?propertyId=property-a',
+      '/timeline?entityType=property&entityId=property-a',
     )
     expect(screen.getByRole('link', { name: 'Abrir auditoria do imovel' })).toHaveAttribute(
       'href',
-      '/auditoria?propertyId=property-a',
+      '/auditoria?entityType=property&entityId=property-a',
+    )
+  })
+
+  it('filters property relationship panels by active permissions', async () => {
+    const user = userEvent.setup()
+    applyAuthSession(buildReadOnlyPropertySession())
+    const fetchImpl = createPropertiesFetch()
+
+    renderWithApi(<PropertiesListPage />, fetchImpl)
+
+    expect(await screen.findByText('Apartamento Jardim')).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Ver detalhes Apartamento Jardim'))
+
+    expect(await screen.findByText('Resumo do imovel')).toBeInTheDocument()
+    expect(screen.queryByText('Contratos')).not.toBeInTheDocument()
+    expect(screen.queryByText('Timeline')).not.toBeInTheDocument()
+    expect(screen.queryByText('Auditoria')).not.toBeInTheDocument()
+  })
+
+  it('includes archived properties when filtering by archived status', async () => {
+    const user = userEvent.setup()
+    applyAuthSession(buildPropertySession())
+    const fetchImpl = createPropertiesFetch()
+
+    renderWithApi(<PropertiesListPage />, fetchImpl)
+
+    expect(await screen.findByText('Apartamento Jardim')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Status'), 'archived')
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input]) =>
+              String(input).includes('/v1/properties?') &&
+              String(input).includes('status=archived') &&
+              String(input).includes('includeArchived=true'),
+          ),
+      ).toBe(true),
     )
   })
 

@@ -15,6 +15,7 @@ const vehicleCopies = {
         createdAt: 'Created at',
         updatedAt: 'Updated at',
       },
+      documentsTitle: 'Documents',
       emptyRelationship: 'This relationship will appear here when connected.',
       error: 'Could not load vehicle details.',
       labels: {
@@ -153,6 +154,7 @@ const vehicleCopies = {
         createdAt: 'Criado em',
         updatedAt: 'Atualizado em',
       },
+      documentsTitle: 'Documentos',
       emptyRelationship: 'Este relacionamento aparecera aqui quando estiver conectado.',
       error: 'Nao foi possivel carregar os detalhes do veiculo.',
       labels: {
