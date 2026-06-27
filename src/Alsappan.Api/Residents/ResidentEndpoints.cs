@@ -1,9 +1,18 @@
 using Alsappan.Api.OperationResults;
+using Alsappan.Api.Modules;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Residents;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alsappan.Api.Residents;
+
+#pragma warning disable CA1812
+internal sealed class ResidentEndpointModule : IApiEndpointModule
+{
+  public int Order => 310;
+
+  public void MapEndpoints(RouteGroupBuilder v1) => v1.MapResidentEndpoints();
+}
 
 internal static class ResidentEndpoints
 {

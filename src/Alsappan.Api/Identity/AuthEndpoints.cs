@@ -1,8 +1,17 @@
 using Alsappan.Application.Identity.Auth;
+using Alsappan.Api.Modules;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 
 namespace Alsappan.Api.Identity;
+
+#pragma warning disable CA1812
+internal sealed class AuthEndpointModule : IApiEndpointModule
+{
+  public int Order => 100;
+
+  public void MapEndpoints(RouteGroupBuilder v1) => v1.MapAuthEndpoints();
+}
 
 internal static class AuthEndpoints
 {

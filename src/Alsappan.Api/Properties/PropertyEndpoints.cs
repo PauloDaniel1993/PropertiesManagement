@@ -1,9 +1,18 @@
 using Alsappan.Api.OperationResults;
+using Alsappan.Api.Modules;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Properties;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alsappan.Api.Properties;
+
+#pragma warning disable CA1812
+internal sealed class PropertyEndpointModule : IApiEndpointModule
+{
+  public int Order => 300;
+
+  public void MapEndpoints(RouteGroupBuilder v1) => v1.MapPropertyEndpoints();
+}
 
 internal static class PropertyEndpoints
 {
