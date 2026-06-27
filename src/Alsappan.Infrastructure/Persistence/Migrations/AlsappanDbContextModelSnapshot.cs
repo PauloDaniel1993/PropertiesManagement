@@ -2344,7 +2344,9 @@ namespace Alsappan.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_vehicles_organization_id_type");
 
                     b.HasIndex("OrganizationId", "PropertyId", "NormalizedParkingSpaceIdentifier")
-                        .HasDatabaseName("ix_vehicles_organization_id_property_id_normalized_parking_spa~");
+                        .IsUnique()
+                        .HasDatabaseName("ux_vehicles_active_parking_allocation")
+                        .HasFilter("deleted_at IS NULL AND property_id IS NOT NULL AND normalized_parking_space_identifier IS NOT NULL AND authorization_status IN ('pending', 'authorized')");
 
                     b.ToTable("vehicles", "app");
                 });

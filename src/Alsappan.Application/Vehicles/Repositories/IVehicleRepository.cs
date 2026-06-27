@@ -31,6 +31,29 @@ public sealed record VehicleContractSnapshot(
   string ResidentName,
   bool IsActive);
 
+public sealed class VehicleParkingAllocationConflictException : Exception
+{
+  public VehicleParkingAllocationConflictException()
+    : this("The parking space already has an active vehicle allocation.")
+  {
+  }
+
+  public VehicleParkingAllocationConflictException(string message)
+    : base(message)
+  {
+  }
+
+  public VehicleParkingAllocationConflictException(string message, Exception innerException)
+    : base(message, innerException)
+  {
+  }
+
+  public VehicleParkingAllocationConflictException(Exception innerException)
+    : this("The parking space already has an active vehicle allocation.", innerException)
+  {
+  }
+}
+
 public interface IVehicleRepository
 {
   Task<PagedResultDto<VehicleSnapshot>> ListAsync(

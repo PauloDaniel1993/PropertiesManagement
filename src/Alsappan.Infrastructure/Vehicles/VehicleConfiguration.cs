@@ -7,6 +7,11 @@ namespace Alsappan.Infrastructure.Vehicles;
 
 public sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
 {
+  public const string ActiveParkingAllocationIndexName = "ux_vehicles_active_parking_allocation";
+  public const string ActiveParkingAllocationIndexFilter =
+    "deleted_at IS NULL AND property_id IS NOT NULL AND normalized_parking_space_identifier IS NOT NULL " +
+    "AND authorization_status IN ('pending', 'authorized')";
+
   public void Configure(EntityTypeBuilder<Vehicle> builder)
   {
     ArgumentNullException.ThrowIfNull(builder);
@@ -75,7 +80,10 @@ public sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
     builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.ContractId });
     builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.Type });
     builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.AuthorizationStatus });
-    builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.PropertyId, vehicle.NormalizedParkingSpaceIdentifier });
+    builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.PropertyId, vehicle.NormalizedParkingSpaceIdentifier })
+      .HasDatabaseName(ActiveParkingAllocationIndexName)
+      .HasFilter(ActiveParkingAllocationIndexFilter)
+      .IsUnique();
     builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.SearchText });
     builder.HasIndex(vehicle => new { vehicle.OrganizationId, vehicle.DeletedAt });
   }

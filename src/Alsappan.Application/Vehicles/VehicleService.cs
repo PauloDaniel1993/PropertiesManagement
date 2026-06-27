@@ -166,7 +166,15 @@ public sealed class VehicleService : IVehicleService
       now,
       context.UserId);
 
-    await vehicleRepository.AddAsync(vehicle, cancellationToken).ConfigureAwait(false);
+    try
+    {
+      await vehicleRepository.AddAsync(vehicle, cancellationToken).ConfigureAwait(false);
+    }
+    catch (VehicleParkingAllocationConflictException)
+    {
+      return ParkingAllocationConflictResult();
+    }
+
     var snapshot = await vehicleRepository.FindSnapshotAsync(
         vehicle.Id,
         context.OrganizationId,
@@ -279,7 +287,15 @@ public sealed class VehicleService : IVehicleService
       return ApplicationOperationResult<VehicleDetailDto>.Failed(ApplicationOperationFailure.Conflict);
     }
 
-    await vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+    try
+    {
+      await vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+    }
+    catch (VehicleParkingAllocationConflictException)
+    {
+      return ParkingAllocationConflictResult();
+    }
+
     var snapshot = await vehicleRepository.FindSnapshotAsync(vehicle.Id, context.OrganizationId, true, cancellationToken)
       .ConfigureAwait(false);
     var parkingChanged = beforePropertyId != vehicle.PropertyId ||
@@ -461,7 +477,15 @@ public sealed class VehicleService : IVehicleService
       return ApplicationOperationResult<VehicleDetailDto>.Failed(ApplicationOperationFailure.Conflict);
     }
 
-    await vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+    try
+    {
+      await vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+    }
+    catch (VehicleParkingAllocationConflictException)
+    {
+      return ParkingAllocationConflictResult();
+    }
+
     var snapshot = await vehicleRepository.FindSnapshotAsync(vehicle.Id, context.OrganizationId, true, cancellationToken)
       .ConfigureAwait(false);
     await WriteMutationSideEffectsAsync(eventName, vehicle, context, cancellationToken).ConfigureAwait(false);
@@ -607,6 +631,12 @@ public sealed class VehicleService : IVehicleService
 
     return validation;
   }
+
+  private static ApplicationOperationResult<VehicleDetailDto> ParkingAllocationConflictResult() =>
+    ApplicationOperationResult<VehicleDetailDto>.Invalid([ParkingAllocationDuplicateFailure()]);
+
+  private static ValidationFailure ParkingAllocationDuplicateFailure() =>
+    new("parkingSpaceIdentifier", "validation.parkingSpaceDuplicate");
 
   private async Task<bool> HasPermissionAsync(string permissionCode, CancellationToken cancellationToken)
   {
@@ -773,7 +803,12 @@ public sealed class VehicleService : IVehicleService
       request.ResidentId,
       request.ContractId,
       request.Year,
-      request.ParkingSpaceIdentifier);
+      request.ParkingSpaceIdentifier,
+      request.Color,
+      request.Brand,
+      request.Model,
+      request.ParkingAllocationNotes,
+      request.Notes);
 
   private static IEnumerable<ValidationFailure> ValidateVehicleRequest(VehicleUpdateRequestDto request) =>
     ValidateVehicleFields(
@@ -783,7 +818,12 @@ public sealed class VehicleService : IVehicleService
       request.ResidentId,
       request.ContractId,
       request.Year,
-      request.ParkingSpaceIdentifier);
+      request.ParkingSpaceIdentifier,
+      request.Color,
+      request.Brand,
+      request.Model,
+      request.ParkingAllocationNotes,
+      request.Notes);
 
   private static IEnumerable<ValidationFailure> ValidateVehicleFields(
     string plate,
@@ -792,11 +832,20 @@ public sealed class VehicleService : IVehicleService
     Guid? residentId,
     Guid? contractId,
     int? year,
-    string? parkingSpaceIdentifier)
+    string? parkingSpaceIdentifier,
+    string? color,
+    string? brand,
+    string? model,
+    string? parkingAllocationNotes,
+    string? notes)
   {
     if (string.IsNullOrWhiteSpace(plate) || VehicleCode.NormalizePlate(plate) is null)
     {
       yield return new ValidationFailure(nameof(plate), ValidationMessageKeys.Required);
+    }
+    else if (ExceedsMaxLength(plate, 20))
+    {
+      yield return new ValidationFailure(nameof(plate), ValidationMessageKeys.MaxLength);
     }
 
     if (!VehicleCatalog.TryParseType(type, out _))
@@ -825,7 +874,33 @@ public sealed class VehicleService : IVehicleService
     {
       yield return new ValidationFailure(nameof(parkingSpaceIdentifier), "validation.parkingSpaceIdentifier");
     }
+
+    foreach (var failure in ValidateOptionalMaxLengths(
+      (nameof(color), color, 80),
+      (nameof(brand), brand, 120),
+      (nameof(model), model, 120),
+      (nameof(parkingSpaceIdentifier), parkingSpaceIdentifier, 80),
+      (nameof(parkingAllocationNotes), parkingAllocationNotes, 500),
+      (nameof(notes), notes, 2000)))
+    {
+      yield return failure;
+    }
   }
+
+  private static IEnumerable<ValidationFailure> ValidateOptionalMaxLengths(
+    params (string Name, string? Value, int MaxLength)[] fields)
+  {
+    foreach (var (name, value, maxLength) in fields)
+    {
+      if (ExceedsMaxLength(value, maxLength))
+      {
+        yield return new ValidationFailure(name, ValidationMessageKeys.MaxLength);
+      }
+    }
+  }
+
+  private static bool ExceedsMaxLength(string? value, int maxLength) =>
+    !string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength;
 
   private static IEnumerable<ValidationFailure> ValidateId(Guid id, string propertyName = "id")
   {

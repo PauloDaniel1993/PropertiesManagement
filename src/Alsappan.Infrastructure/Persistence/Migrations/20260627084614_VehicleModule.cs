@@ -81,10 +81,12 @@ public partial class VehicleModule : Migration
         columns: new[] { "organization_id", "property_id" });
 
     migrationBuilder.CreateIndex(
-        name: "ix_vehicles_organization_id_property_id_normalized_parking_spa~",
+        name: "ux_vehicles_active_parking_allocation",
         schema: "app",
         table: "vehicles",
-        columns: new[] { "organization_id", "property_id", "normalized_parking_space_identifier" });
+        columns: new[] { "organization_id", "property_id", "normalized_parking_space_identifier" },
+        unique: true,
+        filter: "deleted_at IS NULL AND property_id IS NOT NULL AND normalized_parking_space_identifier IS NOT NULL AND authorization_status IN ('pending', 'authorized')");
 
     migrationBuilder.CreateIndex(
         name: "ix_vehicles_organization_id_resident_id",

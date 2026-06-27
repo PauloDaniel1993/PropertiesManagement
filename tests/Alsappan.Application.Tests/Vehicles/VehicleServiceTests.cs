@@ -132,6 +132,74 @@ public sealed class VehicleServiceTests
   }
 
   [Fact]
+  public async Task CreateAsyncRejectsOversizedFieldsAsValidation()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeVehicleRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Vehicles)]);
+
+    var request = CreateRequest(
+      repository.Contract.ContractId.Value,
+      repository.Contract.PropertyId.Value,
+      repository.Contract.PrimaryResidentId.Value,
+      new string('A', 21),
+      new string('B', 81)) with
+    {
+      Brand = new string('C', 121),
+      Color = new string('D', 81),
+      Model = new string('E', 121),
+      Notes = new string('F', 2001),
+      ParkingAllocationNotes = new string('G', 501)
+    };
+
+    var result = await service.CreateAsync(request);
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("plate", result.Errors!.Keys);
+    Assert.Contains("brand", result.Errors.Keys);
+    Assert.Contains("color", result.Errors.Keys);
+    Assert.Contains("model", result.Errors.Keys);
+    Assert.Contains("notes", result.Errors.Keys);
+    Assert.Contains("parkingAllocationNotes", result.Errors.Keys);
+    Assert.Contains("parkingSpaceIdentifier", result.Errors.Keys);
+    Assert.Empty(repository.Vehicles);
+  }
+
+  [Fact]
+  public async Task CreateAsyncMapsParkingAllocationConflictToValidation()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeVehicleRepository(organizationId)
+    {
+      ThrowParkingConflictOnAdd = true
+    };
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Vehicles)]);
+
+    var result = await service.CreateAsync(CreateRequest(
+      repository.Contract.ContractId.Value,
+      repository.Contract.PropertyId.Value,
+      repository.Contract.PrimaryResidentId.Value,
+      "ABC-1234",
+      "A1"));
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("parkingSpaceIdentifier", result.Errors!.Keys);
+    Assert.Empty(repository.Vehicles);
+  }
+
+  [Fact]
   public async Task CreateAsyncRejectsInactiveContractContext()
   {
     var organizationId = OrganizationId.New();
@@ -211,6 +279,35 @@ public sealed class VehicleServiceTests
 
     Assert.False(result.Succeeded);
     Assert.Equal(ApplicationOperationFailure.Forbidden, result.Failure);
+  }
+
+  [Fact]
+  public async Task AuthorizeAsyncMapsParkingAllocationConflictToValidation()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeVehicleRepository(organizationId)
+    {
+      ThrowParkingConflictOnUpdate = true
+    };
+    repository.Vehicles.Add(CreateVehicle(
+      organizationId,
+      repository.Property.PropertyId,
+      repository.Resident.ResidentId,
+      "ABC-1234",
+      "A1",
+      VehicleAuthorizationStatus.Pending));
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Manage(PermissionModules.Vehicles)]);
+
+    var result = await service.AuthorizeAsync(repository.Vehicles[0].Id.Value);
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("parkingSpaceIdentifier", result.Errors!.Keys);
   }
 
   [Fact]
@@ -362,6 +459,10 @@ public sealed class VehicleServiceTests
 
     public List<Vehicle> Vehicles { get; } = [];
 
+    public bool ThrowParkingConflictOnAdd { get; init; }
+
+    public bool ThrowParkingConflictOnUpdate { get; init; }
+
     public Task<PagedResultDto<VehicleSnapshot>> ListAsync(
       VehicleListRequestDto request,
       OrganizationId organizationId,
@@ -459,6 +560,11 @@ public sealed class VehicleServiceTests
     public Task AddAsync(Vehicle vehicle, CancellationToken cancellationToken = default)
     {
       cancellationToken.ThrowIfCancellationRequested();
+      if (ThrowParkingConflictOnAdd)
+      {
+        throw new VehicleParkingAllocationConflictException();
+      }
+
       Vehicles.Add(vehicle);
       return Task.CompletedTask;
     }
@@ -466,6 +572,11 @@ public sealed class VehicleServiceTests
     public Task UpdateAsync(Vehicle vehicle, CancellationToken cancellationToken = default)
     {
       cancellationToken.ThrowIfCancellationRequested();
+      if (ThrowParkingConflictOnUpdate)
+      {
+        throw new VehicleParkingAllocationConflictException();
+      }
+
       return Task.CompletedTask;
     }
 

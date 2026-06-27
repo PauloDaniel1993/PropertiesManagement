@@ -16,6 +16,26 @@ namespace Alsappan.Infrastructure.Tests.Vehicles;
 public sealed class EfVehicleRepositoryTests
 {
   [Fact]
+  public void ModelUsesFilteredUniqueActiveParkingAllocationIndex()
+  {
+    using var context = CreateContext(OrganizationId.New(), Guid.NewGuid().ToString("N"));
+    var entityType = context.Model.FindEntityType(typeof(Vehicle));
+
+    Assert.NotNull(entityType);
+    var index = Assert.Single(entityType.GetIndexes(), candidate =>
+      string.Equals(
+        candidate.GetDatabaseName(),
+        VehicleConfiguration.ActiveParkingAllocationIndexName,
+        StringComparison.Ordinal));
+
+    Assert.True(index.IsUnique);
+    Assert.Equal(
+      ["OrganizationId", "PropertyId", "NormalizedParkingSpaceIdentifier"],
+      index.Properties.Select(property => property.Name).ToArray());
+    Assert.Equal(VehicleConfiguration.ActiveParkingAllocationIndexFilter, index.GetFilter());
+  }
+
+  [Fact]
   public async Task ListAsyncFiltersByTenantNormalizedPlateAndBuildsRelationshipSnapshots()
   {
     var databaseName = Guid.NewGuid().ToString("N");

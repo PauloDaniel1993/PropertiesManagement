@@ -8,6 +8,7 @@ using Alsappan.Domain.Residents;
 using Alsappan.Domain.Vehicles;
 using Alsappan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Alsappan.Infrastructure.Vehicles;
 
@@ -208,7 +209,7 @@ public sealed class EfVehicleRepository : IVehicleRepository
     ArgumentNullException.ThrowIfNull(vehicle);
 
     dbContext.Vehicles.Add(vehicle);
-    await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task UpdateAsync(Vehicle vehicle, CancellationToken cancellationToken = default)
@@ -216,8 +217,28 @@ public sealed class EfVehicleRepository : IVehicleRepository
     ArgumentNullException.ThrowIfNull(vehicle);
 
     dbContext.Vehicles.Update(vehicle);
-    await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
   }
+
+  private async Task SaveChangesAsync(CancellationToken cancellationToken)
+  {
+    try
+    {
+      await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+    catch (DbUpdateException exception) when (IsActiveParkingAllocationUniqueViolation(exception))
+    {
+      throw new VehicleParkingAllocationConflictException(exception);
+    }
+  }
+
+  private static bool IsActiveParkingAllocationUniqueViolation(DbUpdateException exception) =>
+    exception.InnerException is PostgresException postgresException &&
+    postgresException.SqlState == PostgresErrorCodes.UniqueViolation &&
+    string.Equals(
+      postgresException.ConstraintName,
+      VehicleConfiguration.ActiveParkingAllocationIndexName,
+      StringComparison.Ordinal);
 
   private IQueryable<Vehicle> BuildListQuery(
     VehicleListRequestDto request,
