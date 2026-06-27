@@ -40,6 +40,7 @@ describe('shared frontend primitives', () => {
     const onClear = vi.fn()
     const onArchive = vi.fn()
     const onPageChange = vi.fn()
+    const onSort = vi.fn()
 
     const rows = [
       {
@@ -58,6 +59,8 @@ describe('shared frontend primitives', () => {
               cell: (row) => row.name,
               header: 'Nome',
               id: 'name',
+              onSort,
+              sortDirection: 'ascending',
             },
             {
               cell: (row) => <StatusBadge label={row.status} tone="success" />,
@@ -86,14 +89,56 @@ describe('shared frontend primitives', () => {
     expect(screen.getByRole('cell', { name: 'Casa Jardim' })).toBeInTheDocument()
     expect(screen.getByText('Disponível')).toBeInTheDocument()
 
+    await user.click(screen.getByRole('button', { name: 'Ordenar por Nome' }))
     await user.click(screen.getByRole('button', { name: 'Limpar busca' }))
     await user.click(screen.getByRole('button', { name: 'Ações da linha' }))
     await user.click(screen.getByRole('menuitem', { name: 'Arquivar' }))
     await user.click(screen.getByRole('button', { name: 'Próxima' }))
 
+    expect(onSort).toHaveBeenCalledTimes(1)
     expect(onClear).toHaveBeenCalledTimes(1)
     expect(onArchive).toHaveBeenCalledTimes(1)
     expect(onPageChange).toHaveBeenCalledWith(2)
+  })
+
+  it('opens row actions from the keyboard and preserves menu focus behavior', async () => {
+    const user = userEvent.setup()
+    const onEdit = vi.fn()
+    const onArchive = vi.fn()
+
+    render(
+      <RowActions
+        actions={[
+          {
+            id: 'edit',
+            label: 'Editar',
+            onSelect: onEdit,
+          },
+          {
+            id: 'archive',
+            isDestructive: true,
+            label: 'Arquivar',
+            onSelect: onArchive,
+          },
+        ]}
+      />,
+    )
+
+    const trigger = screen.getByRole('button', { name: 'Ações da linha' })
+
+    trigger.focus()
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByRole('menuitem', { name: 'Editar' })).toHaveFocus()
+
+    await user.keyboard('{ArrowDown}')
+
+    expect(screen.getByRole('menuitem', { name: 'Arquivar' })).toHaveFocus()
+
+    await user.keyboard('{Escape}')
+
+    expect(trigger).toHaveFocus()
+    expect(screen.queryByRole('menuitem', { name: 'Editar' })).not.toBeInTheDocument()
   })
 
   it('wires form labels, descriptions, and validation messages to controls', () => {

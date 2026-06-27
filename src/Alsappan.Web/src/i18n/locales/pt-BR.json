@@ -76,7 +76,8 @@
     "table": {
       "actions": "Ações",
       "empty": "Nenhum registro encontrado.",
-      "loading": "Carregando registros..."
+      "loading": "Carregando registros...",
+      "sortBy": "Ordenar por {{column}}"
     },
     "tabs": {
       "ariaLabel": "Seções"
@@ -298,7 +299,8 @@
       "toggle": "Alternar idioma"
     },
     "navigation": {
-      "admin": "Administração"
+      "admin": "Administração",
+      "skipToContent": "Ir para o conteúdo principal"
     },
     "states": {
       "archived": "Arquivado",

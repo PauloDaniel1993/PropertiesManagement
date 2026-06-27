@@ -242,6 +242,7 @@ export type DataTableColumn<TData> = {
   cell: (row: TData) => ReactNode
   className?: string
   header: ReactNode
+  sortLabel?: string
   id: string
   onSort?: () => void
   sortDirection?: DataTableSortDirection
@@ -286,6 +287,7 @@ export function DataTable<TData>({
   const hasRows = rows.length > 0
   const resolvedEmptyState = emptyState ?? t('components.table.empty')
   const resolvedLoadingLabel = loadingLabel ?? t('components.table.loading')
+  const getColumnText = (header: ReactNode) => (typeof header === 'string' ? header : undefined)
 
   return (
     <div
@@ -329,6 +331,12 @@ export function DataTable<TData>({
               >
                 {column.onSort ? (
                   <button
+                    aria-label={
+                      column.sortLabel ??
+                      t('components.table.sortBy', {
+                        column: getColumnText(column.header) ?? column.id,
+                      })
+                    }
                     className="als-data-table__sort"
                     onClick={column.onSort}
                     style={{
@@ -614,8 +622,15 @@ export function RowActions({
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const menuId = useComponentId('als-row-actions')
   const resolvedLabels = labels ?? { menu: t('components.rowActions.menu') }
+
+  function focusMenuItem(index: number) {
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+    items?.item(index)?.focus()
+  }
 
   useEffect(() => {
     if (!isOpen) {
@@ -633,18 +648,53 @@ export function RowActions({
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [isOpen])
 
+  useEffect(() => {
+    if (isOpen) {
+      window.setTimeout(() => focusMenuItem(0), 0)
+    }
+  }, [isOpen])
+
   return (
     <div
       ref={rootRef}
       className={cx('als-row-actions', className)}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
+          event.preventDefault()
           setIsOpen(false)
+          triggerRef.current?.focus()
+          return
+        }
+
+        if (!isOpen && (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault()
+          setIsOpen(true)
+          return
+        }
+
+        if (!isOpen || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) {
+          return
+        }
+
+        event.preventDefault()
+        const items = Array.from(
+          menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [],
+        )
+        const currentIndex = items.findIndex((item) => item === document.activeElement)
+        const lastIndex = items.length - 1
+
+        if (event.key === 'ArrowDown') {
+          items[currentIndex >= lastIndex ? 0 : currentIndex + 1]?.focus()
+        }
+
+        if (event.key === 'ArrowUp') {
+          items[currentIndex <= 0 ? lastIndex : currentIndex - 1]?.focus()
         }
       }}
       style={{ display: 'inline-flex', position: 'relative' }}
     >
       <button
+        ref={triggerRef}
         aria-controls={isOpen ? menuId : undefined}
         aria-expanded={isOpen}
         aria-haspopup="menu"
@@ -670,6 +720,7 @@ export function RowActions({
 
       {isOpen ? (
         <div
+          ref={menuRef}
           id={menuId}
           className="als-row-actions__menu"
           role="menu"
@@ -696,6 +747,21 @@ export function RowActions({
               onClick={() => {
                 action.onSelect()
                 setIsOpen(false)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Home') {
+                  event.preventDefault()
+                  focusMenuItem(0)
+                }
+
+                if (event.key === 'End') {
+                  event.preventDefault()
+                  const items =
+                    menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+                  if (items && items.length > 0) {
+                    items.item(items.length - 1).focus()
+                  }
+                }
               }}
               role="menuitem"
               style={{

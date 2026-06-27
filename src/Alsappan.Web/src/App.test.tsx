@@ -83,9 +83,18 @@ describe('App shell routing', () => {
 
     expect(await screen.findByRole('navigation', { name: 'Administração' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ir para o conteúdo principal' })).toHaveAttribute(
+      'href',
+      '#admin-content',
+    )
 
-    await user.click(screen.getByLabelText('Perfil'))
+    const profileMenu = screen.getByLabelText('Perfil')
 
+    expect(profileMenu).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(profileMenu)
+
+    expect(profileMenu).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByRole('menuitem', { name: 'Sair' })).toBeInTheDocument()
   })
 

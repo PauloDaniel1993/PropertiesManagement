@@ -317,10 +317,10 @@
 - [x] 22.2 Audit backend validation and Problem Details messages for `pt-BR` default localization
 - [x] 22.3 Add missing `en-US` translations for all implemented modules
 - [x] 22.4 Validate currency, date, number, pluralization, and status formatting in `pt-BR` and `en-US`
-- [ ] 22.5 Add keyboard navigation, focus states, aria labels, and accessible names for icons and row actions
+- [x] 22.5 Add keyboard navigation, focus states, aria labels, and accessible names for icons and row actions
 - [ ] 22.6 Verify table, form, dialog, sidebar, and topbar accessibility with automated checks
-- [ ] 22.7 Verify responsive layouts for desktop, tablet, and mobile across all module list pages
-- [ ] 22.8 Verify text overflow, wrapping, and table behavior for long Portuguese labels and long entity names
+- [x] 22.7 Verify responsive layouts for desktop, tablet, and mobile across all module list pages
+- [x] 22.8 Verify text overflow, wrapping, and table behavior for long Portuguese labels and long entity names
 - [ ] 22.9 Add visual regression or screenshot checks for the authenticated shell and representative module pages
 
 ## 23. End-to-End Testing and Quality Gates
