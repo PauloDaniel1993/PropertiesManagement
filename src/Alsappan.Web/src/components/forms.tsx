@@ -198,7 +198,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
       className={cx('als-text-input', isInvalid && 'als-text-input--invalid', className)}
       style={mergeStyles(
         controlStyle,
-        isInvalid ? { borderColor: 'var(--als-color-danger, #b42318)' } : undefined,
+        isInvalid ? { border: '1px solid var(--als-color-danger, #b42318)' } : undefined,
         style,
       )}
       {...props}
@@ -225,7 +225,7 @@ export const TextAreaInput = forwardRef<HTMLTextAreaElement, TextAreaInputProps>
           paddingBlock: 10,
           resize: 'vertical',
         },
-        isInvalid ? { borderColor: 'var(--als-color-danger, #b42318)' } : undefined,
+        isInvalid ? { border: '1px solid var(--als-color-danger, #b42318)' } : undefined,
         style,
       )}
       {...props}
@@ -255,7 +255,7 @@ export const SelectInput = forwardRef<HTMLSelectElement, SelectInputProps>(
       className={cx('als-select-input', isInvalid && 'als-select-input--invalid', className)}
       style={mergeStyles(
         controlStyle,
-        isInvalid ? { borderColor: 'var(--als-color-danger, #b42318)' } : undefined,
+        isInvalid ? { border: '1px solid var(--als-color-danger, #b42318)' } : undefined,
         style,
       )}
       {...props}

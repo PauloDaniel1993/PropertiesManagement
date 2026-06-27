@@ -15,6 +15,7 @@ public sealed class ApiEndpointModuleTests : IClassFixture<WebApplicationFactory
   [Theory]
   [InlineData("/v1/administrators")]
   [InlineData("/v1/contracts/status-options")]
+  [InlineData("/v1/documents/category-options")]
   [InlineData("/v1/properties/status-options")]
   [InlineData("/v1/residents/status-options")]
   public async Task FeatureEndpointModulesAreDiscovered(string path)

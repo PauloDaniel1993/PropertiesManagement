@@ -6,6 +6,7 @@ describe('module page route registry', () => {
       'administrators',
       'audit',
       'contracts',
+      'documents',
       'notifications',
       'properties',
       'residents',
@@ -14,6 +15,7 @@ describe('module page route registry', () => {
     expect(getModulePageComponent('administrators')).toEqual(expect.any(Function))
     expect(getModulePageComponent('audit')).toEqual(expect.any(Function))
     expect(getModulePageComponent('contracts')).toEqual(expect.any(Function))
+    expect(getModulePageComponent('documents')).toEqual(expect.any(Function))
     expect(getModulePageComponent('notifications')).toEqual(expect.any(Function))
     expect(getModulePageComponent('properties')).toEqual(expect.any(Function))
     expect(getModulePageComponent('residents')).toEqual(expect.any(Function))
