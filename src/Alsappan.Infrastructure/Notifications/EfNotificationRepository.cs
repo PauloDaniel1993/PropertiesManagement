@@ -325,8 +325,7 @@ public sealed class EfNotificationRepository : INotificationRepository
         notification.EventName.ToLower().Contains(search) ||
         notification.SubjectEntityType.ToLower().Contains(search) ||
         notification.SubjectEntityId.ToLower().Contains(search) ||
-        (notification.SubjectDisplayName ?? string.Empty).ToLower().Contains(search) ||
-        notification.PayloadJson.ToLower().Contains(search));
+        (notification.SubjectDisplayName ?? string.Empty).ToLower().Contains(search));
     }
 
     return query;
