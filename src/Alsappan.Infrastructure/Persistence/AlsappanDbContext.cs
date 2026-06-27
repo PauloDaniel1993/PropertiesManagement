@@ -7,6 +7,7 @@ using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
 using Alsappan.Domain.Inspections;
+using Alsappan.Domain.Occurrences;
 using Alsappan.Domain.Payments;
 using Alsappan.Domain.Pets;
 using Alsappan.Domain.Properties;
@@ -142,6 +143,8 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<InspectionDocumentLink> InspectionDocumentLinks => Set<InspectionDocumentLink>();
 
   public DbSet<InspectionSignatureSlot> InspectionSignatureSlots => Set<InspectionSignatureSlot>();
+
+  public DbSet<Occurrence> Occurrences => Set<Occurrence>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 
