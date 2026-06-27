@@ -350,6 +350,6 @@
 - [ ] 24.5 Add health checks for API, database, storage, background worker, and localization resource loading
 - [ ] 24.6 Add backup and restore assumptions for PostgreSQL and file storage
 - [ ] 24.7 Add basic performance checks for large lists, indexed filters, dashboard queries, and global search
-- [ ] 24.8 Add security review checklist for auth, tenant isolation, resident portal policies, payment provider mock boundaries, permissions, white-label asset validation, upload restrictions, audit, sensitive data masking, and dependency scanning
+- [x] 24.8 Add security review checklist for auth, tenant isolation, resident portal policies, payment provider mock boundaries, permissions, white-label asset validation, upload restrictions, audit, sensitive data masking, and dependency scanning
 - [ ] 24.9 Run full local validation from clean checkout instructions and update README gaps
 - [ ] 24.10 Run final OpenSpec validation/status check before implementation starts
