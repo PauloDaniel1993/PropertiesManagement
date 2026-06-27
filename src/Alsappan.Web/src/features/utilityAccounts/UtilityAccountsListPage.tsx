@@ -269,6 +269,7 @@ export function UtilityAccountsListPage() {
   const canWriteUtilities = hasAnyPermission(['utilityAccounts.write'], authUser)
   const canManageUtilities = hasAnyPermission(['utilityAccounts.manage'], authUser)
   const canArchiveUtilities = hasAnyPermission(['utilityAccounts.archive'], authUser)
+  const canReadDocuments = hasAnyPermission(['documents.read'], authUser)
   const filters = useMemo(() => normalizeUtilityAccountFilters(storedFilters), [storedFilters])
   const apiFilters = useMemo(
     () => ({
@@ -474,6 +475,7 @@ export function UtilityAccountsListPage() {
 
   const markPaidDialog = (
     <UtilityAccountMarkPaidDialog
+      canReadDocuments={canReadDocuments}
       isOpen={Boolean(markPaidUtilityAccount)}
       isSubmitting={markPaidMutation.isPending}
       onOpenChange={(isOpen) => {
@@ -784,6 +786,7 @@ export function UtilityAccountsListPage() {
       >
         {formState ? (
           <UtilityAccountForm
+            canReadDocuments={canReadDocuments}
             initialValue={formState.utilityAccount}
             isSubmitting={formMutation.isPending}
             mode={formState.mode}

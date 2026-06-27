@@ -21,6 +21,7 @@ import { UtilityAccountDocumentAttachmentField } from './UtilityAccountDocumentA
 import { getUtilityAccountCopy } from './utilityAccountCopy'
 
 export type UtilityAccountMarkPaidDialogProps = {
+  canReadDocuments?: boolean
   isOpen: boolean
   isSubmitting?: boolean
   onOpenChange: (isOpen: boolean) => void
@@ -130,6 +131,7 @@ function getDefaultValues(utilityAccount?: UtilityAccountListItem): MarkPaidForm
 }
 
 export function UtilityAccountMarkPaidDialog({
+  canReadDocuments = false,
   isOpen,
   isSubmitting = false,
   onOpenChange,
@@ -248,19 +250,13 @@ export function UtilityAccountMarkPaidDialog({
         </FormField>
 
         <UtilityAccountDocumentAttachmentField
-          entityId={utilityAccount?.id}
+          canReadDocuments={canReadDocuments}
           label={copy.markPaid.receiptDocumentId}
-          linkLabel={copy.detail.receiptDocumentsTitle}
           onChange={(documentId) =>
             form.setValue('receiptDocumentId', documentId, {
               shouldDirty: true,
               shouldTouch: true,
             })
-          }
-          uploadDefaultTitle={
-            utilityAccount?.title
-              ? `${copy.markPaid.receiptDocumentUploadTitle} - ${utilityAccount.title}`
-              : copy.markPaid.receiptDocumentUploadTitle
           }
           value={receiptDocumentId}
         />

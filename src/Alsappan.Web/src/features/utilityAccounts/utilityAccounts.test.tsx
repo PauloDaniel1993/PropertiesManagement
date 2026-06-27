@@ -19,7 +19,6 @@ import { UtilityAccountsListPage } from './UtilityAccountsListPage'
 const utilityAccountId = '11111111-1111-1111-1111-111111111111'
 const billDocumentId = '22222222-2222-2222-2222-222222222222'
 const receiptDocumentId = '33333333-3333-3333-3333-333333333333'
-const uploadedReceiptDocumentId = '77777777-7777-7777-7777-777777777777'
 const propertyId = '44444444-4444-4444-4444-444444444444'
 const contractId = '55555555-5555-5555-5555-555555555555'
 const residentId = '66666666-6666-6666-6666-666666666666'
@@ -127,13 +126,6 @@ const apiReceiptDocument = {
   title: 'Recibo CPFL junho',
 }
 
-const apiUploadedReceiptDocument = {
-  ...apiReceiptDocument,
-  fileName: 'recibo-enviado.pdf',
-  id: uploadedReceiptDocumentId,
-  title: 'Recibo enviado',
-}
-
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
     new Response(JSON.stringify(body), {
@@ -183,7 +175,16 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   )
 }
 
-function buildUtilityAccountSession(): AuthSessionDto {
+function buildUtilityAccountSession(options: { canReadDocuments?: boolean } = {}): AuthSessionDto {
+  const canReadDocuments = options.canReadDocuments ?? true
+  const organizationPermissions = [
+    'utilityAccounts.read',
+    'utilityAccounts.write',
+    'utilityAccounts.manage',
+    'utilityAccounts.archive',
+    ...(canReadDocuments ? ['documents.read'] : []),
+  ]
+
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -202,22 +203,12 @@ function buildUtilityAccountSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: [
-            'utilityAccounts.read',
-            'utilityAccounts.write',
-            'utilityAccounts.manage',
-            'utilityAccounts.archive',
-          ],
+          permissionCodes: organizationPermissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: [
-        'utilityAccounts.read',
-        'utilityAccounts.write',
-        'utilityAccounts.manage',
-        'utilityAccounts.archive',
-      ],
+      permissions: organizationPermissions,
     },
   }
 }
@@ -225,10 +216,6 @@ function buildUtilityAccountSession(): AuthSessionDto {
 function createUtilityAccountsFetch() {
   return vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input))
-
-    if (url.pathname === '/v1/documents' && init?.method === 'POST') {
-      return jsonResponse(apiUploadedReceiptDocument)
-    }
 
     if (url.pathname === '/v1/documents') {
       return jsonResponse(paged([apiBillDocument, apiReceiptDocument]))
@@ -355,32 +342,10 @@ describe('utility accounts management UI', () => {
     await user.type(paidAmountInput, '350')
     await user.selectOptions(within(markPaidDialog).getByLabelText(/Metodo de pagamento/), 'pix')
     await user.type(within(markPaidDialog).getByLabelText(/Referencia bancaria/), 'PIX-CPFL-1')
-    await user.upload(
-      within(markPaidDialog).getByLabelText('Arquivo'),
-      new File(['recibo'], 'recibo.pdf', { type: 'application/pdf' }),
-    )
-    await user.click(within(markPaidDialog).getByRole('button', { name: 'Enviar e anexar' }))
-
-    await waitFor(() =>
-      expect(
-        vi.mocked(fetchImpl).mock.calls.some(
-          ([input, init]) =>
-            String(input).includes('/v1/documents?') &&
-            init?.method === 'POST' &&
-            init.body instanceof FormData &&
-            init.body.get('category') === 'utility-account' &&
-            init.body.get('linksJson') ===
-              JSON.stringify([
-                {
-                  entityId: utilityAccountId,
-                  entityType: 'utility-account',
-                  label: 'Recibos',
-                },
-              ]),
-        ),
-      ).toBe(true),
-    )
-
+    expect(
+      await within(markPaidDialog).findByText('Recibo CPFL junho - recibo-cpfl-junho.pdf'),
+    ).toBeInTheDocument()
+    await user.selectOptions(within(markPaidDialog).getByLabelText('Recibo'), receiptDocumentId)
     await user.click(within(markPaidDialog).getByRole('button', { name: 'Marcar como paga' }))
 
     await waitFor(() =>
@@ -400,9 +365,49 @@ describe('utility accounts management UI', () => {
           ([, init]) =>
             init?.method === 'POST' &&
             String(init.body).includes('"bankReference":"PIX-CPFL-1"') &&
-            String(init.body).includes(`"receiptDocumentId":"${uploadedReceiptDocumentId}"`),
+            String(init.body).includes(`"receiptDocumentId":"${receiptDocumentId}"`),
         ),
     ).toBe(true)
+  })
+
+  it('preserves manual document attachment without document read permission', async () => {
+    const user = userEvent.setup()
+    applyAuthSession(buildUtilityAccountSession({ canReadDocuments: false }))
+    const fetchImpl = createUtilityAccountsFetch()
+
+    renderWithApi(<UtilityAccountsListPage />, fetchImpl)
+
+    expect(await screen.findByText('Energia junho')).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Pagar Energia junho - Casa Calabria'))
+
+    const markPaidDialog = await screen.findByRole('dialog', {
+      name: 'Marcar conta como paga',
+    })
+    const paidAmountInput = within(markPaidDialog).getByLabelText(/Valor pago/)
+
+    await user.clear(paidAmountInput)
+    await user.type(paidAmountInput, '350')
+    await user.type(within(markPaidDialog).getByLabelText('Recibo'), receiptDocumentId)
+    await user.click(within(markPaidDialog).getByRole('button', { name: 'Marcar como paga' }))
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input, init]) =>
+              String(input) ===
+                `https://api.alsappan.test/v1/utility-accounts/${utilityAccountId}/mark-paid?locale=pt-BR` &&
+              init?.method === 'POST' &&
+              String(init.body).includes(`"receiptDocumentId":"${receiptDocumentId}"`),
+          ),
+      ).toBe(true),
+    )
+
+    expect(
+      vi.mocked(fetchImpl).mock.calls.some(([input]) => String(input).includes('/v1/documents')),
+    ).toBe(false)
   })
 
   it('opens details and preserves detail-only fields when editing from the list', async () => {

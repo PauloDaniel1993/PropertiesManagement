@@ -25,6 +25,7 @@ import { getUtilityAccountCopy } from './utilityAccountCopy'
 export type UtilityAccountFormMode = 'create' | 'edit'
 
 export type UtilityAccountFormProps = {
+  canReadDocuments?: boolean
   initialValue?: Partial<UtilityAccountDetail | UtilityAccountListItem>
   isSubmitting?: boolean
   mode: UtilityAccountFormMode
@@ -158,12 +159,6 @@ function formatFirstDocumentId(documents: UtilityAccountListItem['billDocuments'
   return documents[0]?.documentId ?? ''
 }
 
-function getUtilityAccountId(
-  initialValue?: Partial<UtilityAccountDetail | UtilityAccountListItem>,
-) {
-  return typeof initialValue?.id === 'string' ? initialValue.id : undefined
-}
-
 function getDefaultValues(
   initialValue?: Partial<UtilityAccountDetail | UtilityAccountListItem>,
 ): UtilityAccountFormValues {
@@ -185,6 +180,7 @@ function getDefaultValues(
 }
 
 export function UtilityAccountForm({
+  canReadDocuments = false,
   initialValue,
   isSubmitting = false,
   mode,
@@ -199,9 +195,7 @@ export function UtilityAccountForm({
     defaultValues: getDefaultValues(initialValue),
   })
   const errorSummary = buildErrorSummary(form.formState.errors, copy)
-  const utilityAccountId = getUtilityAccountId(initialValue)
   const billDocumentId = form.watch('billDocumentId')
-  const title = form.watch('title')
 
   useEffect(() => {
     form.reset(getDefaultValues(initialValue))
@@ -412,16 +406,14 @@ export function UtilityAccountForm({
           {copy.form.documentHint}
         </p>
         <UtilityAccountDocumentAttachmentField
-          entityId={utilityAccountId}
+          canReadDocuments={canReadDocuments}
           label={copy.form.billDocumentId}
-          linkLabel={copy.detail.billDocumentsTitle}
           onChange={(documentId) =>
             form.setValue('billDocumentId', documentId, {
               shouldDirty: true,
               shouldTouch: true,
             })
           }
-          uploadDefaultTitle={title.trim() || copy.detail.billDocumentsTitle}
           value={billDocumentId}
         />
       </fieldset>
