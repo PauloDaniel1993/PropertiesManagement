@@ -314,7 +314,7 @@
 ## 22. Localization, Accessibility, and UI Hardening
 
 - [ ] 22.1 Audit frontend code to ensure production UI strings use locale keys instead of hardcoded text
-- [ ] 22.2 Audit backend validation and Problem Details messages for `pt-BR` default localization
+- [x] 22.2 Audit backend validation and Problem Details messages for `pt-BR` default localization
 - [ ] 22.3 Add missing `en-US` translations for all implemented modules
 - [ ] 22.4 Validate currency, date, number, pluralization, and status formatting in `pt-BR` and `en-US`
 - [ ] 22.5 Add keyboard navigation, focus states, aria labels, and accessible names for icons and row actions
