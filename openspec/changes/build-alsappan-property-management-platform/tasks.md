@@ -318,28 +318,28 @@
 - [x] 22.3 Add missing `en-US` translations for all implemented modules
 - [x] 22.4 Validate currency, date, number, pluralization, and status formatting in `pt-BR` and `en-US`
 - [x] 22.5 Add keyboard navigation, focus states, aria labels, and accessible names for icons and row actions
-- [ ] 22.6 Verify table, form, dialog, sidebar, and topbar accessibility with automated checks
+- [x] 22.6 Verify table, form, dialog, sidebar, and topbar accessibility with automated checks
 - [x] 22.7 Verify responsive layouts for desktop, tablet, and mobile across all module list pages
 - [x] 22.8 Verify text overflow, wrapping, and table behavior for long Portuguese labels and long entity names
-- [ ] 22.9 Add visual regression or screenshot checks for the authenticated shell and representative module pages
+- [x] 22.9 Add visual regression or screenshot checks for the authenticated shell and representative module pages
 
 ## 23. End-to-End Testing and Quality Gates
 
 - [x] 23.1 Add demo seed data covering properties, residents, contracts, payments, utilities, documents, pets, vehicles, occurrences, inspections, notifications, timeline, and audit
-- [ ] 23.2 Add E2E test for login, active organization switching, shell navigation, locale switch, and logout
-- [ ] 23.3 Add E2E test for creating a property, resident, contract, and linked document
-- [ ] 23.4 Add E2E test for creating and settling a payment with receipt document
-- [ ] 23.5 Add E2E test for creating, assigning, commenting on, and resolving an occurrence
-- [ ] 23.6 Add E2E test for scheduling, editing, completing, and viewing an inspection report
-- [ ] 23.7 Add E2E test for notification creation, unread count, read state, and deep link navigation
-- [ ] 23.8 Add E2E test for audit access control and audit filtering
+- [x] 23.2 Add E2E test for login, active organization switching, shell navigation, locale switch, and logout
+- [x] 23.3 Add E2E test for creating a property, resident, contract, and linked document
+- [x] 23.4 Add E2E test for creating and settling a payment with receipt document
+- [x] 23.5 Add E2E test for creating, assigning, commenting on, and resolving an occurrence
+- [x] 23.6 Add E2E test for scheduling, editing, completing, and viewing an inspection report
+- [x] 23.7 Add E2E test for notification creation, unread count, read state, and deep link navigation
+- [x] 23.8 Add E2E test for audit access control and audit filtering
 - [x] 23.9 Add API integration tests for authorization on every module endpoint
 - [x] 23.10 Add CI gates for backend tests, frontend tests, type checks, linting, formatting, OpenAPI generation, and migration validation
-- [ ] 23.11 Add E2E test for resident portal login, resident-scoped data visibility, resident-created occurrence, and cross-resident access denial
-- [ ] 23.12 Add E2E test for cross-organization isolation in admin lists, details, global search, dashboard, audit, notifications, and file downloads
+- [x] 23.11 Add E2E test for resident portal login, resident-scoped data visibility, resident-created occurrence, and cross-resident access denial
+- [x] 23.12 Add E2E test for cross-organization isolation in admin lists, details, global search, dashboard, audit, notifications, and file downloads
 - [ ] 23.13 Run manual Chrome browser smoke testing for the admin shell, resident portal, locale switching, organization switching, core CRUD flows, and permission-denied states when UI implementation is available
-- [ ] 23.14 Add E2E test for mocked boleto, Pix, and PayPal payment instruction display in admin and resident flows
-- [ ] 23.15 Add E2E test for white-label branding defaults, organization branding changes, contrast validation, and resident portal branding
+- [x] 23.14 Add E2E test for mocked boleto, Pix, and PayPal payment instruction display in admin and resident flows
+- [x] 23.15 Add E2E test for white-label branding defaults, organization branding changes, contrast validation, and resident portal branding
 
 ## 24. Deployment and Operational Readiness
 
@@ -351,5 +351,5 @@
 - [x] 24.6 Add backup and restore assumptions for PostgreSQL and file storage
 - [x] 24.7 Add basic performance checks for large lists, indexed filters, dashboard queries, and global search
 - [x] 24.8 Add security review checklist for auth, tenant isolation, resident portal policies, payment provider mock boundaries, permissions, white-label asset validation, upload restrictions, audit, sensitive data masking, and dependency scanning
-- [ ] 24.9 Run full local validation from clean checkout instructions and update README gaps
-- [ ] 24.10 Run final OpenSpec validation/status check before implementation starts
+- [x] 24.9 Run full local validation from clean checkout instructions and update README gaps
+- [x] 24.10 Run final OpenSpec validation/status check before implementation starts

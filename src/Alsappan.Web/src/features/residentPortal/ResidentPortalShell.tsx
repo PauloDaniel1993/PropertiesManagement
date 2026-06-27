@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Bell,
@@ -23,6 +23,7 @@ import { LoadingState } from '../../components'
 import { useApiClient } from '../../lib/api/ApiClientContext'
 import { logoutAuthSession } from '../../lib/api/identity'
 import { getResidentPortalSummary, type ResidentPortalSummary } from '../../lib/api/residentPortal'
+import { resolveOrganizationBranding } from '../../lib/branding'
 import { useActiveOrganizationStore } from '../../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
@@ -80,6 +81,15 @@ export function ResidentPortalShell() {
     toggleSidebarCollapsed,
   } = useShellStore()
   const copy = getResidentPortalCopy(locale)
+  const organizationBranding = resolveOrganizationBranding(activeOrganization?.branding)
+  const brandStyle = {
+    ...organizationBranding.tokens,
+    '--als-color-accent': organizationBranding.tokens['--alsappan-accent'],
+    '--als-color-primary': organizationBranding.tokens['--alsappan-primary'],
+    '--als-color-primary-foreground': organizationBranding.tokens['--alsappan-primary-foreground'],
+    '--color-accent': organizationBranding.tokens['--alsappan-accent'],
+    '--color-primary': organizationBranding.tokens['--alsappan-primary'],
+  } as CSSProperties
   const activeItem = findActiveItem(location.pathname) ?? navItems[0]
   const nextLocale = locale === 'pt-BR' ? 'en-US' : 'pt-BR'
   const summaryQuery = useQuery<ResidentPortalSummary, Error>({
@@ -117,6 +127,7 @@ export function ResidentPortalShell() {
       className="admin-app resident-portal-app"
       data-sidebar={isSidebarCollapsed ? 'collapsed' : 'expanded'}
       data-theme={theme}
+      style={brandStyle}
     >
       <button
         aria-label={copy.shell.menu}
@@ -133,7 +144,7 @@ export function ResidentPortalShell() {
             <Building2 size={24} strokeWidth={2.25} />
           </span>
           <div>
-            <strong>{copy.shell.brandName}</strong>
+            <strong>{organizationBranding.displayName}</strong>
             <small>{copy.shell.brandSubtitle}</small>
           </div>
         </div>

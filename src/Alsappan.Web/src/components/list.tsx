@@ -321,7 +321,7 @@ export function DataTable<TData>({
                 scope="col"
                 style={mergeStyles(tableCellStyle, {
                   background: 'var(--als-color-surface-muted, #f8fafc)',
-                  color: 'var(--als-color-text-muted, #64748b)',
+                  color: 'var(--als-color-text, #1f2937)',
                   fontSize: '0.78rem',
                   fontWeight: 800,
                   textAlign: column.align ?? 'left',
@@ -372,7 +372,7 @@ export function DataTable<TData>({
                 scope="col"
                 style={mergeStyles(tableCellStyle, {
                   background: 'var(--als-color-surface-muted, #f8fafc)',
-                  color: 'var(--als-color-text-muted, #64748b)',
+                  color: 'var(--als-color-text, #1f2937)',
                   fontSize: '0.78rem',
                   fontWeight: 800,
                   textAlign: 'right',

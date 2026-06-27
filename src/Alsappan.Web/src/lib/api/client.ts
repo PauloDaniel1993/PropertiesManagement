@@ -98,7 +98,7 @@ export class ApiClient {
 
   constructor(options: ApiClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? import.meta.env.VITE_API_BASE_URL ?? ''
-    this.fetchImpl = options.fetchImpl ?? fetch
+    this.fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis)
     this.getAccessToken = options.getAccessToken
     this.getLocale = options.getLocale
     this.getOrganizationId = options.getOrganizationId
