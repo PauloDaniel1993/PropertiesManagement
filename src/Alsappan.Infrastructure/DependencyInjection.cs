@@ -6,9 +6,15 @@ using Alsappan.Application.Common.Events;
 using Alsappan.Application.Common.Files;
 using Alsappan.Application.Common.Seeding;
 using Alsappan.Application.Common.Tenancy;
+using Alsappan.Application.Identity.Administrators;
+using Alsappan.Application.Identity.Auth;
+using Alsappan.Application.Identity.Repositories;
+using Alsappan.Application.Identity.Security;
+using Alsappan.Application.Identity.Sessions;
 using Alsappan.Infrastructure.Audit;
 using Alsappan.Infrastructure.Auth;
 using Alsappan.Infrastructure.Authorization;
+using Alsappan.Infrastructure.Identity;
 using Alsappan.Infrastructure.Notifications;
 using Alsappan.Infrastructure.Outbox;
 using Alsappan.Infrastructure.Persistence;
@@ -52,6 +58,12 @@ public static class InfrastructureServiceCollectionExtensions
     services.AddSingleton<IRefreshTokenProtector, Sha256RefreshTokenProtector>();
     services.AddScoped<IRefreshSessionStore, EfRefreshSessionStore>();
 
+    services.AddScoped<IIdentityRepository, EfIdentityRepository>();
+    services.AddScoped<IIdentitySessionInvalidator, EfIdentitySessionInvalidator>();
+    services.AddScoped<IPasswordHashService, Pbkdf2PasswordHashService>();
+    services.AddScoped<IIdentityAuthService, IdentityAuthService>();
+    services.AddScoped<IAdministratorService, AdministratorService>();
+
     services.AddScoped<IAuditWriter, EfAuditWriter>();
     services.AddScoped<IModuleEventOutboxWriter, EfModuleEventOutboxWriter>();
     services.AddScoped<ITimelineProjectionWriter, EfTimelineProjectionWriter>();
@@ -61,6 +73,7 @@ public static class InfrastructureServiceCollectionExtensions
 
     services.AddScoped<IFileStorageProvider, LocalFileStorageProvider>();
     services.AddScoped<IDatabaseSeedRunner, EfDatabaseSeedRunner>();
+    services.AddScoped<IDatabaseSeedContributor, IdentitySeedContributor>();
 
     return services;
   }

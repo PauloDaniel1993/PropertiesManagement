@@ -1,45 +1,47 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { defaultAuthenticatedRoute } from '../navigation/menuContract'
-import { LoginPage } from '../pages/LoginPage'
+import { IdentityLoginPage, AuthSessionBootstrap } from '../features/identity'
+import { AdministratorsPage } from '../pages/AdministratorsPage'
 import { ModulePlaceholderPage } from '../pages/ModulePlaceholderPage'
 import { modulePageRoutes } from '../pages/modulePageRoutes'
+import { RequireActiveOrganization, RequireAdminRoute, RequireAuthenticated } from './guards'
 import { AdminShell } from '../shell/AdminShell'
-import { useAuthSessionStore } from '../stores/useAuthSessionStore'
 
 function ProtectedRoute() {
-  const location = useLocation()
-  const isAuthenticated = useAuthSessionStore((state) => state.isAuthenticated)
-  const setIntendedPath = useAuthSessionStore((state) => state.setIntendedPath)
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setIntendedPath(`${location.pathname}${location.search}`)
-    }
-  }, [isAuthenticated, location.pathname, location.search, setIntendedPath])
-
-  if (!isAuthenticated) {
-    return <Navigate replace to="/login" />
-  }
-
-  return <AdminShell />
+  return (
+    <RequireAuthenticated>
+      <RequireAdminRoute>
+        <RequireActiveOrganization>
+          <AdminShell />
+        </RequireActiveOrganization>
+      </RequireAdminRoute>
+    </RequireAuthenticated>
+  )
 }
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route element={<LoginPage />} path="/login" />
-      <Route element={<ProtectedRoute />}>
-        <Route index element={<Navigate replace to={defaultAuthenticatedRoute} />} />
-        {modulePageRoutes.map((route) => (
-          <Route
-            element={<ModulePlaceholderPage item={route.item} />}
-            key={route.item.id}
-            path={route.pathSegment}
-          />
-        ))}
-      </Route>
-      <Route element={<Navigate replace to={defaultAuthenticatedRoute} />} path="*" />
-    </Routes>
+    <AuthSessionBootstrap>
+      <Routes>
+        <Route element={<IdentityLoginPage />} path="/login" />
+        <Route element={<ProtectedRoute />}>
+          <Route index element={<Navigate replace to={defaultAuthenticatedRoute} />} />
+          {modulePageRoutes.map((route) => (
+            <Route
+              element={
+                route.item.id === 'administrators' ? (
+                  <AdministratorsPage />
+                ) : (
+                  <ModulePlaceholderPage item={route.item} />
+                )
+              }
+              key={route.item.id}
+              path={route.pathSegment}
+            />
+          ))}
+        </Route>
+        <Route element={<Navigate replace to={defaultAuthenticatedRoute} />} path="*" />
+      </Routes>
+    </AuthSessionBootstrap>
   )
 }

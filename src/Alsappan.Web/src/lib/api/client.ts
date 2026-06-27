@@ -128,7 +128,7 @@ export class ApiClient {
     }
 
     if (organizationId) {
-      headers.set('X-Organization-Id', organizationId)
+      headers.set('X-Alsappan-Organization-Id', organizationId)
     }
 
     const response = await this.fetchImpl(buildUrl(this.baseUrl, path, options.query), {

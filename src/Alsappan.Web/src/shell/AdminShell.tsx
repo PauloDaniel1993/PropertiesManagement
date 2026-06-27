@@ -15,22 +15,24 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { OrganizationSwitcher } from '../features/identity'
+import { useApiClient } from '../lib/api/ApiClientContext'
+import { logoutAuthSession } from '../lib/api/identity'
 import { adminMenuItems, findAdminMenuItemByPath } from '../navigation/menuContract'
 import { menuIconComponents } from '../navigation/menuIcons'
-import { useActiveOrganizationStore } from '../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../stores/useAuthSessionStore'
 import { useShellStore } from '../stores/useShellStore'
 
 export function AdminShell() {
+  const apiClient = useApiClient()
   const { i18n, t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const activeItem = findAdminMenuItemByPath(location.pathname)
-  const { organizations, activeOrganization, setActiveOrganizationId } =
-    useActiveOrganizationStore()
   const { locale, setLocale, theme, toggleTheme } = useAppPreferencesStore()
   const user = useAuthSessionStore((state) => state.user)
+  const refreshToken = useAuthSessionStore((state) => state.refreshToken)
   const signOut = useAuthSessionStore((state) => state.signOut)
   const {
     closeMobileNavigation,
@@ -46,9 +48,13 @@ export function AdminShell() {
     void i18n.changeLanguage(nextLocale)
   }
 
-  function handleSignOut() {
-    signOut()
-    navigate('/login', { replace: true })
+  async function handleSignOut() {
+    try {
+      await logoutAuthSession(apiClient, { refreshToken })
+    } finally {
+      signOut()
+      navigate('/login', { replace: true })
+    }
   }
 
   return (
@@ -133,20 +139,7 @@ export function AdminShell() {
             <input placeholder={t('shell.topbar.searchPlaceholder')} type="search" />
           </label>
 
-          <label className="organization-select">
-            <span className="sr-only">{t('shell.topbar.organizationLabel')}</span>
-            <select
-              aria-label={t('shell.topbar.organizationLabel')}
-              onChange={(event) => setActiveOrganizationId(event.target.value)}
-              value={activeOrganization?.id ?? ''}
-            >
-              {organizations.map((organization) => (
-                <option key={organization.id} value={organization.id}>
-                  {organization.displayName}
-                </option>
-              ))}
-            </select>
-          </label>
+          <OrganizationSwitcher className="organization-select" />
 
           <div className="admin-topbar__actions">
             <button
@@ -181,7 +174,7 @@ export function AdminShell() {
                   <Settings size={18} />
                   {t('shell.topbar.menu.settings')}
                 </button>
-                <button onClick={handleSignOut} role="menuitem" type="button">
+                <button onClick={() => void handleSignOut()} role="menuitem" type="button">
                   <LogOut size={18} />
                   {t('shell.topbar.menu.signOut')}
                 </button>

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { AppLocale } from '../i18n'
+import { defaultLocale, normalizeAppLocale, type AppLocale } from '../i18n'
+import type { OrganizationMembershipSummaryDto } from '../lib/api/identity'
 import type { OrganizationBranding } from '../lib/branding'
 
 export type OrganizationSummary = {
@@ -9,6 +10,8 @@ export type OrganizationSummary = {
   id: string
   locale: AppLocale
   name: string
+  permissionCodes?: string[]
+  roleCodes?: string[]
   slug: string
 }
 
@@ -18,6 +21,10 @@ export type ActiveOrganizationState = {
   organizations: OrganizationSummary[]
   setActiveOrganizationId: (organizationId: string | null) => void
   setOrganizations: (organizations: OrganizationSummary[], activeOrganizationId?: string) => void
+  setOrganizationsFromMemberships: (
+    organizations: OrganizationMembershipSummaryDto[],
+    activeOrganizationId?: string | null,
+  ) => void
 }
 
 export const defaultOrganizations: OrganizationSummary[] = [
@@ -27,12 +34,30 @@ export const defaultOrganizations: OrganizationSummary[] = [
     id: 'demo-alsappan',
     locale: 'pt-BR',
     name: 'Alsappan',
+    permissionCodes: ['administrators.read', 'administrators.write'],
+    roleCodes: ['Administrador'],
     slug: 'alsappan',
   },
 ]
 
 function findOrganization(organizations: OrganizationSummary[], organizationId: string | null) {
   return organizations.find((organization) => organization.id === organizationId) ?? null
+}
+
+function normalizeOrganization(
+  organization: OrganizationMembershipSummaryDto,
+): OrganizationSummary {
+  return {
+    branding: organization.branding,
+    currencyCode: organization.currencyCode ?? organization.currency ?? 'BRL',
+    displayName: organization.displayName,
+    id: organization.id,
+    locale: normalizeAppLocale(organization.locale, defaultLocale),
+    name: organization.name,
+    permissionCodes: organization.permissionCodes,
+    roleCodes: organization.roleCodes,
+    slug: organization.slug,
+  }
 }
 
 export const useActiveOrganizationStore = create<ActiveOrganizationState>()((set) => ({
@@ -59,6 +84,23 @@ export const useActiveOrganizationStore = create<ActiveOrganizationState>()((set
         activeOrganization: nextActiveOrganization,
         activeOrganizationId: nextActiveOrganization?.id ?? null,
         organizations,
+      }
+    }),
+  setOrganizationsFromMemberships: (organizations, activeOrganizationId) =>
+    set((state) => {
+      const normalizedOrganizations = organizations.map(normalizeOrganization)
+      const nextActiveOrganization =
+        findOrganization(
+          normalizedOrganizations,
+          activeOrganizationId ?? state.activeOrganizationId,
+        ) ??
+        normalizedOrganizations[0] ??
+        null
+
+      return {
+        activeOrganization: nextActiveOrganization,
+        activeOrganizationId: nextActiveOrganization?.id ?? null,
+        organizations: normalizedOrganizations,
       }
     }),
 }))

@@ -68,21 +68,21 @@
 
 ## 5. Identity and Administrators
 
-- [ ] 5.1 Model users, organizations, organization memberships, roles, permissions, role permissions, resident account links, refresh sessions, invitations, and user status
-- [ ] 5.2 Add migrations and seed data for starter roles: Administrador, Gestor, Operador, Leitura, and Morador
-- [ ] 5.3 Implement admin and resident login, refresh, logout, current user, active organization, and session invalidation endpoints
-- [ ] 5.4 Implement secure password hashing, password policy, failed login handling, and account lockout policy
-- [ ] 5.5 Implement permission claims and endpoint policies for every planned module permission, organization membership, and resident-specific access policy
-- [ ] 5.6 Implement security audit events for login, failed login, logout, token refresh, role change, and account status change
-- [ ] 5.7 Build the localized login page and authenticated session bootstrap flow
-- [ ] 5.8 Build frontend route guards, organization-aware guards, resident portal guards, and permission-aware action guards
-- [ ] 5.9 Implement administrators list, detail, invite/create, edit role, deactivate, reactivate, and archive endpoints
-- [ ] 5.10 Build Administradores list page with search, status filters, role filters, and row actions
-- [ ] 5.11 Build administrator create/invite/edit forms with localized validation
-- [ ] 5.12 Add tests for auth success, auth failure, permission denial, role changes, and administrator lifecycle
-- [ ] 5.13 Implement organization switching endpoints and membership-aware current user responses
-- [ ] 5.14 Build active organization switcher for users with multiple memberships
-- [ ] 5.15 Add tests for active organization switching, membership denial, resident account login, and resident/admin route separation
+- [x] 5.1 Model users, organizations, organization memberships, roles, permissions, role permissions, resident account links, refresh sessions, invitations, and user status
+- [x] 5.2 Add migrations and seed data for starter roles: Administrador, Gestor, Operador, Leitura, and Morador
+- [x] 5.3 Implement admin and resident login, refresh, logout, current user, active organization, and session invalidation endpoints
+- [x] 5.4 Implement secure password hashing, password policy, failed login handling, and account lockout policy
+- [x] 5.5 Implement permission claims and endpoint policies for every planned module permission, organization membership, and resident-specific access policy
+- [x] 5.6 Implement security audit events for login, failed login, logout, token refresh, role change, and account status change
+- [x] 5.7 Build the localized login page and authenticated session bootstrap flow
+- [x] 5.8 Build frontend route guards, organization-aware guards, resident portal guards, and permission-aware action guards
+- [x] 5.9 Implement administrators list, detail, invite/create, edit role, deactivate, reactivate, and archive endpoints
+- [x] 5.10 Build Administradores list page with search, status filters, role filters, and row actions
+- [x] 5.11 Build administrator create/invite/edit forms with localized validation
+- [x] 5.12 Add tests for auth success, auth failure, permission denial, role changes, and administrator lifecycle
+- [x] 5.13 Implement organization switching endpoints and membership-aware current user responses
+- [x] 5.14 Build active organization switcher for users with multiple memberships
+- [x] 5.15 Add tests for active organization switching, membership denial, resident account login, and resident/admin route separation
 
 ## 6. Imoveis Module
 

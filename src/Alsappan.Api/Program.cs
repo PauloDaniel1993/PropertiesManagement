@@ -1,6 +1,7 @@
 using Alsappan.Api.Configuration;
 using Alsappan.Api.Contracts;
 using Alsappan.Api.Errors;
+using Alsappan.Api.Identity;
 using Alsappan.Api.OpenApi;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Infrastructure;
@@ -83,6 +84,9 @@ v1.MapGet("/system/protected", () => Results.Ok(new ProtectedSystemResponse("aut
     .Produces<ProtectedSystemResponse>()
     .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
     .Produces<ProblemDetails>(StatusCodes.Status403Forbidden);
+
+v1.MapAuthEndpoints();
+v1.MapAdministratorEndpoints();
 
 app.Run();
 
