@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Text;
 using Alsappan.Application.Common.Configuration;
+using Alsappan.Domain.Contracts;
 using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
@@ -101,6 +102,10 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<RentalProperty> Properties => Set<RentalProperty>();
 
   public DbSet<Resident> Residents => Set<Resident>();
+
+  public DbSet<LeaseContract> Contracts => Set<LeaseContract>();
+
+  public DbSet<ContractResident> ContractResidents => Set<ContractResident>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 

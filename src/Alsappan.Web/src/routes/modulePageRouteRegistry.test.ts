@@ -5,6 +5,7 @@ describe('module page route registry', () => {
     expect(implementedModuleRouteIds).toEqual([
       'administrators',
       'audit',
+      'contracts',
       'notifications',
       'properties',
       'residents',
@@ -12,6 +13,7 @@ describe('module page route registry', () => {
     ])
     expect(getModulePageComponent('administrators')).toEqual(expect.any(Function))
     expect(getModulePageComponent('audit')).toEqual(expect.any(Function))
+    expect(getModulePageComponent('contracts')).toEqual(expect.any(Function))
     expect(getModulePageComponent('notifications')).toEqual(expect.any(Function))
     expect(getModulePageComponent('properties')).toEqual(expect.any(Function))
     expect(getModulePageComponent('residents')).toEqual(expect.any(Function))
@@ -19,7 +21,6 @@ describe('module page route registry', () => {
   })
 
   it('falls back to placeholders for menu items without implemented pages', () => {
-    expect(getModulePageComponent('contracts')).toBeUndefined()
     expect(getModulePageComponent('settings')).toBeUndefined()
   })
 })
