@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using System.Text;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Domain.Contracts;
+using Alsappan.Domain.Documents;
 using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
@@ -106,6 +107,12 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<LeaseContract> Contracts => Set<LeaseContract>();
 
   public DbSet<ContractResident> ContractResidents => Set<ContractResident>();
+
+  public DbSet<DocumentRecord> Documents => Set<DocumentRecord>();
+
+  public DbSet<DocumentLink> DocumentLinks => Set<DocumentLink>();
+
+  public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 

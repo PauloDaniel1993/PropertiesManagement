@@ -62,10 +62,10 @@ const apiContract = {
   depositAmount: { amount: 2500, currency: 'BRL' },
   documents: [
     {
-      category: 'signed-contract',
+      category: 'contract',
       count: 0,
       label: 'Contrato assinado',
-      route: `/documentos?contractId=${contractId}&category=signed-contract`,
+      route: `/documentos?contractId=${contractId}&category=contract`,
     },
   ],
   dueDay: 10,
@@ -399,7 +399,7 @@ describe('contracts management UI', () => {
     expect(screen.getByText('Vinculos de documentos')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Contrato assinado' })).toHaveAttribute(
       'href',
-      `/documentos?contractId=${contractId}&category=signed-contract`,
+      `/documentos?contractId=${contractId}&category=contract`,
     )
     expect(screen.getByRole('link', { name: 'Timeline' })).toHaveAttribute(
       'href',

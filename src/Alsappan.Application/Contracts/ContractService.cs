@@ -794,7 +794,7 @@ public sealed class ContractService : IContractService
     var id = Uri.EscapeDataString(contractId.ToString("D"));
     return
     [
-      new(null, "signed-contract", portuguese ? "Contrato assinado" : "Signed contract", 0, $"/documentos?contractId={id}&category=signed-contract")
+      new(null, "contract", portuguese ? "Contrato assinado" : "Signed contract", 0, $"/documentos?contractId={id}&category=contract")
     ];
   }
 

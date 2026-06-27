@@ -131,17 +131,17 @@
 
 ## 9. Documentos Module
 
-- [ ] 9.1 Model documents, document versions, document links, categories, storage keys, file metadata, access metadata, and lifecycle status
-- [ ] 9.2 Add document categories and allowed file type configuration with localized labels
-- [ ] 9.3 Add document migrations, indexes for category, linked entity, filename, upload date, and organization scoping
-- [ ] 9.4 Implement document upload, list, detail, metadata update, archive, restore, download, and version upload use cases
-- [ ] 9.5 Implement document link use cases for properties, contracts, residents, payments, utility accounts, pets, vehicles, occurrences, and inspections
-- [ ] 9.6 Implement file validation for size, content type, extension, authorization, and private storage access
-- [ ] 9.7 Emit document audit, timeline, and outbox events for upload, download where configured, versioning, link, and archive actions
-- [ ] 9.8 Build Documentos list page with category, linked entity, date, and owner filters
-- [ ] 9.9 Build upload/edit/version dialogs with progress, validation, metadata, and entity linking controls
-- [ ] 9.10 Build document detail page with versions, links, metadata, download action, timeline, and audit links
-- [ ] 9.11 Add tests for upload, download authorization, entity links, versions, storage failures, localization, and archived state
+- [x] 9.1 Model documents, document versions, document links, categories, storage keys, file metadata, access metadata, and lifecycle status
+- [x] 9.2 Add document categories and allowed file type configuration with localized labels
+- [x] 9.3 Add document migrations, indexes for category, linked entity, filename, upload date, and organization scoping
+- [x] 9.4 Implement document upload, list, detail, metadata update, archive, restore, download, and version upload use cases
+- [x] 9.5 Implement document link use cases for properties, contracts, residents, payments, utility accounts, pets, vehicles, occurrences, and inspections
+- [x] 9.6 Implement file validation for size, content type, extension, authorization, and private storage access
+- [x] 9.7 Emit document audit, timeline, and outbox events for upload, download where configured, versioning, link, and archive actions
+- [x] 9.8 Build Documentos list page with category, linked entity, date, and owner filters
+- [x] 9.9 Build upload/edit/version dialogs with progress, validation, metadata, and entity linking controls
+- [x] 9.10 Build document detail page with versions, links, metadata, download action, timeline, and audit links
+- [x] 9.11 Add tests for upload, download authorization, entity links, versions, storage failures, localization, and archived state
 
 ## 10. Pagamentos Module
 
