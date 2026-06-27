@@ -7,6 +7,7 @@ using Alsappan.Domain.Common.Identifiers;
 using Alsappan.Domain.Common.Metadata;
 using Alsappan.Domain.Identity;
 using Alsappan.Domain.Payments;
+using Alsappan.Domain.Pets;
 using Alsappan.Domain.Properties;
 using Alsappan.Domain.Residents;
 using Alsappan.Domain.UtilityAccounts;
@@ -125,6 +126,10 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<UtilityAccount> UtilityAccounts => Set<UtilityAccount>();
 
   public DbSet<UtilityDocumentLink> UtilityDocumentLinks => Set<UtilityDocumentLink>();
+
+  public DbSet<Pet> Pets => Set<Pet>();
+
+  public DbSet<PetDocumentLink> PetDocumentLinks => Set<PetDocumentLink>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 
