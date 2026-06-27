@@ -21,7 +21,7 @@ internal static class OccurrenceEndpoints
     ArgumentNullException.ThrowIfNull(v1);
 
     var occurrences = v1.MapGroup("/occurrences")
-      .RequireAuthorization("AuthenticatedUser")
+      .RequireAuthorization("AdminUser")
       .WithTags("Occurrences");
 
     occurrences.MapGet(

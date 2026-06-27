@@ -27,7 +27,10 @@ public sealed class OccurrenceServiceTests
       repository,
       audit,
       outbox,
-      [PermissionCodes.Write(PermissionModules.Occurrences)]);
+      [
+        PermissionCodes.Write(PermissionModules.Occurrences),
+        PermissionCodes.Manage(PermissionModules.Occurrences)
+      ]);
 
     var result = await service.CreateAsync(new OccurrenceCreateRequestDto(
       "Vazamento na cozinha",
@@ -51,6 +54,49 @@ public sealed class OccurrenceServiceTests
     Assert.Equal("occurrence.created", envelope.EventName);
     Assert.True(envelope.Consumers.HasFlag(ModuleEventConsumer.Notifications));
     Assert.True(envelope.Consumers.HasFlag(ModuleEventConsumer.DashboardProjection));
+  }
+
+  [Fact]
+  public async Task CreateAsyncRequiresManagePermissionWhenAssignedUserIsProvided()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeOccurrenceRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Occurrences)]);
+
+    var forbidden = await service.CreateAsync(new OccurrenceCreateRequestDto(
+      "Vazamento na cozinha",
+      "Morador relatou vazamento recorrente.",
+      "maintenance",
+      "high",
+      null,
+      null,
+      repository.Contract.ContractId.Value,
+      repository.Assignee.UserId.Value,
+      new DateOnly(2026, 7, 2)));
+
+    Assert.False(forbidden.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Forbidden, forbidden.Failure);
+    Assert.Empty(repository.Occurrences);
+
+    var unassigned = await service.CreateAsync(new OccurrenceCreateRequestDto(
+      "Vazamento na cozinha",
+      "Morador relatou vazamento recorrente.",
+      "maintenance",
+      "high",
+      null,
+      null,
+      repository.Contract.ContractId.Value,
+      null,
+      new DateOnly(2026, 7, 2)));
+
+    Assert.True(unassigned.Succeeded);
+    Assert.Null(unassigned.Value!.AssignedUser);
+    Assert.Single(repository.Occurrences);
   }
 
   [Fact]

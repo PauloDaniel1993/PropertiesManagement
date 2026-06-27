@@ -111,6 +111,16 @@ public sealed class OccurrenceService : IOccurrenceService
       return ApplicationOperationResult<OccurrenceDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
     }
 
+    if (HasNonEmptyId(request.AssignedUserId) &&
+      !await HasPermissionAsync(
+          PermissionCodes.Manage(PermissionModules.Occurrences),
+          context.OrganizationId,
+          cancellationToken)
+        .ConfigureAwait(false))
+    {
+      return ApplicationOperationResult<OccurrenceDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
+    }
+
     var related = await ResolveRelatedEntitiesAsync(
         request.ContractId,
         request.PropertyId,
@@ -717,6 +727,18 @@ public sealed class OccurrenceService : IOccurrenceService
     var context = await activeOrganizationContextResolver.ResolveAsync(cancellationToken)
       .ConfigureAwait(false);
     return context.Succeeded ? context.Context : null;
+  }
+
+  private async Task<bool> HasPermissionAsync(
+    string permissionCode,
+    OrganizationId organizationId,
+    CancellationToken cancellationToken)
+  {
+    var permission = await permissionService.AuthorizeAsync(
+        new PermissionRequirement(permissionCode, organizationId),
+        cancellationToken)
+      .ConfigureAwait(false);
+    return permission.IsGranted;
   }
 
   private async Task WriteMutationSideEffectsAsync(

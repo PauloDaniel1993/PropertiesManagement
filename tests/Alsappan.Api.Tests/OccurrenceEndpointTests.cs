@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Alsappan.Application.Common.Auth;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Common.Results;
 using Alsappan.Application.Occurrences;
@@ -122,6 +124,20 @@ public sealed class OccurrenceEndpointTests
     Assert.Equal(HttpStatusCode.NoContent, archiveResponse.StatusCode);
   }
 
+  [Fact]
+  public async Task OccurrenceAdminEndpointsRejectResidentMembership()
+  {
+    var occurrenceService = new FakeOccurrenceService();
+    using var factory = CreateFactory(occurrenceService);
+    using var client = factory.CreateClient();
+    client.DefaultRequestHeaders.Authorization = new("Bearer", CreateJwt(RoleCodes.ResidentUser));
+
+    using var response = await client.GetAsync(new Uri("/v1/occurrences", UriKind.Relative));
+
+    Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    Assert.Null(occurrenceService.LastListRequest);
+  }
+
   private static WebApplicationFactory<Program> CreateFactory(FakeOccurrenceService occurrenceService) =>
     new WebApplicationFactory<Program>()
       .WithWebHostBuilder(builder =>
@@ -217,18 +233,27 @@ public sealed class OccurrenceEndpointTests
       detail.ConcurrencyToken);
   }
 
-  private static string CreateJwt()
+  private static string CreateJwt(string? roleCode = null)
   {
+    var claims = new List<Claim>
+    {
+      new(JwtRegisteredClaimNames.Sub, UserId.ToString()),
+      new(JwtRegisteredClaimNames.Email, "admin@alsappan.local")
+    };
+
+    if (!string.IsNullOrWhiteSpace(roleCode))
+    {
+      claims.Add(new Claim(
+        AuthClaimTypes.Membership,
+        JsonSerializer.Serialize(new OrganizationMembershipClaimDto(Guid.NewGuid(), [roleCode], [], true))));
+    }
+
     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
       "replace-this-dev-only-signing-key-with-at-least-32-characters"));
     var token = new JwtSecurityToken(
       issuer: "Alsappan",
       audience: "Alsappan.Web",
-      claims:
-      [
-        new Claim(JwtRegisteredClaimNames.Sub, UserId.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, "admin@alsappan.local")
-      ],
+      claims: claims,
       expires: DateTime.UtcNow.AddMinutes(15),
       signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
