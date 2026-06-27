@@ -106,6 +106,167 @@ public sealed class PetServiceTests
   }
 
   [Fact]
+  public async Task CreateAsyncRejectsAuthorizationStatusWithoutManagePermission()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePetRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Pets)]);
+
+    var request = CreateRequest(repository.Resident.ResidentId.Value, repository.Contract.ContractId.Value, null, null) with
+    {
+      AuthorizationStatus = "authorized"
+    };
+
+    var result = await service.CreateAsync(request);
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Forbidden, result.Failure);
+    Assert.Empty(repository.Pets);
+  }
+
+  [Fact]
+  public async Task CreateAsyncRejectsAuthorizationNotesWithoutManagePermission()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePetRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Pets)]);
+
+    var request = CreateRequest(repository.Resident.ResidentId.Value, repository.Contract.ContractId.Value, null, null) with
+    {
+      AuthorizationNotes = "Aprovacao inicial"
+    };
+
+    var result = await service.CreateAsync(request);
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Forbidden, result.Failure);
+    Assert.Empty(repository.Pets);
+  }
+
+  [Fact]
+  public async Task UpdateAsyncRejectsAuthorizationStatusChangeWithoutManagePermission()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePetRepository(organizationId);
+    var pet = CreatePet(organizationId, repository.Contract);
+    repository.Pets.Add(pet);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Pets)]);
+
+    var result = await service.UpdateAsync(
+      pet.Id.Value,
+      UpdateRequest(repository.Resident.ResidentId.Value, repository.Contract.ContractId.Value) with
+      {
+        AuthorizationStatus = "authorized"
+      });
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Forbidden, result.Failure);
+    Assert.Equal(PetAuthorizationStatus.Pending, pet.AuthorizationStatus);
+  }
+
+  [Fact]
+  public async Task UpdateAsyncRejectsAuthorizationNotesChangeWithoutManagePermission()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePetRepository(organizationId);
+    var pet = CreatePet(organizationId, repository.Contract);
+    repository.Pets.Add(pet);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Pets)]);
+
+    var result = await service.UpdateAsync(
+      pet.Id.Value,
+      UpdateRequest(repository.Resident.ResidentId.Value, repository.Contract.ContractId.Value) with
+      {
+        AuthorizationNotes = "Mudanca direta"
+      });
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Forbidden, result.Failure);
+    Assert.Null(pet.AuthorizationNotes);
+  }
+
+  [Fact]
+  public async Task CreateAsyncRejectsInactiveContractContext()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePetRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Pets)]);
+
+    var result = await service.CreateAsync(CreateRequest(
+      repository.Resident.ResidentId.Value,
+      repository.InactiveContract.ContractId.Value,
+      null,
+      null));
+
+    Assert.False(result.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("contractId", result.Errors!.Keys);
+    Assert.Empty(repository.Pets);
+  }
+
+  [Fact]
+  public async Task UpdateAsyncReplacesPetDocumentLinksByKind()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakePetRepository(organizationId);
+    var oldVaccinationDocumentId = EntityId.New();
+    var oldAuthorizationDocumentId = EntityId.New();
+    var newVaccinationDocumentId = EntityId.New();
+    repository.Documents.AddRange([oldVaccinationDocumentId, oldAuthorizationDocumentId, newVaccinationDocumentId]);
+    var pet = CreatePet(organizationId, repository.Contract);
+    pet.LinkDocument(oldVaccinationDocumentId, PetDocumentKind.VaccinationRecord, "Old vaccination", DateTimeOffset.UtcNow, null);
+    pet.LinkDocument(oldAuthorizationDocumentId, PetDocumentKind.AuthorizationForm, "Old authorization", DateTimeOffset.UtcNow, null);
+    repository.Pets.Add(pet);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [PermissionCodes.Write(PermissionModules.Pets)]);
+
+    var result = await service.UpdateAsync(
+      pet.Id.Value,
+      UpdateRequest(repository.Resident.ResidentId.Value, repository.Contract.ContractId.Value) with
+      {
+        VaccinationRecordDocumentId = newVaccinationDocumentId.Value,
+        AuthorizationFormDocumentId = null
+      });
+
+    Assert.True(result.Succeeded);
+    Assert.Equal(newVaccinationDocumentId.Value, Assert.Single(result.Value!.VaccinationRecordDocuments).DocumentId);
+    Assert.Empty(result.Value.AuthorizationFormDocuments);
+    Assert.Contains(pet.DocumentLinks, link =>
+      link.DocumentId == oldVaccinationDocumentId && link.Kind == PetDocumentKind.VaccinationRecord && link.IsDeleted);
+    Assert.Contains(pet.DocumentLinks, link =>
+      link.DocumentId == oldAuthorizationDocumentId && link.Kind == PetDocumentKind.AuthorizationForm && link.IsDeleted);
+  }
+
+  [Fact]
   public async Task ListAsyncRequiresReadPermission()
   {
     var service = CreateService(
@@ -164,9 +325,23 @@ public sealed class PetServiceTests
       "cat",
       "SRD",
       "pending",
-      "Aguardando formulario",
+      null,
       vaccinationDocumentId,
       authorizationDocumentId,
+      "Docil");
+
+  private static PetUpdateRequestDto UpdateRequest(Guid residentId, Guid contractId) =>
+    new(
+      residentId,
+      null,
+      contractId,
+      "Luna",
+      "cat",
+      "SRD",
+      "pending",
+      null,
+      null,
+      null,
       "Docil");
 
   private static Pet CreatePet(OrganizationId organizationId, PetContractSnapshot contract) =>
@@ -205,6 +380,11 @@ public sealed class PetServiceTests
         "Casa Calabria",
         "Joao da Silva",
         true);
+      InactiveContract = Contract with
+      {
+        ContractId = EntityId.New(),
+        IsActive = false
+      };
       OtherProperty = new PetPropertySnapshot(EntityId.New(), "Apartamento Centro", "Rua Central, 10");
       OtherResident = new PetResidentSnapshot(EntityId.New(), "Maria Souza");
     }
@@ -220,6 +400,8 @@ public sealed class PetServiceTests
     public PetPropertySnapshot OtherProperty { get; }
 
     public PetContractSnapshot Contract { get; }
+
+    public PetContractSnapshot InactiveContract { get; }
 
     public List<EntityId> Documents { get; } = [];
 
@@ -292,7 +474,9 @@ public sealed class PetServiceTests
     {
       cancellationToken.ThrowIfCancellationRequested();
       return Task.FromResult<PetContractSnapshot?>(
-        organizationId == OrganizationId && contractId == Contract.ContractId ? Contract : null);
+        organizationId == OrganizationId
+          ? contractId == Contract.ContractId ? Contract : contractId == InactiveContract.ContractId ? InactiveContract : null
+          : null);
     }
 
     public Task<bool> DocumentExistsAsync(
@@ -324,6 +508,7 @@ public sealed class PetServiceTests
         pet.PropertyId == Property.PropertyId ? Property : null,
         pet.ContractId == Contract.ContractId ? Contract : null,
         pet.DocumentLinks
+          .Where(link => !link.IsDeleted)
           .Select(link => new PetDocumentSnapshot(link.DocumentId, link.Kind, link.Label))
           .ToArray());
   }

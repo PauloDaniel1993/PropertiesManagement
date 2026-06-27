@@ -44,4 +44,16 @@ public sealed class DocumentLink : TenantScopedEntity<EntityId>
     DateTimeOffset createdAt,
     UserId? createdByUserId = null) =>
     new(id, organizationId, documentId, entityType, entityId, label, createdAt, createdByUserId);
+
+  public void UpdateLabel(string? label, DateTimeOffset updatedAt, UserId? updatedByUserId)
+  {
+    var normalizedLabel = DocumentCode.Optional(label, 160, nameof(label));
+    if (Label == normalizedLabel)
+    {
+      return;
+    }
+
+    Label = normalizedLabel;
+    MarkUpdated(updatedAt, updatedByUserId);
+  }
 }

@@ -128,6 +128,14 @@ public sealed class PetService : IPetService
       return ApplicationOperationResult<PetDetailDto>.Invalid(ValidatePetRequest(request).ToList());
     }
 
+    var authorizationNotes = PetCode.Optional(request.AuthorizationNotes, 1000, nameof(request.AuthorizationNotes));
+    if ((authorizationStatus != PetAuthorizationStatus.Pending || authorizationNotes is not null) &&
+      !await HasPermissionAsync(PermissionCodes.Manage(PermissionModules.Pets), cancellationToken)
+        .ConfigureAwait(false))
+    {
+      return ApplicationOperationResult<PetDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
+    }
+
     var now = timeProvider.GetUtcNow();
     var pet = Pet.Create(
       EntityId.New(),
@@ -213,6 +221,16 @@ public sealed class PetService : IPetService
       !PetCatalog.TryParseAuthorizationStatus(request.AuthorizationStatus, out var authorizationStatus))
     {
       return ApplicationOperationResult<PetDetailDto>.Invalid(ValidatePetRequest(request).ToList());
+    }
+
+    var authorizationNotes = PetCode.Optional(request.AuthorizationNotes, 1000, nameof(request.AuthorizationNotes));
+    var changesAuthorization = authorizationStatus != pet.AuthorizationStatus ||
+      !string.Equals(authorizationNotes, pet.AuthorizationNotes, StringComparison.Ordinal);
+    if (changesAuthorization &&
+      !await HasPermissionAsync(PermissionCodes.Manage(PermissionModules.Pets), cancellationToken)
+        .ConfigureAwait(false))
+    {
+      return ApplicationOperationResult<PetDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
     }
 
     try
@@ -438,6 +456,10 @@ public sealed class PetService : IPetService
       {
         errors.Add(new ValidationFailure("contractId", "validation.contract"));
       }
+      else if (!contract.IsActive)
+      {
+        errors.Add(new ValidationFailure("contractId", "validation.activeContract"));
+      }
       else
       {
         if (!contract.ResidentIds.Contains(residentId))
@@ -500,6 +522,13 @@ public sealed class PetService : IPetService
     var context = await activeOrganizationContextResolver.ResolveAsync(cancellationToken)
       .ConfigureAwait(false);
     return context.Succeeded ? context.Context : null;
+  }
+
+  private async Task<bool> HasPermissionAsync(string permissionCode, CancellationToken cancellationToken)
+  {
+    var permission = await permissionService.AuthorizeAsync(permissionCode, cancellationToken)
+      .ConfigureAwait(false);
+    return permission.IsGranted;
   }
 
   private async Task WriteMutationSideEffectsAsync(
@@ -662,26 +691,20 @@ public sealed class PetService : IPetService
     UserId? userId)
   {
     var vaccinationRecordId = ToEntityIdOrNull(vaccinationRecordDocumentId);
-    if (vaccinationRecordId.HasValue)
-    {
-      pet.LinkDocument(
-        vaccinationRecordId.Value,
-        PetDocumentKind.VaccinationRecord,
-        "Carteira de vacinacao",
-        now,
-        userId);
-    }
+    pet.SetDocumentLink(
+      vaccinationRecordId,
+      PetDocumentKind.VaccinationRecord,
+      "Carteira de vacinacao",
+      now,
+      userId);
 
     var authorizationFormId = ToEntityIdOrNull(authorizationFormDocumentId);
-    if (authorizationFormId.HasValue)
-    {
-      pet.LinkDocument(
-        authorizationFormId.Value,
-        PetDocumentKind.AuthorizationForm,
-        "Formulario de autorizacao",
-        now,
-        userId);
-    }
+    pet.SetDocumentLink(
+      authorizationFormId,
+      PetDocumentKind.AuthorizationForm,
+      "Formulario de autorizacao",
+      now,
+      userId);
   }
 
   private static IEnumerable<ValidationFailure> ValidatePetRequest(PetCreateRequestDto request) =>

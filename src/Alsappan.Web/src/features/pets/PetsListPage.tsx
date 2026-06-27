@@ -650,6 +650,7 @@ export function PetsListPage() {
         {formState ? (
           <PetForm
             authorizationStatusOptions={authorizationStatusOptions}
+            canManageAuthorization={canManagePets}
             initialValue={formState.pet}
             isSubmitting={formMutation.isPending}
             mode={formState.mode}

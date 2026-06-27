@@ -184,6 +184,7 @@ public sealed class EfPetRepository : IPetRepository
   {
     ArgumentNullException.ThrowIfNull(pet);
 
+    await SyncSharedDocumentLinksAsync(pet, cancellationToken).ConfigureAwait(false);
     dbContext.Pets.Add(pet);
     await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -192,8 +193,48 @@ public sealed class EfPetRepository : IPetRepository
   {
     ArgumentNullException.ThrowIfNull(pet);
 
+    await SyncSharedDocumentLinksAsync(pet, cancellationToken).ConfigureAwait(false);
     dbContext.Pets.Update(pet);
     await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+  }
+
+  private async Task SyncSharedDocumentLinksAsync(Pet pet, CancellationToken cancellationToken)
+  {
+    var documentIds = pet.DocumentLinks
+      .Select(link => link.DocumentId)
+      .Distinct()
+      .ToArray();
+    if (documentIds.Length == 0)
+    {
+      return;
+    }
+
+    var activeDocumentIds = pet.DocumentLinks
+      .Where(link => !link.IsDeleted)
+      .Select(link => link.DocumentId)
+      .ToHashSet();
+    var documents = await dbContext.Documents.IgnoreQueryFilters()
+      .Include(document => document.Links)
+      .Where(document => document.OrganizationId == pet.OrganizationId &&
+        documentIds.Contains(document.Id))
+      .ToListAsync(cancellationToken)
+      .ConfigureAwait(false);
+    var changedAt = pet.UpdatedAt ?? pet.CreatedAt;
+    var changedByUserId = pet.UpdatedByUserId ?? pet.CreatedByUserId;
+
+    foreach (var document in documents)
+    {
+      if (activeDocumentIds.Contains(document.Id) &&
+        document.DeletedAt is null &&
+        document.Status != DocumentStatus.Archived)
+      {
+        document.SetEntityLink("pet", pet.Id, pet.Name, changedAt, changedByUserId);
+      }
+      else
+      {
+        document.RemoveEntityLink("pet", pet.Id, changedAt, changedByUserId);
+      }
+    }
   }
 
   private IQueryable<Pet> BuildListQuery(PetListRequestDto request, OrganizationId organizationId)

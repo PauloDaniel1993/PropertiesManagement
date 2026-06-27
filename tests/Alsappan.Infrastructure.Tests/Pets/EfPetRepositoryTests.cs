@@ -81,6 +81,76 @@ public sealed class EfPetRepositoryTests
   }
 
   [Fact]
+  public async Task AddAndUpdateSyncSharedDocumentCatalogPetLinks()
+  {
+    var databaseName = Guid.NewGuid().ToString("N");
+    var organizationId = OrganizationId.New();
+    var related = CreateRelatedRecords(organizationId);
+    var vaccinationDocument = CreateDocument(organizationId);
+    var replacementDocument = CreateDocument(organizationId);
+    var pet = CreatePet(organizationId, related.Contract, "Luna");
+    pet.LinkDocument(
+      vaccinationDocument.Id,
+      PetDocumentKind.VaccinationRecord,
+      "Carteira",
+      DateTimeOffset.UtcNow,
+      null);
+
+    await using (var setup = CreateContext(organizationId, databaseName))
+    {
+      setup.Properties.Add(related.Property);
+      setup.Residents.Add(related.Resident);
+      setup.Contracts.Add(related.Contract);
+      setup.Documents.AddRange(vaccinationDocument, replacementDocument);
+      await setup.SaveChangesAsync();
+    }
+
+    await using (var addContext = CreateContext(organizationId, databaseName))
+    {
+      var repository = new EfPetRepository(addContext);
+      await repository.AddAsync(pet);
+    }
+
+    await using (var assertAdd = CreateContext(organizationId, databaseName))
+    {
+      var document = await assertAdd.Documents
+        .Include(item => item.Links)
+        .SingleAsync(item => item.Id == vaccinationDocument.Id);
+      var link = Assert.Single(document.Links, item => item.EntityType == "pet");
+      Assert.Equal(pet.Id, link.EntityId);
+    }
+
+    await using (var updateContext = CreateContext(organizationId, databaseName))
+    {
+      var repository = new EfPetRepository(updateContext);
+      var persistedPet = await repository.FindAsync(pet.Id, organizationId);
+      Assert.NotNull(persistedPet);
+
+      persistedPet!.SetDocumentLink(
+        replacementDocument.Id,
+        PetDocumentKind.VaccinationRecord,
+        "Carteira atualizada",
+        DateTimeOffset.UtcNow.AddMinutes(1),
+        null);
+      await repository.UpdateAsync(persistedPet);
+    }
+
+    await using (var assertUpdate = CreateContext(organizationId, databaseName))
+    {
+      var oldDocument = await assertUpdate.Documents
+        .Include(item => item.Links)
+        .SingleAsync(item => item.Id == vaccinationDocument.Id);
+      var newDocument = await assertUpdate.Documents
+        .Include(item => item.Links)
+        .SingleAsync(item => item.Id == replacementDocument.Id);
+
+      Assert.DoesNotContain(oldDocument.Links, item => item.EntityType == "pet" && item.EntityId == pet.Id);
+      var link = Assert.Single(newDocument.Links, item => item.EntityType == "pet");
+      Assert.Equal(pet.Id, link.EntityId);
+    }
+  }
+
+  [Fact]
   public async Task ActiveContractOnlyReturnsOnlyPetsLinkedToActiveContracts()
   {
     var databaseName = Guid.NewGuid().ToString("N");

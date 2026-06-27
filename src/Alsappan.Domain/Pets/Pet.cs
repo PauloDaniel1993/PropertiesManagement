@@ -178,6 +178,53 @@ public sealed class Pet : TenantScopedEntity<EntityId>
     MarkUpdated(createdAt, createdByUserId);
   }
 
+  public void SetDocumentLink(
+    EntityId? documentId,
+    PetDocumentKind kind,
+    string? label,
+    DateTimeOffset updatedAt,
+    UserId? updatedByUserId)
+  {
+    EnsureCanMutate();
+    var activeLinks = documentLinks
+      .Where(link => link.Kind == kind && !link.IsDeleted)
+      .ToArray();
+    var activeLink = documentId.HasValue
+      ? activeLinks.FirstOrDefault(link => link.DocumentId == documentId.Value)
+      : null;
+    var changed = false;
+
+    foreach (var link in activeLinks)
+    {
+      if (activeLink is not null && link.Id == activeLink.Id)
+      {
+        continue;
+      }
+
+      link.Remove(updatedAt, updatedByUserId);
+      changed = true;
+    }
+
+    if (documentId.HasValue && activeLink is null)
+    {
+      documentLinks.Add(PetDocumentLink.Create(
+        EntityId.New(),
+        OrganizationId,
+        Id,
+        documentId.Value,
+        kind,
+        label,
+        updatedAt,
+        updatedByUserId));
+      changed = true;
+    }
+
+    if (changed)
+    {
+      MarkUpdated(updatedAt, updatedByUserId);
+    }
+  }
+
   public void Archive(DateTimeOffset deletedAt, UserId? deletedByUserId)
   {
     if (IsDeleted)

@@ -44,4 +44,14 @@ public sealed class PetDocumentLink : TenantScopedEntity<EntityId>
     DateTimeOffset createdAt,
     UserId? createdByUserId = null) =>
     new(id, organizationId, petId, documentId, kind, label, createdAt, createdByUserId);
+
+  public void Remove(DateTimeOffset deletedAt, UserId? deletedByUserId)
+  {
+    if (IsDeleted)
+    {
+      return;
+    }
+
+    MarkDeleted(deletedAt, deletedByUserId);
+  }
 }

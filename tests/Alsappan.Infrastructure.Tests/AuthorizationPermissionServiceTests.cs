@@ -61,6 +61,17 @@ public sealed class AuthorizationPermissionServiceTests
     Assert.Equal(PermissionEvaluationFailure.OrganizationMismatch, result.Failure);
   }
 
+  [Fact]
+  public void ResidentUserRoleDoesNotGrantAdminPetsModulePermissions()
+  {
+    var catalog = new DefaultRolePermissionCatalog();
+    var permissions = catalog.GetPermissionsForRoles([RoleCodes.ResidentUser]);
+
+    Assert.DoesNotContain(PermissionCodes.Read(PermissionModules.Pets), permissions);
+    Assert.DoesNotContain(PermissionCodes.Write(PermissionModules.Pets), permissions);
+    Assert.DoesNotContain(PermissionCodes.Manage(PermissionModules.Pets), permissions);
+  }
+
   private static ActiveOrganizationContext BuildContext(
     OrganizationId organizationId,
     OrganizationMembership membership)

@@ -26,6 +26,7 @@ export type PetFormMode = 'create' | 'edit'
 
 export type PetFormProps = {
   authorizationStatusOptions: Array<ApiSelectOption<PetAuthorizationStatus>>
+  canManageAuthorization?: boolean
   initialValue?: Partial<PetDetail | PetListItem>
   isSubmitting?: boolean
   mode: PetFormMode
@@ -152,6 +153,7 @@ function getDefaultValues(initialValue?: Partial<PetDetail | PetListItem>): PetF
 
 export function PetForm({
   authorizationStatusOptions,
+  canManageAuthorization = false,
   initialValue,
   isSubmitting = false,
   mode,
@@ -294,37 +296,39 @@ export function PetForm({
         </div>
       </fieldset>
 
-      <fieldset style={fieldsetStyle}>
-        <legend style={{ fontWeight: 800, paddingInline: 4 }}>
-          {copy.form.authorizationStatus}
-        </legend>
-        <FormField
-          error={errorSummary.authorizationStatus}
-          label={copy.form.authorizationStatus}
-          required
-        >
-          {({ describedBy, id, isInvalid, isRequired }) => (
-            <SelectInput
-              {...form.register('authorizationStatus')}
-              id={id}
-              aria-describedby={describedBy}
-              isInvalid={isInvalid}
-              options={authorizationStatusOptions.filter((option) => option.value !== 'archived')}
-              required={isRequired}
-            />
-          )}
-        </FormField>
-        <FormField label={copy.form.authorizationNotes}>
-          {({ describedBy, id, isInvalid }) => (
-            <TextAreaInput
-              {...form.register('authorizationNotes')}
-              id={id}
-              aria-describedby={describedBy}
-              isInvalid={isInvalid}
-            />
-          )}
-        </FormField>
-      </fieldset>
+      {canManageAuthorization ? (
+        <fieldset style={fieldsetStyle}>
+          <legend style={{ fontWeight: 800, paddingInline: 4 }}>
+            {copy.form.authorizationStatus}
+          </legend>
+          <FormField
+            error={errorSummary.authorizationStatus}
+            label={copy.form.authorizationStatus}
+            required
+          >
+            {({ describedBy, id, isInvalid, isRequired }) => (
+              <SelectInput
+                {...form.register('authorizationStatus')}
+                id={id}
+                aria-describedby={describedBy}
+                isInvalid={isInvalid}
+                options={authorizationStatusOptions.filter((option) => option.value !== 'archived')}
+                required={isRequired}
+              />
+            )}
+          </FormField>
+          <FormField label={copy.form.authorizationNotes}>
+            {({ describedBy, id, isInvalid }) => (
+              <TextAreaInput
+                {...form.register('authorizationNotes')}
+                id={id}
+                aria-describedby={describedBy}
+                isInvalid={isInvalid}
+              />
+            )}
+          </FormField>
+        </fieldset>
+      ) : null}
 
       <fieldset style={fieldsetStyle}>
         <legend style={{ fontWeight: 800, paddingInline: 4 }}>{copy.form.documentsSection}</legend>

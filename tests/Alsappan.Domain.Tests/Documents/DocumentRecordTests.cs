@@ -86,6 +86,27 @@ public sealed class DocumentRecordTests
     Assert.False(document.IsDeleted);
   }
 
+  [Fact]
+  public void SetAndRemoveEntityLinkRefreshesSharedDocumentLinks()
+  {
+    var document = CreateDocument();
+    var petId = EntityId.New();
+    var changedAt = DateTimeOffset.UtcNow.AddMinutes(1);
+
+    document.SetEntityLink("pet", petId, "Luna", changedAt, null);
+    document.SetEntityLink("pet", petId, "Luna atualizada", changedAt.AddMinutes(1), null);
+
+    var petLink = Assert.Single(document.Links, link => link.EntityType == "pet");
+    Assert.Equal(petId, petLink.EntityId);
+    Assert.Equal("Luna atualizada", petLink.Label);
+    Assert.Contains(petId.Value.ToString("D").ToUpperInvariant(), document.SearchText, StringComparison.Ordinal);
+
+    document.RemoveEntityLink("pet", petId, changedAt.AddMinutes(2), null);
+
+    Assert.DoesNotContain(document.Links, link => link.EntityType == "pet" && link.EntityId == petId);
+    Assert.DoesNotContain(petId.Value.ToString("D").ToUpperInvariant(), document.SearchText, StringComparison.Ordinal);
+  }
+
   private static DocumentRecord CreateDocument() =>
     DocumentRecord.Create(
       EntityId.New(),

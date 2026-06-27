@@ -157,6 +157,65 @@ public sealed class DocumentRecord : TenantScopedEntity<EntityId>
     return version;
   }
 
+  public void SetEntityLink(
+    string entityType,
+    EntityId entityId,
+    string? label,
+    DateTimeOffset changedAt,
+    UserId? changedByUserId)
+  {
+    EnsureActive();
+
+    var normalizedEntityType = DocumentCode.NormalizeCode(entityType);
+    var normalizedLabel = DocumentCode.Optional(label, 160, nameof(label));
+    var existingLink = links.FirstOrDefault(link =>
+      link.EntityType == normalizedEntityType &&
+      link.EntityId == entityId);
+    if (existingLink is not null && existingLink.Label == normalizedLabel)
+    {
+      return;
+    }
+
+    if (existingLink is not null)
+    {
+      existingLink.UpdateLabel(normalizedLabel, changedAt, changedByUserId);
+      RefreshSearchText();
+      MarkUpdated(changedAt, changedByUserId);
+      return;
+    }
+
+    links.Add(DocumentLink.Create(
+      EntityId.New(),
+      OrganizationId,
+      Id,
+      normalizedEntityType,
+      entityId,
+      normalizedLabel,
+      changedAt,
+      changedByUserId));
+    RefreshSearchText();
+    MarkUpdated(changedAt, changedByUserId);
+  }
+
+  public void RemoveEntityLink(
+    string entityType,
+    EntityId entityId,
+    DateTimeOffset changedAt,
+    UserId? changedByUserId)
+  {
+    var normalizedEntityType = DocumentCode.NormalizeCode(entityType);
+    var removed = links.RemoveAll(link =>
+      link.EntityType == normalizedEntityType &&
+      link.EntityId == entityId);
+    if (removed == 0)
+    {
+      return;
+    }
+
+    RefreshSearchText();
+    MarkUpdated(changedAt, changedByUserId);
+  }
+
   public void Archive(DateTimeOffset deletedAt, UserId? deletedByUserId)
   {
     if (IsDeleted)
