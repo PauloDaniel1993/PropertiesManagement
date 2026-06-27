@@ -2,6 +2,8 @@ import type { AuthSessionDto, CurrentUserDto } from '../../lib/api/identity'
 import { useActiveOrganizationStore } from '../../stores/useActiveOrganizationStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 
+const wildcardPermissionCode = '*'
+
 function syncActiveOrganizations(user: CurrentUserDto) {
   useActiveOrganizationStore
     .getState()
@@ -22,7 +24,9 @@ export function clearIdentitySession() {
   useAuthSessionStore.getState().signOut()
 }
 
-export function getActivePermissionCodes(user = useAuthSessionStore.getState().user) {
+export function getActivePermissionCodes(
+  user: CurrentUserDto | null = useAuthSessionStore.getState().user,
+) {
   if (!user) {
     return []
   }
@@ -36,9 +40,15 @@ export function getActivePermissionCodes(user = useAuthSessionStore.getState().u
   )
 }
 
+function hasPermissionCode(permissionCodes: string[], requiredPermission: string) {
+  return (
+    permissionCodes.includes(wildcardPermissionCode) || permissionCodes.includes(requiredPermission)
+  )
+}
+
 export function hasEveryPermission(
   requiredPermissions: string[],
-  user = useAuthSessionStore.getState().user,
+  user: CurrentUserDto | null = useAuthSessionStore.getState().user,
 ) {
   if (requiredPermissions.length === 0) {
     return true
@@ -46,12 +56,12 @@ export function hasEveryPermission(
 
   const permissionCodes = getActivePermissionCodes(user)
 
-  return requiredPermissions.every((permission) => permissionCodes.includes(permission))
+  return requiredPermissions.every((permission) => hasPermissionCode(permissionCodes, permission))
 }
 
 export function hasAnyPermission(
   requiredPermissions: string[],
-  user = useAuthSessionStore.getState().user,
+  user: CurrentUserDto | null = useAuthSessionStore.getState().user,
 ) {
   if (requiredPermissions.length === 0) {
     return true
@@ -59,5 +69,5 @@ export function hasAnyPermission(
 
   const permissionCodes = getActivePermissionCodes(user)
 
-  return requiredPermissions.some((permission) => permissionCodes.includes(permission))
+  return requiredPermissions.some((permission) => hasPermissionCode(permissionCodes, permission))
 }
