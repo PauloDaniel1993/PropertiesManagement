@@ -39,6 +39,22 @@ public sealed class UtilityAccountTests
   }
 
   [Fact]
+  public void MarkPaidRejectsPartialAmount()
+  {
+    var account = CreateAccount();
+
+    Assert.Throws<ArgumentOutOfRangeException>(() => account.MarkPaid(
+      new Money(299m, "BRL"),
+      new DateOnly(2026, 6, 27),
+      "Pix",
+      null,
+      null,
+      null,
+      DateTimeOffset.UtcNow,
+      null));
+  }
+
+  [Fact]
   public void ArchiveAndRestoreKeepsLifecycleConsistent()
   {
     var account = CreateAccount();

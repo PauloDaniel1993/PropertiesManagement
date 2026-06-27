@@ -229,9 +229,9 @@ public sealed class UtilityAccount : TenantScopedEntity<EntityId>
       throw new InvalidOperationException("Paid amount currency must match the utility amount currency.");
     }
 
-    if (paidAmount.Amount <= 0 || paidAmount.Amount > Amount.Amount)
+    if (paidAmount.Amount <= 0 || paidAmount.Amount != Amount.Amount)
     {
-      throw new ArgumentOutOfRangeException(nameof(paidAmount), "Paid amount must be positive and cannot exceed the utility amount.");
+      throw new ArgumentOutOfRangeException(nameof(paidAmount), "Paid amount must match the utility amount.");
     }
 
     PaidAmount = paidAmount;
@@ -239,7 +239,7 @@ public sealed class UtilityAccount : TenantScopedEntity<EntityId>
     PaymentMethod = UtilityAccountCode.Optional(paymentMethod, 80, nameof(paymentMethod));
     BankReference = UtilityAccountCode.Optional(bankReference, 160, nameof(bankReference));
     Notes = UtilityAccountCode.Optional(notes, 1000, nameof(notes)) ?? Notes;
-    Status = paidAmount.Amount >= Amount.Amount ? UtilityAccountStatus.Paid : UtilityAccountStatus.Open;
+    Status = UtilityAccountStatus.Paid;
 
     if (receiptDocumentId.HasValue)
     {
