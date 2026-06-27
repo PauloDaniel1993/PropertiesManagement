@@ -1,3 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-npm run dev --prefix "$PSScriptRoot/.." --workspace src/Alsappan.Web
+$RepositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+
+npm run dev --prefix $RepositoryRoot --workspace src/Alsappan.Web
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

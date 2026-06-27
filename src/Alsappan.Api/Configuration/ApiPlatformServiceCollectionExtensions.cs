@@ -54,7 +54,7 @@ internal static class ApiPlatformServiceCollectionExtensions
     {
       options.AddPolicy(CorsPolicyName, policy =>
       {
-        policy.WithOrigins(configuration.GetSection($"{AlsappanOptions.SectionName}:Cors:AllowedOrigins").Get<string[]>() ?? [])
+        policy.WithOrigins(GetAllowedOrigins(configuration))
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -105,10 +105,48 @@ internal static class ApiPlatformServiceCollectionExtensions
     });
 
     services.AddHealthChecks()
-        .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API process is running."));
+        .AddCheck(
+          "api",
+          () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API process is running."),
+          tags: ["live", "ready"])
+        .AddCheck<DatabaseHealthCheck>(
+          "database",
+          tags: ["ready"])
+        .AddCheck<StorageHealthCheck>(
+          "storage",
+          tags: ["ready"])
+        .AddCheck<BackgroundWorkerHealthCheck>(
+          "background-worker",
+          tags: ["ready"])
+        .AddCheck<LocalizationHealthCheck>(
+          "localization",
+          tags: ["ready"]);
 
     return services;
   }
+
+  internal static string[] GetAllowedOrigins(IConfiguration configuration)
+  {
+    ArgumentNullException.ThrowIfNull(configuration);
+
+    var section = configuration.GetSection($"{AlsappanOptions.SectionName}:Cors:AllowedOrigins");
+    var scalarOrigins = SplitOrigins(section.Value).ToArray();
+
+    if (scalarOrigins.Length > 0)
+    {
+      return scalarOrigins;
+    }
+
+    return (section.Get<string[]>() ?? [])
+      .SelectMany(SplitOrigins)
+      .Distinct(StringComparer.OrdinalIgnoreCase)
+      .ToArray();
+  }
+
+  private static IEnumerable<string> SplitOrigins(string? value) =>
+    string.IsNullOrWhiteSpace(value)
+      ? []
+      : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
   private static bool HasActiveResidentMembership(ClaimsPrincipal principal)
   {

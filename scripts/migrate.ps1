@@ -1,5 +1,8 @@
 $ErrorActionPreference = "Stop"
 
+$RepositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+
 dotnet ef database update `
-  --project "$PSScriptRoot/../src/Alsappan.Infrastructure" `
-  --startup-project "$PSScriptRoot/../src/Alsappan.Api"
+  --project (Join-Path $RepositoryRoot "src/Alsappan.Infrastructure") `
+  --startup-project (Join-Path $RepositoryRoot "src/Alsappan.Api")
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

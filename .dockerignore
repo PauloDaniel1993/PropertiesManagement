@@ -1,0 +1,14 @@
+**/.git
+**/.github
+**/.codex
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+storage
+tmp
+uploads

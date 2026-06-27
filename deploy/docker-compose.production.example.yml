@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: src/Alsappan.Api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ALSAPPAN_DATABASE__CONNECTIONSTRING: ${ALSAPPAN_DATABASE__CONNECTIONSTRING:?set ALSAPPAN_DATABASE__CONNECTIONSTRING}
+      ALSAPPAN_DATABASE__SCHEMA: ${ALSAPPAN_DATABASE__SCHEMA:-app}
+      ALSAPPAN_AUTH__ISSUER: ${ALSAPPAN_AUTH__ISSUER:?set ALSAPPAN_AUTH__ISSUER}
+      ALSAPPAN_AUTH__AUDIENCE: ${ALSAPPAN_AUTH__AUDIENCE:?set ALSAPPAN_AUTH__AUDIENCE}
+      ALSAPPAN_AUTH__SIGNINGKEY: ${ALSAPPAN_AUTH__SIGNINGKEY:?set ALSAPPAN_AUTH__SIGNINGKEY}
+      ALSAPPAN_AUTH__ACCESSTOKENMINUTES: ${ALSAPPAN_AUTH__ACCESSTOKENMINUTES:-15}
+      ALSAPPAN_AUTH__REFRESHTOKENDAYS: ${ALSAPPAN_AUTH__REFRESHTOKENDAYS:-30}
+      ALSAPPAN_AUTH__REFRESHCOOKIENAME: ${ALSAPPAN_AUTH__REFRESHCOOKIENAME:-__Host-alsappan-refresh}
+      ALSAPPAN_STORAGE__LOCALPATH: /var/lib/alsappan/storage
+      ALSAPPAN_LOCALIZATION__DEFAULTCULTURE: ${ALSAPPAN_LOCALIZATION__DEFAULTCULTURE:-pt-BR}
+      ALSAPPAN_LOCALIZATION__SUPPORTEDCULTURES: ${ALSAPPAN_LOCALIZATION__SUPPORTEDCULTURES:-pt-BR,en-US}
+      ALSAPPAN_CORS__ALLOWEDORIGINS: ${ALSAPPAN_CORS__ALLOWEDORIGINS:?set ALSAPPAN_CORS__ALLOWEDORIGINS}
+    volumes:
+      - file-storage:/var/lib/alsappan/storage
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+  web:
+    build:
+      context: ..
+      dockerfile: src/Alsappan.Web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?set VITE_API_BASE_URL}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8081}:8080"
+
+volumes:
+  postgres-data:
+  file-storage:
