@@ -133,7 +133,7 @@ export function ResidentPortalShell() {
             <Building2 size={24} strokeWidth={2.25} />
           </span>
           <div>
-            <strong>Alsappan</strong>
+            <strong>{copy.shell.brandName}</strong>
             <small>{copy.shell.brandSubtitle}</small>
           </div>
         </div>

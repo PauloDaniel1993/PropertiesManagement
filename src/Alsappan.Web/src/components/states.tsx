@@ -9,6 +9,7 @@ import {
   SearchX,
   ShieldAlert,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ActionButton } from './actions'
 import { cx, mergeStyles, subtleTextStyle, surfaceStyle } from './utils'
 
@@ -134,19 +135,16 @@ export type LoadingStateProps = {
   title?: ReactNode
 }
 
-export function LoadingState({
-  className,
-  description,
-  style,
-  title = 'Carregando',
-}: LoadingStateProps) {
+export function LoadingState({ className, description, style, title }: LoadingStateProps) {
+  const { t } = useTranslation()
+
   return (
     <FeedbackState
       className={cx('als-loading-state', className)}
       description={description}
       icon={<LoaderCircle className="als-loading-state__spinner" size={24} />}
       style={style}
-      title={title}
+      title={title ?? t('components.states.loading.title')}
     />
   )
 }
@@ -155,8 +153,16 @@ export type EmptyStateProps = Omit<FeedbackStateProps, 'icon' | 'role' | 'title'
   title?: ReactNode
 }
 
-export function EmptyState({ title = 'Nenhum registro encontrado', ...props }: EmptyStateProps) {
-  return <FeedbackState icon={<Inbox size={24} />} title={title} {...props} />
+export function EmptyState({ title, ...props }: EmptyStateProps) {
+  const { t } = useTranslation()
+
+  return (
+    <FeedbackState
+      icon={<Inbox size={24} />}
+      title={title ?? t('components.states.empty.title')}
+      {...props}
+    />
+  )
 }
 
 export type ErrorStateProps = Omit<
@@ -168,22 +174,23 @@ export type ErrorStateProps = Omit<
   title?: ReactNode
 }
 
-export function ErrorState({
-  onRetry,
-  retryLabel = 'Tentar novamente',
-  title = 'Não foi possível carregar os dados',
-  ...props
-}: ErrorStateProps) {
+export function ErrorState({ onRetry, retryLabel, title, ...props }: ErrorStateProps) {
+  const { t } = useTranslation()
+
   return (
     <FeedbackState
       action={
         onRetry
-          ? { icon: <RotateCw aria-hidden="true" size={16} />, label: retryLabel, onClick: onRetry }
+          ? {
+              icon: <RotateCw aria-hidden="true" size={16} />,
+              label: retryLabel ?? t('components.states.error.retry'),
+              onClick: onRetry,
+            }
           : undefined
       }
       icon={<AlertTriangle size={24} />}
       role="alert"
-      title={title}
+      title={title ?? t('components.states.error.title')}
       tone="danger"
       {...props}
     />
@@ -194,12 +201,14 @@ export type ForbiddenStateProps = Omit<FeedbackStateProps, 'icon' | 'role' | 'ti
   title?: ReactNode
 }
 
-export function ForbiddenState({ title = 'Acesso não autorizado', ...props }: ForbiddenStateProps) {
+export function ForbiddenState({ title, ...props }: ForbiddenStateProps) {
+  const { t } = useTranslation()
+
   return (
     <FeedbackState
       icon={<ShieldAlert size={24} />}
       role="alert"
-      title={title}
+      title={title ?? t('components.states.forbidden.title')}
       tone="warning"
       {...props}
     />
@@ -210,16 +219,34 @@ export type NotFoundStateProps = Omit<FeedbackStateProps, 'icon' | 'role' | 'tit
   title?: ReactNode
 }
 
-export function NotFoundState({ title = 'Registro não encontrado', ...props }: NotFoundStateProps) {
-  return <FeedbackState icon={<SearchX size={24} />} title={title} tone="info" {...props} />
+export function NotFoundState({ title, ...props }: NotFoundStateProps) {
+  const { t } = useTranslation()
+
+  return (
+    <FeedbackState
+      icon={<SearchX size={24} />}
+      title={title ?? t('components.states.notFound.title')}
+      tone="info"
+      {...props}
+    />
+  )
 }
 
 export type ArchivedStateProps = Omit<FeedbackStateProps, 'icon' | 'role' | 'title' | 'tone'> & {
   title?: ReactNode
 }
 
-export function ArchivedState({ title = 'Registro arquivado', ...props }: ArchivedStateProps) {
-  return <FeedbackState icon={<Archive size={24} />} title={title} tone="neutral" {...props} />
+export function ArchivedState({ title, ...props }: ArchivedStateProps) {
+  const { t } = useTranslation()
+
+  return (
+    <FeedbackState
+      icon={<Archive size={24} />}
+      title={title ?? t('components.states.archived.title')}
+      tone="neutral"
+      {...props}
+    />
+  )
 }
 
 export type OptimisticRefreshStateProps = {
@@ -237,10 +264,12 @@ export function OptimisticRefreshState({
   description,
   isRefreshing = false,
   onRetry,
-  retryLabel = 'Atualizar agora',
+  retryLabel,
   style,
-  title = 'Atualizando dados em segundo plano',
+  title,
 }: OptimisticRefreshStateProps) {
+  const { t } = useTranslation()
+
   return (
     <aside
       className={cx(
@@ -273,7 +302,9 @@ export function OptimisticRefreshState({
           size={18}
         />
         <div style={{ display: 'grid', gap: 2, minWidth: 0 }}>
-          <strong className="als-optimistic-refresh-state__title">{title}</strong>
+          <strong className="als-optimistic-refresh-state__title">
+            {title ?? t('components.states.optimistic.title')}
+          </strong>
           {description ? (
             <span
               className="als-optimistic-refresh-state__description"
@@ -287,7 +318,7 @@ export function OptimisticRefreshState({
 
       {onRetry ? (
         <ActionButton disabled={isRefreshing} onClick={onRetry} size="sm">
-          {retryLabel}
+          {retryLabel ?? t('components.states.optimistic.retry')}
         </ActionButton>
       ) : null}
     </aside>

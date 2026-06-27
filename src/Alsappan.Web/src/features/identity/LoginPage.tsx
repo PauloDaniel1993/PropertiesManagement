@@ -162,7 +162,7 @@ export function IdentityLoginPage({
             <Building2 size={24} />
           </span>
           <div style={{ display: 'grid', gap: 2 }}>
-            <strong>Alsappan</strong>
+            <strong>{copy.login.brandName}</strong>
             <span style={{ color: 'var(--als-color-text-muted, #64748b)', fontSize: '0.9rem' }}>
               {copy.login.accountType[accountType]}
             </span>

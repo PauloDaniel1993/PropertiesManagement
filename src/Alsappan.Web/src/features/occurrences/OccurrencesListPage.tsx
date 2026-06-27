@@ -612,14 +612,14 @@ export function OccurrencesListPage() {
           value={filters.contractId ?? ''}
         />
         <TextInput
-          aria-label="dateFrom"
+          aria-label={copy.list.dateFrom}
           onChange={(event) => updateFilters({ dateFrom: event.currentTarget.value })}
           style={{ maxWidth: 160 }}
           type="date"
           value={filters.dateFrom ?? ''}
         />
         <TextInput
-          aria-label="dateTo"
+          aria-label={copy.list.dateTo}
           onChange={(event) => updateFilters({ dateTo: event.currentTarget.value })}
           style={{ maxWidth: 160 }}
           type="date"

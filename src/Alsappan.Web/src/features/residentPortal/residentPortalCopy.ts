@@ -10,6 +10,12 @@ const en = {
     uploadDocument: 'Upload document',
   },
   documents: {
+    categories: {
+      contract: 'Contract',
+      other: 'Other',
+      property: 'Property',
+      resident: 'Resident',
+    },
     category: 'Category',
     description: 'Description',
     file: 'File',
@@ -80,9 +86,21 @@ const en = {
   occurrences: {
     createDisabled: 'Occurrence creation is disabled by the organization.',
     description: 'Describe what happened',
+    priorities: {
+      high: 'High',
+      low: 'Low',
+      medium: 'Medium',
+      urgent: 'Urgent',
+    },
     priority: 'Priority',
     title: 'Occurrences',
     type: 'Type',
+    types: {
+      complaint: 'Complaint',
+      maintenance: 'Maintenance',
+      other: 'Other',
+      request: 'Request',
+    },
   },
   overview: {
     subtitle:
@@ -99,6 +117,7 @@ const en = {
   },
   shell: {
     account: 'Resident account',
+    brandName: 'Alsappan',
     brandSubtitle: 'Resident portal',
     localeToggle: 'Change language',
     menu: 'Resident navigation',
@@ -122,6 +141,12 @@ const pt: typeof en = {
     uploadDocument: 'Enviar documento',
   },
   documents: {
+    categories: {
+      contract: 'Contrato',
+      other: 'Outro',
+      property: 'Imovel',
+      resident: 'Morador',
+    },
     category: 'Categoria',
     description: 'Descricao',
     file: 'Arquivo',
@@ -192,9 +217,21 @@ const pt: typeof en = {
   occurrences: {
     createDisabled: 'Criacao de ocorrencias esta desativada pela organizacao.',
     description: 'Descreva o que aconteceu',
+    priorities: {
+      high: 'Alta',
+      low: 'Baixa',
+      medium: 'Media',
+      urgent: 'Urgente',
+    },
     priority: 'Prioridade',
     title: 'Ocorrencias',
     type: 'Tipo',
+    types: {
+      complaint: 'Reclamacao',
+      maintenance: 'Manutencao',
+      other: 'Outro',
+      request: 'Solicitacao',
+    },
   },
   overview: {
     subtitle:
@@ -211,6 +248,7 @@ const pt: typeof en = {
   },
   shell: {
     account: 'Conta do morador',
+    brandName: 'Alsappan',
     brandSubtitle: 'Portal do morador',
     localeToggle: 'Alterar idioma',
     menu: 'Navegacao do morador',

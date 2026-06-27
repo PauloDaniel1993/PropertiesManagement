@@ -574,7 +574,7 @@ export function InspectionDetailPage({
                           placeholder={copy.detail.checklist.observations}
                         />
                         <TextInput
-                          aria-label="sortOrder"
+                          aria-label={copy.detail.checklist.sortOrder}
                           name="sortOrder"
                           type="number"
                           defaultValue="0"
@@ -650,7 +650,7 @@ export function InspectionDetailPage({
                             name="observations"
                           />
                           <TextInput
-                            aria-label="sortOrder"
+                            aria-label={copy.detail.checklist.sortOrder}
                             defaultValue={item.sortOrder}
                             disabled={!canMutate}
                             min={0}

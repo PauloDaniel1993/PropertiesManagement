@@ -401,7 +401,7 @@ export function UtilityAccountForm({
       </fieldset>
 
       <fieldset style={fieldsetStyle}>
-        <legend style={{ fontWeight: 800, paddingInline: 4 }}>Documentos</legend>
+        <legend style={{ fontWeight: 800, paddingInline: 4 }}>{copy.form.documentsSection}</legend>
         <p style={{ color: 'var(--als-color-text-muted, #64748b)', margin: 0 }}>
           {copy.form.documentHint}
         </p>
