@@ -789,6 +789,10 @@ public sealed class ResidentPortalService : IResidentPortalService
       {
         errors.Add(new ValidationFailure(nameof(request.ContractId), "validation.contract"));
       }
+      else if (propertyId.HasValue && propertyId.Value != contract.PropertyId)
+      {
+        errors.Add(new ValidationFailure(nameof(request.PropertyId), "validation.property"));
+      }
       else
       {
         propertyId ??= contract.PropertyId;
@@ -803,6 +807,11 @@ public sealed class ResidentPortalService : IResidentPortalService
       {
         errors.Add(new ValidationFailure(nameof(request.PropertyId), "validation.property"));
       }
+      else if (!contractId.HasValue &&
+        !await ResidentCanAccessPropertyAsync(context, propertyId.Value, cancellationToken).ConfigureAwait(false))
+      {
+        errors.Add(new ValidationFailure(nameof(request.PropertyId), "validation.property"));
+      }
     }
 
     if (!contractId.HasValue && !propertyId.HasValue)
@@ -811,6 +820,26 @@ public sealed class ResidentPortalService : IResidentPortalService
     }
 
     return new ResolvedOccurrenceContext(errors, propertyId, contractId, property, contract);
+  }
+
+  private async Task<bool> ResidentCanAccessPropertyAsync(
+    PortalContext context,
+    EntityId propertyId,
+    CancellationToken cancellationToken)
+  {
+    var page = await contractRepository.ListAsync(
+        new ContractListRequestDto(
+          PageSize: PortalPageSize,
+          ResidentId: context.Resident.Id.Value,
+          IncludeArchived: true),
+        context.OrganizationId,
+        Today(),
+        cancellationToken)
+      .ConfigureAwait(false);
+
+    return page.Items.Any(snapshot =>
+      snapshot.Residents.Any(resident => resident.ResidentId == context.Resident.Id) &&
+      snapshot.Property.PropertyId == propertyId);
   }
 
   private async Task<IReadOnlyList<ValidationFailure>> ValidateResidentDocumentLinksAsync(
