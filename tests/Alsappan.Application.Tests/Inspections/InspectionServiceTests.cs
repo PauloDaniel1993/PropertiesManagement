@@ -35,7 +35,8 @@ public sealed class InspectionServiceTests
     var inspection = Assert.Single(repository.Inspections);
     Assert.Equal(InspectionStatus.Scheduled, inspection.Status);
     Assert.Equal(repository.Property.PropertyId.Value, result.Value!.Property.Id);
-    Assert.Single(result.Value.SignatureSlots);
+    var signatureSlot = Assert.Single(result.Value.SignatureSlots);
+    Assert.False(signatureSlot.IsRequired);
     Assert.Single(audit.Entries);
     var envelope = Assert.Single(outbox.Envelopes);
     Assert.Equal("inspection.scheduled", envelope.EventName);
@@ -85,6 +86,34 @@ public sealed class InspectionServiceTests
     Assert.Equal("completed", completed.Value!.Status.Code);
     Assert.Equal(100m, completed.Value.Progress.Percentage);
     Assert.Equal("Checklist completo", completed.Value.CompletionNotes);
+  }
+
+  [Fact]
+  public async Task RequiredUnsignedSignatureSlotsBlockCompletion()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeInspectionRepository(organizationId);
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [
+        PermissionCodes.Write(PermissionModules.Inspections),
+        PermissionCodes.Manage(PermissionModules.Inspections)
+      ]);
+    var scheduled = await service.ScheduleAsync(CreateScheduleRequest(repository, signatureRequired: true));
+    var checklist = await service.AddChecklistItemAsync(
+      scheduled.Value!.Id,
+      new InspectionChecklistItemRequestDto("Sala", "Piso", true, "good", "Sem danos", 0));
+
+    var completed = await service.CompleteAsync(
+      scheduled.Value.Id,
+      new InspectionLifecycleRequestDto("Checklist completo"));
+
+    Assert.True(checklist.Succeeded);
+    Assert.False(completed.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Conflict, completed.Failure);
   }
 
   [Fact]
@@ -168,7 +197,9 @@ public sealed class InspectionServiceTests
       outboxWriter,
       TimeProvider.System);
 
-  private static InspectionScheduleRequestDto CreateScheduleRequest(FakeInspectionRepository repository) =>
+  private static InspectionScheduleRequestDto CreateScheduleRequest(
+    FakeInspectionRepository repository,
+    bool signatureRequired = false) =>
     new(
       "move-in",
       repository.Property.PropertyId.Value,
@@ -178,7 +209,7 @@ public sealed class InspectionServiceTests
       repository.Assignee.UserId.Value,
       "Vistoria de entrada",
       "Conferir sala e cozinha",
-      [new InspectionSignatureSlotRequestDto("Morador", "Joao da Silva", true)]);
+      [new InspectionSignatureSlotRequestDto("Morador", "Joao da Silva", signatureRequired)]);
 
   private sealed class FakeInspectionRepository : IInspectionRepository
   {

@@ -200,6 +200,7 @@ public sealed class EfInspectionRepository : IInspectionRepository
 
     var user = await dbContext.IdentityUsers.IgnoreQueryFilters()
       .Where(candidate => candidate.Id == userId &&
+        candidate.AccountType == UserAccountType.Admin &&
         candidate.DeletedAt == null &&
         candidate.Status != UserStatus.Archived)
       .Select(candidate => new { candidate.Id, candidate.DisplayName, candidate.Email })

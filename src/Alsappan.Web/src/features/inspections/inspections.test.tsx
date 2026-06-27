@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -14,6 +14,7 @@ import {
   useFiltersStore,
 } from '../../stores'
 import { applyAuthSession } from '../identity/session'
+import { InspectionDetailPage } from './InspectionDetailPage'
 import { InspectionsListPage } from './InspectionsListPage'
 
 const inspectionId = '11111111-1111-1111-1111-111111111111'
@@ -152,7 +153,14 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   )
 }
 
-function buildInspectionSession(): AuthSessionDto {
+function buildInspectionSession(
+  permissions: string[] = [
+    'inspections.read',
+    'inspections.write',
+    'inspections.manage',
+    'inspections.archive',
+  ],
+): AuthSessionDto {
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -171,27 +179,17 @@ function buildInspectionSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: [
-            'inspections.read',
-            'inspections.write',
-            'inspections.manage',
-            'inspections.archive',
-          ],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: [
-        'inspections.read',
-        'inspections.write',
-        'inspections.manage',
-        'inspections.archive',
-      ],
+      permissions,
     },
   }
 }
 
-function createInspectionsFetch() {
+function createInspectionsFetch(inspection: Record<string, unknown> = apiInspection) {
   return vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input))
 
@@ -208,9 +206,24 @@ function createInspectionsFetch() {
       ])
     }
 
+    if (url.pathname === '/v1/inspections/condition-rating-options') {
+      return jsonResponse([{ code: 'pending', label: 'Pendente', tone: 'warning' }])
+    }
+
+    if (url.pathname === '/v1/inspections/document-kind-options') {
+      return jsonResponse([
+        { code: 'photo', label: 'Foto', tone: 'info' },
+        { code: 'attachment', label: 'Anexo', tone: 'neutral' },
+      ])
+    }
+
+    if (url.pathname === '/v1/documents') {
+      return jsonResponse(paged([]))
+    }
+
     if (url.pathname === `/v1/inspections/${inspectionId}/start`) {
       return jsonResponse({
-        ...apiInspection,
+        ...inspection,
         status: { code: 'in-progress', label: 'Em andamento', tone: 'info' },
       })
     }
@@ -220,7 +233,7 @@ function createInspectionsFetch() {
     }
 
     if (url.pathname === `/v1/inspections/${inspectionId}`) {
-      return jsonResponse(apiInspection)
+      return jsonResponse(inspection)
     }
 
     if (url.pathname === '/v1/inspections') {
@@ -294,5 +307,93 @@ describe('inspections management UI', () => {
         expect.objectContaining({ method: 'POST' }),
       ),
     )
+  })
+
+  it('renders photo attachments in details and includes them in completed report counts', async () => {
+    const user = userEvent.setup()
+    applyAuthSession(buildInspectionSession(['inspections.read']))
+    const completedInspection = {
+      ...apiInspection,
+      checklistItems: [
+        {
+          ...apiInspection.checklistItems[0],
+          conditionRating: { code: 'good', label: 'Bom', tone: 'success' },
+          isComplete: true,
+        },
+      ],
+      completedAt: '2026-06-28T16:00:00.000Z',
+      completionNotes: 'Checklist completo.',
+      isPending: false,
+      linkedDocuments: [
+        {
+          documentId: '77777777-7777-7777-7777-777777777777',
+          kind: { code: 'report', label: 'Relatorio' },
+          label: 'Laudo final',
+          route: '/documentos?id=77777777-7777-7777-7777-777777777777',
+        },
+      ],
+      photoDocuments: [
+        {
+          checklistItemId,
+          documentId: '88888888-8888-8888-8888-888888888888',
+          kind: { code: 'photo', label: 'Foto' },
+          label: 'Foto da sala',
+          route: '/documentos?id=88888888-8888-8888-8888-888888888888',
+        },
+      ],
+      progress: { completedItems: 1, percentage: 100, totalItems: 1 },
+      status: { code: 'completed', label: 'Concluida', tone: 'success' },
+    } as const
+    const fetchImpl = createInspectionsFetch(completedInspection)
+
+    renderWithApi(
+      <InspectionDetailPage inspectionId={inspectionId} onBack={() => undefined} />,
+      fetchImpl,
+    )
+
+    expect(await screen.findByRole('heading', { name: 'Relatorio concluido' })).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Fotos e documentos' }))
+    expect(screen.getByRole('link', { name: 'Foto da sala' })).toHaveAttribute(
+      'href',
+      '/documentos?id=88888888-8888-8888-8888-888888888888',
+    )
+    expect(screen.getByRole('link', { name: 'Laudo final' })).toHaveAttribute(
+      'href',
+      '/documentos?id=77777777-7777-7777-7777-777777777777',
+    )
+
+    const reportSection = screen
+      .getByRole('heading', { name: 'Relatorio concluido' })
+      .closest('section')
+    expect(reportSection).not.toBeNull()
+    expect(within(reportSection!).getByText('2')).toBeInTheDocument()
+    expect(
+      vi.mocked(fetchImpl).mock.calls.some(([input]) => String(input).includes('/v1/documents')),
+    ).toBe(false)
+  })
+
+  it('hides detail mutation controls and skips document picker queries for read-only users', async () => {
+    applyAuthSession(buildInspectionSession(['inspections.read']))
+    const fetchImpl = createInspectionsFetch()
+
+    renderWithApi(
+      <InspectionDetailPage
+        inspectionId={inspectionId}
+        onBack={() => undefined}
+        onCancel={vi.fn()}
+        onComplete={vi.fn()}
+        onEdit={vi.fn()}
+        onStart={vi.fn()}
+      />,
+      fetchImpl,
+    )
+
+    expect(await screen.findByText('Vistoria de entrada')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Iniciar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Vincular foto ou documento')).not.toBeInTheDocument()
+    expect(
+      vi.mocked(fetchImpl).mock.calls.some(([input]) => String(input).includes('/v1/documents')),
+    ).toBe(false)
   })
 })

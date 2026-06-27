@@ -324,6 +324,11 @@ public sealed class Inspection : TenantScopedEntity<EntityId>
       throw new InvalidOperationException("Inspection cannot be completed until required checklist items are rated.");
     }
 
+    if (signatureSlots.Any(slot => !slot.IsDeleted && slot.IsRequired && !slot.IsSigned))
+    {
+      throw new InvalidOperationException("Inspection cannot be completed until required signatures are signed.");
+    }
+
     Status = InspectionStatus.Completed;
     StartedAt ??= completedAt;
     StartedByUserId ??= completedByUserId;

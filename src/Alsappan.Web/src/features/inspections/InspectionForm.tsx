@@ -4,7 +4,6 @@ import { useForm, type FieldErrors } from 'react-hook-form'
 import { z } from 'zod'
 import {
   ActionButton,
-  CheckboxInput,
   FormField,
   SelectInput,
   TextAreaInput,
@@ -46,7 +45,6 @@ type InspectionFormValues = {
   propertyId: string
   residentId: string
   scheduledAt: string
-  signatureRequired: boolean
   signatureRole: string
   signatureSigner: string
   title: string
@@ -115,7 +113,6 @@ function getDefaultValues(
     propertyId: initialValue?.property?.id ?? '',
     residentId: initialValue?.resident?.id ?? '',
     scheduledAt: toDateTimeLocal(initialValue?.scheduledAt),
-    signatureRequired: signatureSlot?.isRequired ?? false,
     signatureRole: signatureSlot?.signerRole ?? '',
     signatureSigner: signatureSlot?.signerName ?? '',
     title: initialValue?.title ?? '',
@@ -130,7 +127,6 @@ const inspectionFormSchema = z.object({
   propertyId: z.string().trim().min(1, 'propertyRequired'),
   residentId: z.string().trim(),
   scheduledAt: z.string().trim().min(1, 'scheduledAtRequired'),
-  signatureRequired: z.boolean(),
   signatureRole: z.string().trim(),
   signatureSigner: z.string().trim(),
   title: z.string().trim(),
@@ -289,7 +285,7 @@ export function InspectionForm({
           signatureSlots: signatureRole
             ? [
                 {
-                  isRequired: result.data.signatureRequired,
+                  isRequired: false,
                   signerName: signatureSigner,
                   signerRole: signatureRole,
                 },
@@ -433,10 +429,6 @@ export function InspectionForm({
               />
             )}
           </FormField>
-          <CheckboxInput
-            {...form.register('signatureRequired')}
-            label={copy.form.signatureRequired}
-          />
         </div>
       </fieldset>
 

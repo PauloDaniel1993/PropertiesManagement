@@ -39,6 +39,8 @@ import {
   type InspectionStatus,
 } from '../../lib/api/inspections'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
+import { hasAnyPermission } from '../identity/session'
 import { getInspectionCopy } from './inspectionCopy'
 
 export type InspectionDetailPageProps = {
@@ -115,6 +117,7 @@ function getRelationshipPanels(
   inspection: InspectionDetail,
   copy: ReturnType<typeof getInspectionCopy>,
 ) {
+  const documents = [...inspection.photoDocuments, ...inspection.linkedDocuments]
   const relationshipItems: Array<RelationshipPanelItem | undefined> = [
     inspection.property
       ? {
@@ -166,7 +169,7 @@ function getRelationshipPanels(
 
       <RelationshipPanel
         emptyState={copy.detail.emptyRelationship}
-        items={inspection.linkedDocuments.map((document) => ({
+        items={documents.map((document) => ({
           description: document.kind.label,
           href: document.route,
           id: document.documentId,
@@ -224,7 +227,11 @@ export function InspectionDetailPage({
   const apiClient = useApiClient()
   const queryClient = useQueryClient()
   const locale = useAppPreferencesStore((state) => state.locale)
+  const authUser = useAuthSessionStore((state) => state.user)
   const copy = getInspectionCopy(locale)
+  const canWriteInspections = hasAnyPermission(['inspections.write'], authUser)
+  const canManageInspections = hasAnyPermission(['inspections.manage'], authUser)
+  const canReadDocuments = hasAnyPermission(['documents.read'], authUser)
   const inspectionQuery = useQuery({
     queryFn: () => getInspection(apiClient, inspectionId, locale),
     queryKey: ['inspections', 'detail', inspectionId, locale],
@@ -234,10 +241,18 @@ export function InspectionDetailPage({
     queryKey: ['inspections', 'condition-rating-options', locale],
   })
   const documentKindOptionsQuery = useQuery({
+    enabled:
+      canWriteInspections &&
+      canReadDocuments &&
+      !['archived', 'cancelled', 'completed'].includes(inspectionQuery.data?.status.code ?? ''),
     queryFn: () => listInspectionDocumentKindOptions(apiClient, locale),
     queryKey: ['inspections', 'document-kind-options', locale],
   })
   const documentsQuery = useQuery({
+    enabled:
+      canWriteInspections &&
+      canReadDocuments &&
+      !['archived', 'cancelled', 'completed'].includes(inspectionQuery.data?.status.code ?? ''),
     queryFn: () => listDocuments(apiClient, { category: 'inspection', locale, pageSize: 100 }),
     queryKey: ['documents', 'inspection-picker', locale],
   })
@@ -326,11 +341,16 @@ export function InspectionDetailPage({
     )
   }
 
-  const canMutate = !['archived', 'cancelled', 'completed'].includes(inspection.status.code)
-  const canStart = onStart && inspection.status.code === 'scheduled'
-  const canComplete = onComplete && inspection.status.code === 'in-progress'
-  const canCancel = onCancel && canMutate
+  const statusAllowsMutation = !['archived', 'cancelled', 'completed'].includes(
+    inspection.status.code,
+  )
+  const canMutate = canWriteInspections && statusAllowsMutation
+  const canLinkDocuments = canMutate && canReadDocuments
+  const canStart = onStart && canWriteInspections && inspection.status.code === 'scheduled'
+  const canComplete = onComplete && canManageInspections && inspection.status.code === 'in-progress'
+  const canCancel = onCancel && canManageInspections && statusAllowsMutation
   const canEdit = onEdit && canMutate
+  const reportDocumentCount = inspection.photoDocuments.length + inspection.linkedDocuments.length
 
   return (
     <section style={{ display: 'grid', gap: 18 }}>
@@ -480,7 +500,7 @@ export function InspectionDetailPage({
               },
               {
                 label: copy.detail.documentsTitle,
-                value: inspection.linkedDocuments.length,
+                value: reportDocumentCount,
               },
             ]}
           />
@@ -671,7 +691,7 @@ export function InspectionDetailPage({
           {
             content: (
               <div style={{ display: 'grid', gap: 16 }}>
-                {canMutate ? (
+                {canLinkDocuments ? (
                   <DetailSection title={copy.documentLink.title}>
                     <form
                       onSubmit={(event) => {

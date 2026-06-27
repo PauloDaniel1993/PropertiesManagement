@@ -105,6 +105,38 @@ public sealed class InspectionTests
   }
 
   [Fact]
+  public void CompleteRequiresRequiredSignatureSlotsToBeSigned()
+  {
+    var inspection = CreateInspection();
+    inspection.AddChecklistItem(
+      "Cozinha",
+      "Bancada",
+      isRequired: true,
+      InspectionConditionRating.Good,
+      null,
+      0,
+      DateTimeOffset.UtcNow,
+      null);
+    inspection.ReplaceSignatureSlots(
+      [new InspectionSignatureSlotDraft("Morador", "Joao da Silva", true)],
+      DateTimeOffset.UtcNow.AddMinutes(1),
+      null);
+
+    Assert.Throws<InvalidOperationException>(() =>
+      inspection.Complete("Pronto", DateTimeOffset.UtcNow.AddMinutes(2), null));
+
+    inspection.SignatureSlots.Single().Sign(
+      "Joao da Silva",
+      null,
+      null,
+      DateTimeOffset.UtcNow.AddMinutes(3),
+      null);
+    inspection.Complete("Pronto", DateTimeOffset.UtcNow.AddMinutes(4), null);
+
+    Assert.Equal(InspectionStatus.Completed, inspection.Status);
+  }
+
+  [Fact]
   public void DocumentLinksFollowChecklistDeletion()
   {
     var inspection = CreateInspection();

@@ -97,6 +97,49 @@ public sealed class EfInspectionRepositoryTests
     Assert.Equal("Ana Admin", snapshot.Assignee.Name);
   }
 
+  [Fact]
+  public async Task GetAssigneeSnapshotAsyncOnlyReturnsAdminUsers()
+  {
+    var databaseName = Guid.NewGuid().ToString("N");
+    var organizationId = OrganizationId.New();
+    UserId adminUserId;
+    UserId residentUserId;
+
+    await using (var setup = CreateContext(organizationId, databaseName))
+    {
+      var related = CreateRelatedRecords(organizationId);
+      var residentUser = IdentityUser.Create(
+        UserId.New(),
+        $"morador-{organizationId.Value:N}@example.com",
+        "Mario Morador",
+        UserAccountType.Resident,
+        DateTimeOffset.UtcNow,
+        status: UserStatus.Active);
+      var residentMembership = IdentityMembership.Create(
+        EntityId.New(),
+        organizationId,
+        residentUser.Id,
+        [RoleCodes.ResidentUser],
+        DateTimeOffset.UtcNow);
+
+      adminUserId = related.User.Id;
+      residentUserId = residentUser.Id;
+      setup.IdentityUsers.AddRange(related.User, residentUser);
+      setup.IdentityMemberships.AddRange(related.Membership, residentMembership);
+      await setup.SaveChangesAsync();
+    }
+
+    await using var context = CreateContext(organizationId, databaseName);
+    var repository = new EfInspectionRepository(context);
+
+    var adminSnapshot = await repository.GetAssigneeSnapshotAsync(adminUserId, organizationId);
+    var residentSnapshot = await repository.GetAssigneeSnapshotAsync(residentUserId, organizationId);
+
+    Assert.NotNull(adminSnapshot);
+    Assert.Equal("Ana Admin", adminSnapshot.Name);
+    Assert.Null(residentSnapshot);
+  }
+
   private static AlsappanDbContext CreateContext(OrganizationId organizationId, string databaseName)
   {
     var options = new DbContextOptionsBuilder<AlsappanDbContext>()
