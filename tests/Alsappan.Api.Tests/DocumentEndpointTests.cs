@@ -110,6 +110,30 @@ public sealed class DocumentEndpointTests
     Assert.True(payload.RootElement.GetProperty("errors").TryGetProperty("file", out _));
   }
 
+  [Fact]
+  public async Task DocumentUploadRejectsFilesOverConfiguredLimit()
+  {
+    using var factory = CreateFactory();
+    using var client = factory.CreateClient();
+    client.DefaultRequestHeaders.Authorization = new("Bearer", CreateJwt());
+    using var form = new MultipartFormDataContent
+    {
+      { new StringContent("contract"), "category" },
+      { new StringContent("Contrato grande"), "title" }
+    };
+    var oversizedPayload = new byte[checked((int)DocumentCatalog.MaxFileSizeBytes + 1)];
+    var file = new ByteArrayContent(oversizedPayload);
+    file.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+    form.Add(file, "file", "contrato.pdf");
+
+    using var response = await client.PostAsync("/v1/documents", form);
+
+    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+    Assert.True(payload.RootElement.GetProperty("errors").TryGetProperty("sizeBytes", out _));
+  }
+
   private static WebApplicationFactory<Program> CreateFactory() =>
     new WebApplicationFactory<Program>()
       .WithWebHostBuilder(builder =>

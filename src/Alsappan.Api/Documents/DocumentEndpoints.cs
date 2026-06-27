@@ -19,6 +19,9 @@ internal sealed class DocumentEndpointModule : IApiEndpointModule
 
 internal static class DocumentEndpoints
 {
+  private const long MultipartRequestOverheadBytes = 1024 * 1024;
+  private const long MaxMultipartRequestBodyBytes = DocumentCatalog.MaxFileSizeBytes + MultipartRequestOverheadBytes;
+
   private static readonly JsonSerializerOptions JsonOptions = new()
   {
     PropertyNameCaseInsensitive = true
@@ -170,6 +173,13 @@ internal static class DocumentEndpoints
               InvalidDetail("file", ValidationMessageKeys.Required));
           }
 
+          if (file.Length <= 0 || file.Length > DocumentCatalog.MaxFileSizeBytes)
+          {
+            return ApplicationEndpointResults.FromOperationResult(
+              httpContext,
+              InvalidDetail("sizeBytes", "validation.fileSize"));
+          }
+
           if (!TryReadLinks(form, out var links, out var invalidLinks))
           {
             return ApplicationEndpointResults.FromOperationResult(httpContext, invalidLinks!);
@@ -193,6 +203,9 @@ internal static class DocumentEndpoints
         })
       .WithName("Documents_Upload")
       .WithSummary("Uploads a document.")
+      .WithMetadata(
+        new RequestSizeLimitAttribute(MaxMultipartRequestBodyBytes),
+        new RequestFormLimitsAttribute { MultipartBodyLengthLimit = DocumentCatalog.MaxFileSizeBytes })
       .Accepts<IFormFile>("multipart/form-data")
       .Produces<DocumentDetailDto>(StatusCodes.Status200OK)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -248,6 +261,13 @@ internal static class DocumentEndpoints
               InvalidDetail("file", ValidationMessageKeys.Required));
           }
 
+          if (file.Length <= 0 || file.Length > DocumentCatalog.MaxFileSizeBytes)
+          {
+            return ApplicationEndpointResults.FromOperationResult(
+              httpContext,
+              InvalidDetail("sizeBytes", "validation.fileSize"));
+          }
+
           using var content = file.OpenReadStream();
           var request = new DocumentVersionUploadRequestDto(
             file.FileName,
@@ -262,6 +282,9 @@ internal static class DocumentEndpoints
         })
       .WithName("Documents_UploadVersion")
       .WithSummary("Uploads a new document version.")
+      .WithMetadata(
+        new RequestSizeLimitAttribute(MaxMultipartRequestBodyBytes),
+        new RequestFormLimitsAttribute { MultipartBodyLengthLimit = DocumentCatalog.MaxFileSizeBytes })
       .Accepts<IFormFile>("multipart/form-data")
       .Produces<DocumentDetailDto>(StatusCodes.Status200OK)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -365,8 +388,19 @@ internal static class DocumentEndpoints
       return UploadFormResult.Invalid(InvalidDetail("contentType", "validation.multipart"));
     }
 
-    var form = await httpContext.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
-    return UploadFormResult.Success(form);
+    try
+    {
+      var form = await httpContext.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+      return UploadFormResult.Success(form);
+    }
+    catch (BadHttpRequestException)
+    {
+      return UploadFormResult.Invalid(InvalidDetail("sizeBytes", "validation.fileSize"));
+    }
+    catch (InvalidDataException)
+    {
+      return UploadFormResult.Invalid(InvalidDetail("sizeBytes", "validation.fileSize"));
+    }
   }
 
   private static bool TryReadLinks(

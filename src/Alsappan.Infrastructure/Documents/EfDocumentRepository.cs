@@ -20,9 +20,11 @@ public sealed class EfDocumentRepository : IDocumentRepository
   public async Task<PagedResultDto<DocumentSnapshot>> ListAsync(
     DocumentListRequestDto request,
     OrganizationId organizationId,
+    IReadOnlySet<string> readableLinkedEntityTypes,
     CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(request);
+    ArgumentNullException.ThrowIfNull(readableLinkedEntityTypes);
 
     var listFilter = new ListFilterDto(
       request.Page,
@@ -30,7 +32,7 @@ public sealed class EfDocumentRepository : IDocumentRepository
       request.Search,
       sort: null,
       includeArchived: request.IncludeArchived);
-    var query = BuildListQuery(request, organizationId);
+    var query = BuildListQuery(request, organizationId, readableLinkedEntityTypes);
     var total = await query.CountAsync(cancellationToken).ConfigureAwait(false);
     var rows = await query
       .OrderByDescending(document => document.CurrentUploadedAt)
@@ -93,7 +95,8 @@ public sealed class EfDocumentRepository : IDocumentRepository
 
   private IQueryable<DocumentRecord> BuildListQuery(
     DocumentListRequestDto request,
-    OrganizationId organizationId)
+    OrganizationId organizationId,
+    IReadOnlySet<string> readableLinkedEntityTypes)
   {
     var query = BaseQuery()
       .Where(document => document.OrganizationId == organizationId);
@@ -147,6 +150,11 @@ public sealed class EfDocumentRepository : IDocumentRepository
       var uploadedByUserId = new UserId(request.UploadedByUserId.Value);
       query = query.Where(document => document.CurrentUploadedByUserId == uploadedByUserId);
     }
+
+    var readableEntityTypes = readableLinkedEntityTypes.ToArray();
+    query = query.Where(document =>
+      !document.Links.Any() ||
+      document.Links.All(link => readableEntityTypes.Contains(link.EntityType)));
 
     return query;
   }

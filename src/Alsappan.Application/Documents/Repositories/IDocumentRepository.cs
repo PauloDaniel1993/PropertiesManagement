@@ -11,6 +11,7 @@ public interface IDocumentRepository
   Task<PagedResultDto<DocumentSnapshot>> ListAsync(
     DocumentListRequestDto request,
     OrganizationId organizationId,
+    IReadOnlySet<string> readableLinkedEntityTypes,
     CancellationToken cancellationToken = default);
 
   Task<DocumentRecord?> FindAsync(

@@ -39,7 +39,8 @@ public sealed class EfDocumentRepositoryTests
         Category: "contract",
         LinkedEntityType: "contract",
         LinkedEntityId: contractId.Value),
-      organizationA);
+      organizationA,
+      new HashSet<string>(StringComparer.Ordinal) { "contract" });
 
     Assert.Single(page.Items);
     Assert.Equal("Contrato assinado", page.Items[0].Document.Title);
@@ -48,9 +49,47 @@ public sealed class EfDocumentRepositoryTests
 
     var includingArchived = await repository.ListAsync(
       new DocumentListRequestDto(Search: "contrato", IncludeArchived: true),
-      organizationA);
+      organizationA,
+      new HashSet<string>(StringComparer.Ordinal) { "contract" });
 
     Assert.Equal(2, includingArchived.TotalItems);
+  }
+
+  [Fact]
+  public async Task ListAsyncFiltersUnreadableLinkedEntitiesBeforeCountingAndPaging()
+  {
+    var databaseName = Guid.NewGuid().ToString("N");
+    var organizationId = OrganizationId.New();
+    var contractDocument = CreateDocument(
+      organizationId,
+      "Contrato restrito",
+      DocumentCategory.Contract,
+      EntityId.New(),
+      "contract");
+    var propertyDocument = CreateDocument(
+      organizationId,
+      "Imovel liberado",
+      DocumentCategory.Property,
+      EntityId.New(),
+      "property");
+
+    await using (var setup = CreateContext(organizationId, databaseName))
+    {
+      setup.Documents.AddRange(contractDocument, propertyDocument);
+      await setup.SaveChangesAsync();
+    }
+
+    await using var context = CreateContext(organizationId, databaseName);
+    var repository = new EfDocumentRepository(context);
+
+    var page = await repository.ListAsync(
+      new DocumentListRequestDto(Page: 1, PageSize: 1),
+      organizationId,
+      new HashSet<string>(StringComparer.Ordinal) { "property" });
+
+    Assert.Single(page.Items);
+    Assert.Equal(1, page.TotalItems);
+    Assert.Equal("Imovel liberado", page.Items[0].Document.Title);
   }
 
   [Fact]
@@ -86,7 +125,8 @@ public sealed class EfDocumentRepositoryTests
     OrganizationId organizationId,
     string title,
     DocumentCategory category,
-    EntityId linkedEntityId) =>
+    EntityId linkedEntityId,
+    string linkedEntityType = "contract") =>
     DocumentRecord.Create(
       EntityId.New(),
       organizationId,
@@ -98,6 +138,6 @@ public sealed class EfDocumentRepositoryTests
       128,
       $"documents/{Guid.NewGuid():N}.pdf",
       "Versao inicial",
-      [new DocumentLinkDraft("contract", linkedEntityId, "Contrato 1")],
+      [new DocumentLinkDraft(linkedEntityType, linkedEntityId, "Contrato 1")],
       DateTimeOffset.UtcNow);
 }

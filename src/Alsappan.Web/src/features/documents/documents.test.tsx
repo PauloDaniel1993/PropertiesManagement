@@ -189,6 +189,7 @@ function createDocumentsFetch() {
 }
 
 function resetStores() {
+  window.history.pushState({}, '', '/')
   localStorage.clear()
   useActiveOrganizationStore.getState().setOrganizations(defaultOrganizations)
   useAppPreferencesStore.getState().resetPreferences()
@@ -308,5 +309,29 @@ describe('documents management UI', () => {
     )
 
     anchorClick.mockRestore()
+  })
+
+  it('applies category and linked entity route filters to the list query', async () => {
+    applyAuthSession(buildDocumentSession())
+    window.history.pushState({}, '', `/documentos?contractId=${contractId}&category=contract`)
+    const fetchImpl = createDocumentsFetch()
+
+    renderWithApi(<DocumentsListPage />, fetchImpl)
+
+    expect(await screen.findByText('Contrato assinado')).toBeInTheDocument()
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input]) =>
+              String(input).includes('/v1/documents?') &&
+              String(input).includes('category=contract') &&
+              String(input).includes(`linkedEntityId=${contractId}`) &&
+              String(input).includes('linkedEntityType=contract'),
+          ),
+      ).toBe(true),
+    )
   })
 })

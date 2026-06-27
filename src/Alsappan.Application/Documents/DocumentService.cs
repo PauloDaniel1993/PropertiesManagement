@@ -56,19 +56,18 @@ public sealed class DocumentService : IDocumentService
         ApplicationOperationFailure.Forbidden);
     }
 
-    var page = await documentRepository.ListAsync(request, context.OrganizationId, cancellationToken)
+    var readableLinkedEntityTypes = await GetReadableLinkedEntityTypesAsync(cancellationToken)
       .ConfigureAwait(false);
-    var items = new List<DocumentListItemDto>(page.Items.Count);
-    foreach (var snapshot in page.Items)
-    {
-      if (await CanReadLinkedEntitiesAsync(snapshot.Document.Links, cancellationToken).ConfigureAwait(false))
-      {
-        items.Add(ToListItem(snapshot.Document, request.Locale));
-      }
-    }
+    var page = await documentRepository.ListAsync(
+        request,
+        context.OrganizationId,
+        readableLinkedEntityTypes,
+        cancellationToken)
+      .ConfigureAwait(false);
+    var items = page.Items.Select(snapshot => ToListItem(snapshot.Document, request.Locale)).ToArray();
 
     return ApplicationOperationResult<PagedResultDto<DocumentListItemDto>>.Success(
-      new PagedResultDto<DocumentListItemDto>(items, page.Page, page.PageSize, items.Count == page.Items.Count ? page.TotalItems : items.Count));
+      new PagedResultDto<DocumentListItemDto>(items, page.Page, page.PageSize, page.TotalItems));
   }
 
   public async Task<ApplicationOperationResult<DocumentDetailDto>> GetAsync(
@@ -200,6 +199,11 @@ public sealed class DocumentService : IDocumentService
       return ApplicationOperationResult<DocumentDetailDto>.Failed(ApplicationOperationFailure.NotFound);
     }
 
+    if (!await CanReadLinkedEntitiesAsync(document.Links, cancellationToken).ConfigureAwait(false))
+    {
+      return ApplicationOperationResult<DocumentDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
+    }
+
     var concurrency = EnsureCurrentConcurrencyToken(document, request.ConcurrencyToken);
     if (concurrency is not null)
     {
@@ -259,6 +263,11 @@ public sealed class DocumentService : IDocumentService
     if (document is null)
     {
       return ApplicationOperationResult<DocumentDetailDto>.Failed(ApplicationOperationFailure.NotFound);
+    }
+
+    if (!await CanReadLinkedEntitiesAsync(document.Links, cancellationToken).ConfigureAwait(false))
+    {
+      return ApplicationOperationResult<DocumentDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
     }
 
     var storedFile = await SaveFileAsync(
@@ -415,6 +424,11 @@ public sealed class DocumentService : IDocumentService
       return ApplicationOperationResult.Failed(ApplicationOperationFailure.NotFound);
     }
 
+    if (!await CanReadLinkedEntitiesAsync(document.Links, cancellationToken).ConfigureAwait(false))
+    {
+      return ApplicationOperationResult.Failed(ApplicationOperationFailure.Forbidden);
+    }
+
     document.Archive(timeProvider.GetUtcNow(), context.UserId);
     await documentRepository.UpdateAsync(document, cancellationToken).ConfigureAwait(false);
     await WriteMutationSideEffectsAsync("document.archived", document, context, cancellationToken)
@@ -450,6 +464,11 @@ public sealed class DocumentService : IDocumentService
     if (document is null)
     {
       return ApplicationOperationResult<DocumentDetailDto>.Failed(ApplicationOperationFailure.NotFound);
+    }
+
+    if (!await CanReadLinkedEntitiesAsync(document.Links, cancellationToken).ConfigureAwait(false))
+    {
+      return ApplicationOperationResult<DocumentDetailDto>.Failed(ApplicationOperationFailure.Forbidden);
     }
 
     document.Restore(timeProvider.GetUtcNow(), context.UserId);
@@ -519,6 +538,21 @@ public sealed class DocumentService : IDocumentService
     }
 
     return failures;
+  }
+
+  private async Task<IReadOnlySet<string>> GetReadableLinkedEntityTypesAsync(CancellationToken cancellationToken)
+  {
+    var readableEntityTypes = new HashSet<string>(StringComparer.Ordinal);
+    foreach (var entityType in DocumentCatalog.GetSupportedEntityTypes())
+    {
+      if (TryGetLinkedEntityModule(entityType, out var module) &&
+        await HasPermissionAsync(PermissionCodes.Read(module), cancellationToken).ConfigureAwait(false))
+      {
+        readableEntityTypes.Add(entityType);
+      }
+    }
+
+    return readableEntityTypes;
   }
 
   private async Task<bool> CanReadLinkedEntitiesAsync(

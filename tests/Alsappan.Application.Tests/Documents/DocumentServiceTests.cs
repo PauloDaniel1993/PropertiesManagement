@@ -186,6 +186,90 @@ public sealed class DocumentServiceTests
     Assert.Contains("concurrencyToken", result.Errors!.Keys);
   }
 
+  [Theory]
+  [InlineData("update")]
+  [InlineData("version")]
+  [InlineData("archive")]
+  [InlineData("restore")]
+  public async Task MutatingExistingDocumentRequiresReadAccessToCurrentLinks(string action)
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeDocumentRepository();
+    var storage = new RecordingFileStorageProvider();
+    var service = CreateService(
+      organizationId,
+      repository,
+      storage,
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [
+        PermissionCodes.Write(PermissionModules.Documents),
+        PermissionCodes.Archive(PermissionModules.Documents)
+      ]);
+    var document = CreateDocument(organizationId, linkedEntityType: "contract");
+    if (action == "restore")
+    {
+      document.Archive(DateTimeOffset.UtcNow.AddMinutes(1), null);
+    }
+
+    repository.Documents.Add(document);
+
+    var failure = action switch
+    {
+      "update" => (await service.UpdateAsync(document.Id.Value, new DocumentUpdateRequestDto(
+        "contract",
+        "Contrato atualizado",
+        null,
+        [new DocumentLinkRequestDto("contract", Guid.NewGuid(), "Contrato 1")],
+        document.ConcurrencyToken.Value))).Failure,
+      "version" => (await service.UploadVersionAsync(document.Id.Value, new DocumentVersionUploadRequestDto(
+        "contrato-v2.pdf",
+        "application/pdf",
+        3,
+        StreamFor("pdf")))).Failure,
+      "archive" => (await service.ArchiveAsync(document.Id.Value)).Failure,
+      "restore" => (await service.RestoreAsync(document.Id.Value)).Failure,
+      _ => throw new InvalidOperationException("Unsupported document action.")
+    };
+
+    Assert.Equal(ApplicationOperationFailure.Forbidden, failure);
+    Assert.Empty(storage.StoredFiles);
+  }
+
+  [Fact]
+  public async Task ListAsyncFiltersUnreadableLinkedEntitiesBeforePaging()
+  {
+    var organizationId = OrganizationId.New();
+    var repository = new FakeDocumentRepository();
+    var service = CreateService(
+      organizationId,
+      repository,
+      new RecordingFileStorageProvider(),
+      new RecordingAuditWriter(),
+      new RecordingOutboxWriter(),
+      [
+        PermissionCodes.Read(PermissionModules.Documents),
+        PermissionCodes.Read(PermissionModules.Properties)
+      ]);
+    repository.Documents.Add(CreateDocument(
+      organizationId,
+      title: "Contrato restrito",
+      category: DocumentCategory.Contract,
+      linkedEntityType: "contract"));
+    repository.Documents.Add(CreateDocument(
+      organizationId,
+      title: "Imovel liberado",
+      category: DocumentCategory.Property,
+      linkedEntityType: "property"));
+
+    var result = await service.ListAsync(new DocumentListRequestDto(Page: 1, PageSize: 1));
+
+    Assert.True(result.Succeeded);
+    Assert.Single(result.Value!.Items);
+    Assert.Equal(1, result.Value.TotalItems);
+    Assert.Equal("Imovel liberado", result.Value.Items[0].Title);
+  }
+
   [Fact]
   public async Task ListAsyncRequiresReadPermission()
   {
@@ -222,19 +306,23 @@ public sealed class DocumentServiceTests
   private static MemoryStream StreamFor(string value) =>
     new(Encoding.UTF8.GetBytes(value));
 
-  private static DocumentRecord CreateDocument(OrganizationId organizationId) =>
+  private static DocumentRecord CreateDocument(
+    OrganizationId organizationId,
+    string title = "Contrato assinado",
+    DocumentCategory category = DocumentCategory.Contract,
+    string? linkedEntityType = null) =>
     DocumentRecord.Create(
       EntityId.New(),
       organizationId,
-      DocumentCategory.Contract,
-      "Contrato assinado",
+      category,
+      title,
       null,
       "contrato.pdf",
       "application/pdf",
       128,
       "documents/contrato.pdf",
       null,
-      [],
+      linkedEntityType is null ? [] : [new DocumentLinkDraft(linkedEntityType, EntityId.New(), "Vinculo 1")],
       DateTimeOffset.UtcNow);
 
   private sealed class FakeDocumentRepository : IDocumentRepository
@@ -244,14 +332,21 @@ public sealed class DocumentServiceTests
     public Task<PagedResultDto<DocumentSnapshot>> ListAsync(
       DocumentListRequestDto request,
       OrganizationId organizationId,
+      IReadOnlySet<string> readableLinkedEntityTypes,
       CancellationToken cancellationToken = default)
     {
       cancellationToken.ThrowIfCancellationRequested();
-      var rows = Documents
+      var filtered = Documents
         .Where(document => document.OrganizationId == organizationId && (request.IncludeArchived || !document.IsDeleted))
+        .Where(document => document.Links.All(link => readableLinkedEntityTypes.Contains(link.EntityType)))
+        .ToArray();
+      var rows = filtered
+        .OrderByDescending(document => document.CurrentUploadedAt)
+        .Skip((request.Page - 1) * request.PageSize)
+        .Take(request.PageSize)
         .Select(document => new DocumentSnapshot(document))
         .ToArray();
-      return Task.FromResult(new PagedResultDto<DocumentSnapshot>(rows, request.Page, request.PageSize, rows.Length));
+      return Task.FromResult(new PagedResultDto<DocumentSnapshot>(rows, request.Page, request.PageSize, filtered.Length));
     }
 
     public Task<DocumentRecord?> FindAsync(

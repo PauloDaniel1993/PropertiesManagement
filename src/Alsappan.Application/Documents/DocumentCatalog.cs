@@ -128,6 +128,9 @@ public static class DocumentCatalog
   public static bool IsSupportedEntityType(string entityType) =>
     SupportedEntityTypes.Contains(DocumentCode.NormalizeCode(entityType));
 
+  public static IReadOnlyList<string> GetSupportedEntityTypes() =>
+    SupportedEntityTypes.Order(StringComparer.Ordinal).ToArray();
+
   public static bool IsAllowedFile(string fileName, string contentType)
   {
     if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(contentType))

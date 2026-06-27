@@ -190,11 +190,17 @@ function getInitialDocument(document: DocumentDetail | DocumentListItem): FormSt
 }
 
 function getLinkedEntityRouteFilter(filters: URLSearchParams): Partial<DocumentListFilters> {
+  const routeFilters: Partial<DocumentListFilters> = {}
+  const category = filters.get('category')
+  if (category) {
+    routeFilters.category = category as DocumentListFilters['category']
+  }
+
   const entityType = filters.get('entityType')
   const entityId = filters.get('entityId')
 
   if (entityType && entityId && isLinkedEntityType(entityType)) {
-    return { linkedEntityId: entityId, linkedEntityType: entityType }
+    return { ...routeFilters, linkedEntityId: entityId, linkedEntityType: entityType }
   }
 
   for (const [shortcut, linkedEntityType] of [
@@ -204,11 +210,11 @@ function getLinkedEntityRouteFilter(filters: URLSearchParams): Partial<DocumentL
   ] as const) {
     const shortcutValue = filters.get(shortcut)
     if (shortcutValue) {
-      return { linkedEntityId: shortcutValue, linkedEntityType }
+      return { ...routeFilters, linkedEntityId: shortcutValue, linkedEntityType }
     }
   }
 
-  return {}
+  return routeFilters
 }
 
 export function DocumentsListPage() {
