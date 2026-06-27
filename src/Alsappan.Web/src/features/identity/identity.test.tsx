@@ -15,7 +15,7 @@ import { RequireAdminRoute, RequireAuthenticated, RequireResidentRoute } from '.
 import { AuthSessionBootstrap } from './AuthSessionBootstrap'
 import { IdentityLoginPage } from './LoginPage'
 import { OrganizationSwitcher } from './components/OrganizationSwitcher'
-import { applyAuthSession } from './session'
+import { applyAuthSession, hasAnyPermission, hasEveryPermission } from './session'
 
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
@@ -251,5 +251,26 @@ describe('identity frontend contract', () => {
     )
 
     expect(screen.getByText('Acesso de morador obrigatório')).toBeInTheDocument()
+  })
+
+  it('treats active organization wildcard permission as granting frontend module access', () => {
+    const user = buildUser({
+      organizations: [
+        {
+          currencyCode: 'BRL',
+          displayName: 'OrganizaÃ§Ã£o A',
+          id: 'org-a',
+          locale: 'pt-BR',
+          name: 'OrganizaÃ§Ã£o A',
+          permissionCodes: ['*'],
+          roleCodes: ['Administrador'],
+          slug: 'org-a',
+        },
+      ],
+      permissions: [],
+    })
+
+    expect(hasEveryPermission(['properties.read', 'payments.manage'], user)).toBe(true)
+    expect(hasAnyPermission(['audit.read'], user)).toBe(true)
   })
 })
