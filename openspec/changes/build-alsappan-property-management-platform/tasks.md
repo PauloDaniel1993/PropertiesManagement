@@ -337,7 +337,7 @@
 - [x] 23.10 Add CI gates for backend tests, frontend tests, type checks, linting, formatting, OpenAPI generation, and migration validation
 - [x] 23.11 Add E2E test for resident portal login, resident-scoped data visibility, resident-created occurrence, and cross-resident access denial
 - [x] 23.12 Add E2E test for cross-organization isolation in admin lists, details, global search, dashboard, audit, notifications, and file downloads
-- [ ] 23.13 Run manual Chrome browser smoke testing for the admin shell, resident portal, locale switching, organization switching, core CRUD flows, and permission-denied states when UI implementation is available
+- [x] 23.13 Run manual Chrome browser smoke testing for the admin shell, resident portal, locale switching, organization switching, core CRUD flows, and permission-denied states when UI implementation is available
 - [x] 23.14 Add E2E test for mocked boleto, Pix, and PayPal payment instruction display in admin and resident flows
 - [x] 23.15 Add E2E test for white-label branding defaults, organization branding changes, contrast validation, and resident portal branding
 
