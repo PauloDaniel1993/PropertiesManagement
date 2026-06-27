@@ -1,8 +1,17 @@
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Identity.Administrators;
+using Alsappan.Api.Modules;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alsappan.Api.Identity;
+
+#pragma warning disable CA1812
+internal sealed class AdministratorEndpointModule : IApiEndpointModule
+{
+  public int Order => 200;
+
+  public void MapEndpoints(RouteGroupBuilder v1) => v1.MapAdministratorEndpoints();
+}
 
 internal static class AdministratorEndpoints
 {

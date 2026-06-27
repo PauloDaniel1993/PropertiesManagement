@@ -1,13 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { defaultAuthenticatedRoute } from '../navigation/menuContract'
 import { IdentityLoginPage, AuthSessionBootstrap } from '../features/identity'
-import { AdministratorsPage } from '../pages/AdministratorsPage'
-import { PropertiesPage } from '../pages/PropertiesPage'
-import { ResidentsPage } from '../pages/ResidentsPage'
 import { ModulePlaceholderPage } from '../pages/ModulePlaceholderPage'
 import { modulePageRoutes } from '../pages/modulePageRoutes'
 import { RequireActiveOrganization, RequireAdminRoute, RequireAuthenticated } from './guards'
 import { AdminShell } from '../shell/AdminShell'
+import { getModulePageComponent } from './modulePageRouteRegistry'
 
 function ProtectedRoute() {
   return (
@@ -28,23 +26,17 @@ export function AppRoutes() {
         <Route element={<IdentityLoginPage />} path="/login" />
         <Route element={<ProtectedRoute />}>
           <Route index element={<Navigate replace to={defaultAuthenticatedRoute} />} />
-          {modulePageRoutes.map((route) => (
-            <Route
-              element={
-                route.item.id === 'administrators' ? (
-                  <AdministratorsPage />
-                ) : route.item.id === 'properties' ? (
-                  <PropertiesPage />
-                ) : route.item.id === 'residents' ? (
-                  <ResidentsPage />
-                ) : (
-                  <ModulePlaceholderPage item={route.item} />
-                )
-              }
-              key={route.item.id}
-              path={route.pathSegment}
-            />
-          ))}
+          {modulePageRoutes.map((route) => {
+            const ModulePage = getModulePageComponent(route.item.id)
+
+            return (
+              <Route
+                element={ModulePage ? <ModulePage /> : <ModulePlaceholderPage item={route.item} />}
+                key={route.item.id}
+                path={route.pathSegment}
+              />
+            )
+          })}
         </Route>
         <Route element={<Navigate replace to={defaultAuthenticatedRoute} />} path="*" />
       </Routes>

@@ -1,10 +1,8 @@
 using Alsappan.Api.Configuration;
 using Alsappan.Api.Contracts;
 using Alsappan.Api.Errors;
-using Alsappan.Api.Identity;
+using Alsappan.Api.Modules;
 using Alsappan.Api.OpenApi;
-using Alsappan.Api.Properties;
-using Alsappan.Api.Residents;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -87,10 +85,7 @@ v1.MapGet("/system/protected", () => Results.Ok(new ProtectedSystemResponse("aut
     .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
     .Produces<ProblemDetails>(StatusCodes.Status403Forbidden);
 
-v1.MapAuthEndpoints();
-v1.MapAdministratorEndpoints();
-v1.MapPropertyEndpoints();
-v1.MapResidentEndpoints();
+v1.MapEndpointModules();
 
 app.Run();
 
