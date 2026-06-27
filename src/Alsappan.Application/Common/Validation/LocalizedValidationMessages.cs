@@ -44,6 +44,11 @@ public sealed class LocalizedValidationMessages
       {
         ["pt-BR"] = "Campo obrigatório.",
         ["en-US"] = "Required field."
+      },
+      [ValidationMessageKeys.Unsupported] = new Dictionary<string, string>(StringComparer.Ordinal)
+      {
+        ["pt-BR"] = "Valor ainda nao suportado.",
+        ["en-US"] = "Value is not supported yet."
       }
     };
 

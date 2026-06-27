@@ -89,7 +89,7 @@ public sealed class InspectionServiceTests
   }
 
   [Fact]
-  public async Task RequiredUnsignedSignatureSlotsBlockCompletion()
+  public async Task RequiredSignatureSlotsAreRejectedUntilSigningFlowExists()
   {
     var organizationId = OrganizationId.New();
     var repository = new FakeInspectionRepository(organizationId);
@@ -103,17 +103,11 @@ public sealed class InspectionServiceTests
         PermissionCodes.Manage(PermissionModules.Inspections)
       ]);
     var scheduled = await service.ScheduleAsync(CreateScheduleRequest(repository, signatureRequired: true));
-    var checklist = await service.AddChecklistItemAsync(
-      scheduled.Value!.Id,
-      new InspectionChecklistItemRequestDto("Sala", "Piso", true, "good", "Sem danos", 0));
 
-    var completed = await service.CompleteAsync(
-      scheduled.Value.Id,
-      new InspectionLifecycleRequestDto("Checklist completo"));
-
-    Assert.True(checklist.Succeeded);
-    Assert.False(completed.Succeeded);
-    Assert.Equal(ApplicationOperationFailure.Conflict, completed.Failure);
+    Assert.False(scheduled.Succeeded);
+    Assert.Equal(ApplicationOperationFailure.Validation, scheduled.Failure);
+    Assert.NotNull(scheduled.Errors);
+    Assert.Contains("signatureSlots[0].isRequired", scheduled.Errors!.Keys);
   }
 
   [Fact]

@@ -1112,6 +1112,11 @@ public sealed class InspectionService : IInspectionService
     for (var index = 0; index < slots.Count; index++)
     {
       var slot = slots[index];
+      if (slot.IsRequired)
+      {
+        yield return new ValidationFailure($"signatureSlots[{index}].isRequired", ValidationMessageKeys.Unsupported);
+      }
+
       if (string.IsNullOrWhiteSpace(slot.SignerRole))
       {
         yield return new ValidationFailure($"signatureSlots[{index}].signerRole", ValidationMessageKeys.Required);
