@@ -11,6 +11,7 @@ using Alsappan.Domain.Pets;
 using Alsappan.Domain.Properties;
 using Alsappan.Domain.Residents;
 using Alsappan.Domain.UtilityAccounts;
+using Alsappan.Domain.Vehicles;
 using Alsappan.Infrastructure.Audit;
 using Alsappan.Infrastructure.Auth;
 using Alsappan.Infrastructure.Notifications;
@@ -130,6 +131,8 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<Pet> Pets => Set<Pet>();
 
   public DbSet<PetDocumentLink> PetDocumentLinks => Set<PetDocumentLink>();
+
+  public DbSet<Vehicle> Vehicles => Set<Vehicle>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 

@@ -71,9 +71,7 @@ public sealed class DefaultRolePermissionCatalog : IRolePermissionCatalog
         PermissionCodes.Read(PermissionModules.Notifications),
         PermissionCodes.Read(PermissionModules.Occurrences),
         PermissionCodes.Write(PermissionModules.Occurrences),
-        PermissionCodes.Read(PermissionModules.Payments),
-        PermissionCodes.Read(PermissionModules.Vehicles),
-        PermissionCodes.Write(PermissionModules.Vehicles)
+        PermissionCodes.Read(PermissionModules.Payments)
       ]
     };
 
