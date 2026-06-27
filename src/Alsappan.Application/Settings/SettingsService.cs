@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.RegularExpressions;
 using Alsappan.Application.Common.Audit;
 using Alsappan.Application.Common.Authorization;
@@ -1031,6 +1030,10 @@ public sealed partial class SettingsService : ISettingsService
     {
       yield return new ValidationFailure(nameof(request.Slug), ValidationMessageKeys.Required);
     }
+    else if (!request.Slug.Trim().Any(char.IsLetterOrDigit))
+    {
+      yield return new ValidationFailure(nameof(request.Slug), "validation.slug");
+    }
 
     if (string.IsNullOrWhiteSpace(request.Name))
     {
@@ -1042,7 +1045,9 @@ public sealed partial class SettingsService : ISettingsService
       yield return new ValidationFailure(nameof(request.DisplayName), ValidationMessageKeys.Required);
     }
 
-    if (string.IsNullOrWhiteSpace(request.CurrencyCode) || request.CurrencyCode.Trim().Length != 3)
+    if (string.IsNullOrWhiteSpace(request.CurrencyCode) ||
+      request.CurrencyCode.Trim().Length != 3 ||
+      request.CurrencyCode.Trim().Any(character => !char.IsAsciiLetter(character)))
     {
       yield return new ValidationFailure(nameof(request.CurrencyCode), ValidationMessageKeys.CurrencyCode);
     }
@@ -1051,16 +1056,33 @@ public sealed partial class SettingsService : ISettingsService
     {
       yield return new ValidationFailure(nameof(request.TimeZone), ValidationMessageKeys.Required);
     }
+    else if (request.TimeZone.Trim().Length > 96)
+    {
+      yield return new ValidationFailure(nameof(request.TimeZone), ValidationMessageKeys.MaxLength);
+    }
 
     if (!string.IsNullOrWhiteSpace(request.ContactEmail) &&
       !request.ContactEmail.Contains('@', StringComparison.Ordinal))
     {
       yield return new ValidationFailure(nameof(request.ContactEmail), ValidationMessageKeys.Email);
     }
+    else if (request.ContactEmail?.Trim().Length > 320)
+    {
+      yield return new ValidationFailure(nameof(request.ContactEmail), ValidationMessageKeys.MaxLength);
+    }
+
+    if (request.ContactPhone?.Trim().Length > 64)
+    {
+      yield return new ValidationFailure(nameof(request.ContactPhone), ValidationMessageKeys.MaxLength);
+    }
 
     if (!IsValidAbsoluteUrl(request.ContactWebsite))
     {
       yield return new ValidationFailure(nameof(request.ContactWebsite), "validation.url");
+    }
+    else if (request.ContactWebsite?.Trim().Length > 400)
+    {
+      yield return new ValidationFailure(nameof(request.ContactWebsite), ValidationMessageKeys.MaxLength);
     }
   }
 
@@ -1123,7 +1145,11 @@ public sealed partial class SettingsService : ISettingsService
       yield return new ValidationFailure(nameof(request.PasswordRules.MinimumLength), ValidationMessageKeys.MinValue);
     }
 
-    if (!SettingsCatalog.SupportedMfaPolicies.Contains(
+    if (string.IsNullOrWhiteSpace(request.MfaPolicy))
+    {
+      yield return new ValidationFailure(nameof(request.MfaPolicy), ValidationMessageKeys.Required);
+    }
+    else if (!SettingsCatalog.SupportedMfaPolicies.Contains(
       SettingsCode.NormalizeCode(request.MfaPolicy),
       StringComparer.OrdinalIgnoreCase))
     {
@@ -1206,6 +1232,10 @@ public sealed partial class SettingsService : ISettingsService
       {
         yield return new ValidationFailure($"Items[{index}].Labels.pt-BR", ValidationMessageKeys.Required);
       }
+      else if (ptBr.Trim().Length > 120)
+      {
+        yield return new ValidationFailure($"Items[{index}].Labels.pt-BR", ValidationMessageKeys.MaxLength);
+      }
 
       if (item.Labels is null ||
         !item.Labels.TryGetValue("en-US", out var enUs) ||
@@ -1213,41 +1243,70 @@ public sealed partial class SettingsService : ISettingsService
       {
         yield return new ValidationFailure($"Items[{index}].Labels.en-US", ValidationMessageKeys.Required);
       }
+      else if (enUs.Trim().Length > 120)
+      {
+        yield return new ValidationFailure($"Items[{index}].Labels.en-US", ValidationMessageKeys.MaxLength);
+      }
     }
   }
 
   private static IEnumerable<ValidationFailure> ValidateBranding(OrganizationBrandingUpdateRequestDto request)
   {
-    foreach (var failure in ValidateColor(nameof(request.PrimaryColor), request.PrimaryColor))
+    var primaryColor = NormalizeColor(request.PrimaryColor);
+    var primaryForegroundColor = NormalizeColor(request.PrimaryForegroundColor);
+    var accentColor = NormalizeColor(request.AccentColor);
+    var accentForegroundColor = NormalizeColor(request.AccentForegroundColor);
+
+    if (!string.IsNullOrWhiteSpace(request.DisplayName) && request.DisplayName.Trim().Length > 120)
     {
-      yield return failure;
+      yield return new ValidationFailure(nameof(request.DisplayName), ValidationMessageKeys.MaxLength);
     }
 
-    foreach (var failure in ValidateColor(nameof(request.PrimaryForegroundColor), request.PrimaryForegroundColor))
+    if (!string.IsNullOrWhiteSpace(request.LogoAlt) && request.LogoAlt.Trim().Length > 140)
     {
-      yield return failure;
+      yield return new ValidationFailure(nameof(request.LogoAlt), ValidationMessageKeys.MaxLength);
     }
 
-    foreach (var failure in ValidateColor(nameof(request.AccentColor), request.AccentColor))
+    if (!string.IsNullOrWhiteSpace(request.LogoUrl) && request.LogoUrl.Trim().Length > 400)
     {
-      yield return failure;
+      yield return new ValidationFailure(nameof(request.LogoUrl), ValidationMessageKeys.MaxLength);
     }
 
-    foreach (var failure in ValidateColor(nameof(request.AccentForegroundColor), request.AccentForegroundColor))
+    if (!string.IsNullOrWhiteSpace(request.SupportPhone) && request.SupportPhone.Trim().Length > 64)
     {
-      yield return failure;
+      yield return new ValidationFailure(nameof(request.SupportPhone), ValidationMessageKeys.MaxLength);
     }
 
-    if (!string.IsNullOrWhiteSpace(request.PrimaryColor) &&
-      !string.IsNullOrWhiteSpace(request.PrimaryForegroundColor) &&
-      !MeetsContrastRatio(NormalizeColor(request.PrimaryForegroundColor)!, NormalizeColor(request.PrimaryColor)!))
+    if (!string.IsNullOrWhiteSpace(request.PrimaryColor) && primaryColor is null)
+    {
+      yield return new ValidationFailure(nameof(request.PrimaryColor), "validation.branding.colorHex");
+    }
+
+    if (!string.IsNullOrWhiteSpace(request.PrimaryForegroundColor) && primaryForegroundColor is null)
+    {
+      yield return new ValidationFailure(nameof(request.PrimaryForegroundColor), "validation.branding.colorHex");
+    }
+
+    if (!string.IsNullOrWhiteSpace(request.AccentColor) && accentColor is null)
+    {
+      yield return new ValidationFailure(nameof(request.AccentColor), "validation.branding.colorHex");
+    }
+
+    if (!string.IsNullOrWhiteSpace(request.AccentForegroundColor) && accentForegroundColor is null)
+    {
+      yield return new ValidationFailure(nameof(request.AccentForegroundColor), "validation.branding.colorHex");
+    }
+
+    if (primaryColor is not null &&
+      primaryForegroundColor is not null &&
+      !MeetsContrastRatio(primaryForegroundColor, primaryColor))
     {
       yield return new ValidationFailure(nameof(request.PrimaryForegroundColor), "validation.branding.colorContrast");
     }
 
-    if (!string.IsNullOrWhiteSpace(request.AccentColor) &&
-      !string.IsNullOrWhiteSpace(request.AccentForegroundColor) &&
-      !MeetsContrastRatio(NormalizeColor(request.AccentForegroundColor)!, NormalizeColor(request.AccentColor)!))
+    if (accentColor is not null &&
+      accentForegroundColor is not null &&
+      !MeetsContrastRatio(accentForegroundColor, accentColor))
     {
       yield return new ValidationFailure(nameof(request.AccentForegroundColor), "validation.branding.colorContrast");
     }
@@ -1267,6 +1326,10 @@ public sealed partial class SettingsService : ISettingsService
     {
       yield return new ValidationFailure(nameof(request.SupportEmail), ValidationMessageKeys.Email);
     }
+    else if (request.SupportEmail?.Trim().Length > 320)
+    {
+      yield return new ValidationFailure(nameof(request.SupportEmail), ValidationMessageKeys.MaxLength);
+    }
 
     if ((!string.IsNullOrWhiteSpace(request.LogoUrl)) && string.IsNullOrWhiteSpace(request.LogoAlt))
     {
@@ -1279,6 +1342,10 @@ public sealed partial class SettingsService : ISettingsService
     if (string.IsNullOrWhiteSpace(request.FileName))
     {
       yield return new ValidationFailure(nameof(request.FileName), ValidationMessageKeys.Required);
+    }
+    else if (request.FileName.Trim().Length > 180)
+    {
+      yield return new ValidationFailure(nameof(request.FileName), ValidationMessageKeys.MaxLength);
     }
 
     if (!SettingsCatalog.SupportedLogoContentTypes.Contains(request.ContentType, StringComparer.OrdinalIgnoreCase))
@@ -1301,6 +1368,10 @@ public sealed partial class SettingsService : ISettingsService
     if (string.IsNullOrWhiteSpace(request.LogoAlt))
     {
       yield return new ValidationFailure(nameof(request.LogoAlt), "validation.branding.logoAltRequired");
+    }
+    else if (request.LogoAlt.Trim().Length > 140)
+    {
+      yield return new ValidationFailure(nameof(request.LogoAlt), ValidationMessageKeys.MaxLength);
     }
 
     if (string.IsNullOrWhiteSpace(request.ContentBase64))
@@ -1339,14 +1410,6 @@ public sealed partial class SettingsService : ISettingsService
     if (concurrencyToken is not null && string.IsNullOrWhiteSpace(concurrencyToken))
     {
       yield return new ValidationFailure(nameof(concurrencyToken), ValidationMessageKeys.Required);
-    }
-  }
-
-  private static IEnumerable<ValidationFailure> ValidateColor(string field, string? value)
-  {
-    if (!string.IsNullOrWhiteSpace(value) && NormalizeColor(value) is null)
-    {
-      yield return new ValidationFailure(field, "validation.branding.colorHex");
     }
   }
 
@@ -1503,16 +1566,6 @@ public sealed partial class SettingsService : ISettingsService
         bytes[9] == 0x45 &&
         bytes[10] == 0x42 &&
         bytes[11] == 0x50;
-    }
-
-    if (string.Equals(contentType, "image/svg+xml", StringComparison.OrdinalIgnoreCase))
-    {
-      var sampleLength = Math.Min(bytes.Length, 512);
-      var sample = Encoding.UTF8.GetString(bytes.AsSpan(0, sampleLength))
-        .TrimStart('\uFEFF', ' ', '\t', '\r', '\n');
-      return sample.StartsWith("<svg", StringComparison.OrdinalIgnoreCase) ||
-        (sample.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) &&
-          sample.Contains("<svg", StringComparison.OrdinalIgnoreCase));
     }
 
     return false;

@@ -54,8 +54,10 @@ import {
   type SecuritySettings,
   type TenantBehaviorSettings,
 } from '../../lib/api/settings'
+import { hasEveryPermission } from '../identity/session'
 import { useActiveOrganizationStore } from '../../stores/useActiveOrganizationStore'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
+import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { getSettingsCopy } from './settingsCopy'
 
 const sectionGridStyle: CSSProperties = {
@@ -231,8 +233,11 @@ export function SettingsPage() {
   const apiClient = useApiClient()
   const queryClient = useQueryClient()
   const activeOrganizationId = useActiveOrganizationStore((state) => state.activeOrganizationId)
+  const authUser = useAuthSessionStore((state) => state.user)
   const locale = useAppPreferencesStore((state) => state.locale)
   const copy = getSettingsCopy(locale)
+  const canWriteSettings = hasEveryPermission(['settings.write'], authUser)
+  const canManageSettings = hasEveryPermission(['settings.manage'], authUser)
   const [selectedTab, setSelectedTab] = useState('organization')
   const [selectedCatalogType, setSelectedCatalogType] = useState('')
   const settingsQuery = useQuery({
@@ -520,7 +525,10 @@ export function SettingsPage() {
         <div style={{ display: 'grid', gap: 16 }}>
           <DetailSection title={copy.organization.title}>
             {organizationDraft ? (
-              <div style={{ display: 'grid', gap: 16 }}>
+              <fieldset
+                disabled={!canWriteSettings}
+                style={{ border: 0, display: 'grid', gap: 16, margin: 0, padding: 0 }}
+              >
                 <ValidationSummary
                   errors={toFieldErrors(organizationMutation.error)}
                   title={copy.common.validation}
@@ -643,21 +651,26 @@ export function SettingsPage() {
                     )}
                   </FormField>
                 </div>
-                <div style={actionRowStyle}>
-                  <ActionButton
-                    isLoading={organizationMutation.isPending}
-                    onClick={() => organizationMutation.mutate()}
-                    tone="primary"
-                  >
-                    {copy.actions.save}
-                  </ActionButton>
-                </div>
-              </div>
+                {canWriteSettings ? (
+                  <div style={actionRowStyle}>
+                    <ActionButton
+                      isLoading={organizationMutation.isPending}
+                      onClick={() => organizationMutation.mutate()}
+                      tone="primary"
+                    >
+                      {copy.actions.save}
+                    </ActionButton>
+                  </div>
+                ) : null}
+              </fieldset>
             ) : null}
           </DetailSection>
           <DetailSection title={copy.branding.title}>
             {brandingDraft ? (
-              <div style={{ display: 'grid', gap: 16 }}>
+              <fieldset
+                disabled={!canWriteSettings && !canManageSettings}
+                style={{ border: 0, display: 'grid', gap: 16, margin: 0, padding: 0 }}
+              >
                 <ValidationSummary
                   errors={toFieldErrors(brandingMutation.error)}
                   title={copy.common.validation}
@@ -774,61 +787,69 @@ export function SettingsPage() {
                 {dashboard.branding.logo ? (
                   <StatusBadge label={dashboard.branding.logo.fileName} tone="info" />
                 ) : null}
-                <div style={actionRowStyle}>
-                  <label
-                    style={{
-                      alignItems: 'center',
-                      background: 'var(--als-color-surface, #ffffff)',
-                      border: '1px solid var(--als-color-border, #d7deea)',
-                      borderRadius: 'var(--als-radius-md, 8px)',
-                      color: 'var(--als-color-text, #1f2937)',
-                      cursor: logoUploadMutation.isPending ? 'not-allowed' : 'pointer',
-                      display: 'inline-flex',
-                      font: 'inherit',
-                      fontWeight: 700,
-                      gap: 8,
-                      justifyContent: 'center',
-                      minHeight: 44,
-                      minWidth: 44,
-                      opacity: logoUploadMutation.isPending ? 0.62 : 1,
-                      paddingInline: 16,
-                    }}
-                  >
-                    <input
-                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                      aria-label={copy.branding.logoFile}
-                      disabled={logoUploadMutation.isPending}
-                      onChange={(event) => void handleLogoFileChange(event)}
-                      style={{ display: 'none' }}
-                      type="file"
-                    />
-                    <Upload aria-hidden="true" size={16} />
-                    {copy.actions.uploadLogo}
-                  </label>
-                  <ActionButton
-                    disabled={!dashboard.branding.logo}
-                    isLoading={logoRemoveMutation.isPending}
-                    onClick={() => logoRemoveMutation.mutate()}
-                    tone="ghost"
-                  >
-                    {copy.actions.removeLogo}
-                  </ActionButton>
-                  <ActionButton
-                    isLoading={resetBrandingMutation.isPending}
-                    onClick={() => resetBrandingMutation.mutate()}
-                    tone="ghost"
-                  >
-                    {copy.actions.resetBranding}
-                  </ActionButton>
-                  <ActionButton
-                    isLoading={brandingMutation.isPending}
-                    onClick={() => brandingMutation.mutate()}
-                    tone="primary"
-                  >
-                    {copy.actions.save}
-                  </ActionButton>
-                </div>
-              </div>
+                {canWriteSettings || canManageSettings ? (
+                  <div style={actionRowStyle}>
+                    {canManageSettings ? (
+                      <>
+                        <label
+                          style={{
+                            alignItems: 'center',
+                            background: 'var(--als-color-surface, #ffffff)',
+                            border: '1px solid var(--als-color-border, #d7deea)',
+                            borderRadius: 'var(--als-radius-md, 8px)',
+                            color: 'var(--als-color-text, #1f2937)',
+                            cursor: logoUploadMutation.isPending ? 'not-allowed' : 'pointer',
+                            display: 'inline-flex',
+                            font: 'inherit',
+                            fontWeight: 700,
+                            gap: 8,
+                            justifyContent: 'center',
+                            minHeight: 44,
+                            minWidth: 44,
+                            opacity: logoUploadMutation.isPending ? 0.62 : 1,
+                            paddingInline: 16,
+                          }}
+                        >
+                          <input
+                            accept="image/png,image/jpeg,image/webp"
+                            aria-label={copy.branding.logoFile}
+                            disabled={logoUploadMutation.isPending}
+                            onChange={(event) => void handleLogoFileChange(event)}
+                            style={{ display: 'none' }}
+                            type="file"
+                          />
+                          <Upload aria-hidden="true" size={16} />
+                          {copy.actions.uploadLogo}
+                        </label>
+                        <ActionButton
+                          disabled={!dashboard.branding.logo}
+                          isLoading={logoRemoveMutation.isPending}
+                          onClick={() => logoRemoveMutation.mutate()}
+                          tone="ghost"
+                        >
+                          {copy.actions.removeLogo}
+                        </ActionButton>
+                        <ActionButton
+                          isLoading={resetBrandingMutation.isPending}
+                          onClick={() => resetBrandingMutation.mutate()}
+                          tone="ghost"
+                        >
+                          {copy.actions.resetBranding}
+                        </ActionButton>
+                      </>
+                    ) : null}
+                    {canWriteSettings ? (
+                      <ActionButton
+                        isLoading={brandingMutation.isPending}
+                        onClick={() => brandingMutation.mutate()}
+                        tone="primary"
+                      >
+                        {copy.actions.save}
+                      </ActionButton>
+                    ) : null}
+                  </div>
+                ) : null}
+              </fieldset>
             ) : null}
           </DetailSection>
         </div>
@@ -888,12 +909,16 @@ export function SettingsPage() {
       icon: <Users aria-hidden="true" size={16} />,
       id: 'tenant',
       label: copy.tabs.tenant,
+      manageOnly: true,
     },
     {
       content: (
         <DetailSection title={copy.residentPortal.title}>
           {residentPortalDraft ? (
-            <div style={{ display: 'grid', gap: 16 }}>
+            <fieldset
+              disabled={!canWriteSettings}
+              style={{ border: 0, display: 'grid', gap: 16, margin: 0, padding: 0 }}
+            >
               <CheckboxInput
                 checked={residentPortalDraft.isEnabled}
                 label={copy.residentPortal.isEnabled}
@@ -934,16 +959,18 @@ export function SettingsPage() {
                   })
                 }
               />
-              <div style={actionRowStyle}>
-                <ActionButton
-                  isLoading={residentPortalMutation.isPending}
-                  onClick={() => residentPortalMutation.mutate()}
-                  tone="primary"
-                >
-                  {copy.actions.save}
-                </ActionButton>
-              </div>
-            </div>
+              {canWriteSettings ? (
+                <div style={actionRowStyle}>
+                  <ActionButton
+                    isLoading={residentPortalMutation.isPending}
+                    onClick={() => residentPortalMutation.mutate()}
+                    tone="primary"
+                  >
+                    {copy.actions.save}
+                  </ActionButton>
+                </div>
+              ) : null}
+            </fieldset>
           ) : null}
         </DetailSection>
       ),
@@ -955,7 +982,10 @@ export function SettingsPage() {
       content: (
         <DetailSection title={copy.localization.title}>
           {localizationDraft ? (
-            <div style={{ display: 'grid', gap: 16 }}>
+            <fieldset
+              disabled={!canWriteSettings}
+              style={{ border: 0, display: 'grid', gap: 16, margin: 0, padding: 0 }}
+            >
               <div style={sectionGridStyle}>
                 <FormField label={copy.localization.defaultLocale}>
                   {({ id }) => (
@@ -1005,16 +1035,18 @@ export function SettingsPage() {
                   />
                 ))}
               </div>
-              <div style={actionRowStyle}>
-                <ActionButton
-                  isLoading={localizationMutation.isPending}
-                  onClick={() => localizationMutation.mutate()}
-                  tone="primary"
-                >
-                  {copy.actions.save}
-                </ActionButton>
-              </div>
-            </div>
+              {canWriteSettings ? (
+                <div style={actionRowStyle}>
+                  <ActionButton
+                    isLoading={localizationMutation.isPending}
+                    onClick={() => localizationMutation.mutate()}
+                    tone="primary"
+                  >
+                    {copy.actions.save}
+                  </ActionButton>
+                </div>
+              ) : null}
+            </fieldset>
           ) : null}
         </DetailSection>
       ),
@@ -1145,6 +1177,7 @@ export function SettingsPage() {
       icon: <Tags aria-hidden="true" size={16} />,
       id: 'catalogs',
       label: copy.tabs.catalogs,
+      manageOnly: true,
     },
     {
       content: (
@@ -1235,6 +1268,7 @@ export function SettingsPage() {
       icon: <Bell aria-hidden="true" size={16} />,
       id: 'notifications',
       label: copy.tabs.notifications,
+      manageOnly: true,
     },
     {
       content: (
@@ -1334,6 +1368,7 @@ export function SettingsPage() {
       icon: <KeyRound aria-hidden="true" size={16} />,
       id: 'security',
       label: copy.tabs.security,
+      manageOnly: true,
     },
     {
       content: (
@@ -1373,6 +1408,11 @@ export function SettingsPage() {
     },
   ]
 
+  const visibleTabs = tabs.filter((tab) => !tab.manageOnly || canManageSettings)
+  const safeSelectedTab = visibleTabs.some((tab) => tab.id === selectedTab)
+    ? selectedTab
+    : visibleTabs[0]?.id
+
   return (
     <section style={{ display: 'grid', gap: 18 }}>
       <PageHeader
@@ -1391,8 +1431,8 @@ export function SettingsPage() {
       <Tabs
         ariaLabel={copy.common.pageTitle}
         onSelectedIdChange={setSelectedTab}
-        selectedId={selectedTab}
-        tabs={tabs}
+        selectedId={safeSelectedTab}
+        tabs={visibleTabs}
       />
     </section>
   )

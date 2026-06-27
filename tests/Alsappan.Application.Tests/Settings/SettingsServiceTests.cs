@@ -69,6 +69,34 @@ public sealed class SettingsServiceTests
   }
 
   [Fact]
+  public async Task UpdateOrganizationProfileReturnsValidationForDomainInvalidInput()
+  {
+    var fixture = SettingsFixture.Create([PermissionCodes.Write(PermissionModules.Settings)]);
+    var settings = await fixture.Repository.GetOrCreateSettingsAsync(
+      fixture.OrganizationId,
+      DateTimeOffset.UtcNow,
+      fixture.UserId);
+
+    var result = await fixture.Service.UpdateOrganizationProfileAsync(
+      new OrganizationProfileUpdateRequestDto(
+        "---",
+        "Nova Organizacao",
+        "Nova Organizacao LTDA",
+        "12$",
+        new string('a', 97),
+        "suporte@example.com",
+        new string('9', 65),
+        "https://example.com",
+        settings.ConcurrencyToken.Value));
+
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.Slug), result.Errors!.Keys);
+    Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.CurrencyCode), result.Errors.Keys);
+    Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.TimeZone), result.Errors.Keys);
+    Assert.Contains(nameof(OrganizationProfileUpdateRequestDto.ContactPhone), result.Errors.Keys);
+  }
+
+  [Fact]
   public async Task UserLocalePreferenceUsesOrganizationFallbackAndCanPersistEnabledLocale()
   {
     var fixture = SettingsFixture.Create([PermissionCodes.Read(PermissionModules.Settings)]);
@@ -126,6 +154,28 @@ public sealed class SettingsServiceTests
 
     Assert.True(result.Succeeded);
     Assert.Contains(result.Value!.Items, item => item.Code == "loft" && !item.IsSystem);
+  }
+
+  [Fact]
+  public async Task CatalogUpdatesRejectLabelsOutsideDomainLimits()
+  {
+    var fixture = SettingsFixture.Create([PermissionCodes.Manage(PermissionModules.Settings)]);
+
+    var result = await fixture.Service.UpdateCatalogAsync(
+      SettingsCatalog.PropertyTypes,
+      new DomainCatalogUpdateRequestDto(
+      [
+        new(
+          "loft",
+          new Dictionary<string, string>
+          {
+            ["pt-BR"] = new string('a', 121),
+            ["en-US"] = "Loft"
+          })
+      ]));
+
+    Assert.Equal(ApplicationOperationFailure.Validation, result.Failure);
+    Assert.Contains("Items[0].Labels.pt-BR", result.Errors!.Keys);
   }
 
   [Fact]
@@ -203,11 +253,38 @@ public sealed class SettingsServiceTests
         "Logo",
         Convert.ToBase64String([1, 2, 3, 4]),
         settings.ConcurrencyToken.Value));
+    var svgLogo = await fixture.Service.UploadLogoAsync(
+      new BrandLogoUploadRequestDto(
+        "logo.svg",
+        "image/svg+xml",
+        41,
+        200,
+        80,
+        "Logo",
+        Convert.ToBase64String("<svg onload=\"alert(1)\"></svg>"u8.ToArray()),
+        settings.ConcurrencyToken.Value));
+    var invalidColor = await fixture.Service.UpdateBrandingAsync(
+      new OrganizationBrandingUpdateRequestDto(
+        "Marca",
+        null,
+        null,
+        "not-a-color",
+        "#ffffff",
+        "#1877f2",
+        "#ffffff",
+        "suporte@example.com",
+        null,
+        "https://example.com",
+        settings.ConcurrencyToken.Value));
 
     Assert.Equal(ApplicationOperationFailure.Validation, lowContrast.Failure);
     Assert.Contains("PrimaryForegroundColor", lowContrast.Errors!.Keys);
     Assert.Equal(ApplicationOperationFailure.Validation, badLogo.Failure);
     Assert.Contains(nameof(BrandLogoUploadRequestDto.ContentType), badLogo.Errors!.Keys);
+    Assert.Equal(ApplicationOperationFailure.Validation, svgLogo.Failure);
+    Assert.Contains(nameof(BrandLogoUploadRequestDto.ContentType), svgLogo.Errors!.Keys);
+    Assert.Equal(ApplicationOperationFailure.Validation, invalidColor.Failure);
+    Assert.Contains(nameof(OrganizationBrandingUpdateRequestDto.PrimaryColor), invalidColor.Errors!.Keys);
   }
 
   [Fact]

@@ -49,7 +49,9 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   )
 }
 
-function buildSettingsSession(): AuthSessionDto {
+function buildSettingsSession(
+  permissions: string[] = ['settings.read', 'settings.write', 'settings.manage'],
+): AuthSessionDto {
   return {
     accessToken: 'access-org-a',
     expiresAt: '2026-06-27T12:00:00.000Z',
@@ -68,12 +70,12 @@ function buildSettingsSession(): AuthSessionDto {
           id: 'org-a',
           locale: 'pt-BR',
           name: 'Organizacao A',
-          permissionCodes: ['settings.read', 'settings.write', 'settings.manage'],
+          permissionCodes: permissions,
           roleCodes: ['Administrador'],
           slug: 'org-a',
         },
       ],
-      permissions: ['settings.read', 'settings.write', 'settings.manage'],
+      permissions,
     },
   }
 }
@@ -293,5 +295,24 @@ describe('settings page', () => {
       displayName: 'Moradas Prime',
       slug: 'moradas-a',
     })
+  })
+
+  it('keeps read-only users away from write and manage settings actions', async () => {
+    applyAuthSession(buildSettingsSession(['settings.read']))
+    const fetchImpl = createSettingsFetch()
+
+    renderWithApi(<SettingsPage />, fetchImpl)
+
+    expect(await screen.findByRole('heading', { name: 'Configuracoes' })).toBeInTheDocument()
+    expect(screen.getByRole('tabpanel', { name: 'Organizacao' })).toHaveTextContent(
+      'Perfil da organizacao',
+    )
+
+    expect(screen.queryByRole('tab', { name: /Catalogos/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /Seguranca/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Enviar logo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Redefinir design' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Salvar' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Nome exibido/)).toBeDisabled()
   })
 })

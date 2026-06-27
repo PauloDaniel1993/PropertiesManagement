@@ -24,7 +24,6 @@ public static class SettingsCatalog
   [
     "image/jpeg",
     "image/png",
-    "image/svg+xml",
     "image/webp"
   ];
 
