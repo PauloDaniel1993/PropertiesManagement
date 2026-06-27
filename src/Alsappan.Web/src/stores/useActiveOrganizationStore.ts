@@ -19,6 +19,7 @@ export type ActiveOrganizationState = {
   activeOrganization: OrganizationSummary | null
   activeOrganizationId: string | null
   organizations: OrganizationSummary[]
+  updateActiveOrganizationBranding: (branding: OrganizationBranding | undefined) => void
   setActiveOrganizationId: (organizationId: string | null) => void
   setOrganizations: (organizations: OrganizationSummary[], activeOrganizationId?: string) => void
   setOrganizationsFromMemberships: (
@@ -64,6 +65,23 @@ export const useActiveOrganizationStore = create<ActiveOrganizationState>()((set
   activeOrganization: defaultOrganizations[0],
   activeOrganizationId: defaultOrganizations[0]?.id ?? null,
   organizations: defaultOrganizations,
+  updateActiveOrganizationBranding: (branding) =>
+    set((state) => {
+      if (!state.activeOrganizationId) {
+        return state
+      }
+
+      const organizations = state.organizations.map((organization) =>
+        organization.id === state.activeOrganizationId
+          ? { ...organization, branding }
+          : organization,
+      )
+
+      return {
+        activeOrganization: findOrganization(organizations, state.activeOrganizationId),
+        organizations,
+      }
+    }),
   setActiveOrganizationId: (organizationId) =>
     set((state) => {
       const activeOrganization = findOrganization(state.organizations, organizationId)

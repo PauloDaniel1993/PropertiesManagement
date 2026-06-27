@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Bell,
@@ -22,6 +22,7 @@ import { GlobalSearch } from '../features/search'
 import { useApiClient } from '../lib/api/ApiClientContext'
 import { logoutAuthSession } from '../lib/api/identity'
 import { getNotificationUnreadCount, listNotifications } from '../lib/api/notifications'
+import { resolveOrganizationBranding } from '../lib/branding'
 import { adminMenuItems, findAdminMenuItemByPath } from '../navigation/menuContract'
 import { menuIconComponents } from '../navigation/menuIcons'
 import { useActiveOrganizationStore } from '../stores/useActiveOrganizationStore'
@@ -35,6 +36,7 @@ export function AdminShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const activeItem = findAdminMenuItemByPath(location.pathname)
+  const activeOrganization = useActiveOrganizationStore((state) => state.activeOrganization)
   const activeOrganizationId = useActiveOrganizationStore((state) => state.activeOrganizationId)
   const { locale, setLocale, theme, toggleTheme } = useAppPreferencesStore()
   const user = useAuthSessionStore((state) => state.user)
@@ -75,6 +77,15 @@ export function AdminShell() {
   const visibleMenuItems = adminMenuItems.filter((item) =>
     hasAnyPermission([item.requiredPermission], user),
   )
+  const organizationBranding = resolveOrganizationBranding(activeOrganization?.branding)
+  const brandStyle = {
+    ...organizationBranding.tokens,
+    '--als-color-accent': organizationBranding.tokens['--alsappan-accent'],
+    '--als-color-primary': organizationBranding.tokens['--alsappan-primary'],
+    '--als-color-primary-foreground': organizationBranding.tokens['--alsappan-primary-foreground'],
+    '--color-accent': organizationBranding.tokens['--alsappan-accent'],
+    '--color-primary': organizationBranding.tokens['--alsappan-primary'],
+  } as CSSProperties
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
 
@@ -97,6 +108,7 @@ export function AdminShell() {
       className="admin-app"
       data-sidebar={isSidebarCollapsed ? 'collapsed' : 'expanded'}
       data-theme={theme}
+      style={brandStyle}
     >
       <a className="skip-link" href="#admin-content">
         {t('shell.navigation.skipToContent')}
@@ -117,7 +129,7 @@ export function AdminShell() {
             <Building2 size={24} strokeWidth={2.25} />
           </span>
           <div>
-            <strong>{t('shell.brand.name')}</strong>
+            <strong>{organizationBranding.displayName}</strong>
             <small>{t('shell.brand.subtitle')}</small>
           </div>
         </div>

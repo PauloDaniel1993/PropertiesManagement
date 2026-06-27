@@ -233,6 +233,9 @@ export function SettingsPage() {
   const apiClient = useApiClient()
   const queryClient = useQueryClient()
   const activeOrganizationId = useActiveOrganizationStore((state) => state.activeOrganizationId)
+  const updateActiveOrganizationBranding = useActiveOrganizationStore(
+    (state) => state.updateActiveOrganizationBranding,
+  )
   const authUser = useAuthSessionStore((state) => state.user)
   const locale = useAppPreferencesStore((state) => state.locale)
   const copy = getSettingsCopy(locale)
@@ -303,6 +306,11 @@ export function SettingsPage() {
     await queryClient.invalidateQueries({ queryKey: ['settings'] })
   }
 
+  async function syncBrandingAndInvalidate(branding: OrganizationBrandingSettings) {
+    updateActiveOrganizationBranding(branding)
+    await invalidateSettings()
+  }
+
   const organizationMutation = useMutation({
     mutationFn: () => {
       if (!organizationDraft) {
@@ -344,7 +352,7 @@ export function SettingsPage() {
 
       return updateBranding(apiClient, request, locale)
     },
-    onSuccess: invalidateSettings,
+    onSuccess: syncBrandingAndInvalidate,
   })
   const logoUploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -372,15 +380,15 @@ export function SettingsPage() {
         locale,
       )
     },
-    onSuccess: invalidateSettings,
+    onSuccess: syncBrandingAndInvalidate,
   })
   const logoRemoveMutation = useMutation({
     mutationFn: () => removeBrandLogo(apiClient, locale),
-    onSuccess: invalidateSettings,
+    onSuccess: syncBrandingAndInvalidate,
   })
   const resetBrandingMutation = useMutation({
     mutationFn: () => resetBranding(apiClient, locale),
-    onSuccess: invalidateSettings,
+    onSuccess: syncBrandingAndInvalidate,
   })
   const tenantMutation = useMutation({
     mutationFn: () => updateTenantBehavior(apiClient, tenantDraft!, locale),

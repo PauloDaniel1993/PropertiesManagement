@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Building2 } from 'lucide-react'
 import { SelectInput } from '../../../components'
 import { ApiClientError } from '../../../lib/api/client'
@@ -16,6 +16,7 @@ export type OrganizationSwitcherProps = {
 
 export function OrganizationSwitcher({ className }: OrganizationSwitcherProps) {
   const apiClient = useApiClient()
+  const queryClient = useQueryClient()
   const locale = useAppPreferencesStore((state) => state.locale)
   const activeOrganization = useActiveOrganizationStore((state) => state.activeOrganization)
   const organizations = useActiveOrganizationStore((state) => state.organizations)
@@ -33,6 +34,7 @@ export function OrganizationSwitcher({ className }: OrganizationSwitcherProps) {
     onSuccess: (session) => {
       setError(null)
       applyAuthSession(session)
+      void queryClient.invalidateQueries()
     },
   })
 

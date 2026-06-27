@@ -28,7 +28,7 @@ Alsappan is a multi-tenant property management platform with a React frontend an
 - .NET SDK 10.0.301 or compatible latest feature SDK.
 - Node.js 24 and npm 11.
 - Docker Desktop or another Docker Compose-compatible runtime.
-- PowerShell 7+ for local helper scripts.
+- PowerShell 7+ for local helper scripts, or Windows PowerShell 5.1 on Windows.
 
 ## Local Setup
 
@@ -64,11 +64,15 @@ Alsappan is a multi-tenant property management platform with a React frontend an
 npm run lint --workspace src/Alsappan.Web
 npm run typecheck --workspace src/Alsappan.Web
 npm run format:check --workspace src/Alsappan.Web
+npx playwright install chromium
+npm run test:e2e --workspace src/Alsappan.Web
 dotnet format Alsappan.slnx --verify-no-changes --no-restore
 ./scripts/validate-openapi.ps1
 ./scripts/validate-migrations.ps1
-openspec validate build-alsappan-property-management-platform
+openspec validate build-alsappan-property-management-platform --strict
 ```
+
+On Windows shells where direct `.ps1` execution is disabled, run validation scripts through `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\<script-name>.ps1`.
 
 Operational smoke checks for deployed environments:
 
