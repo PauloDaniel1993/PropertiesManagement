@@ -6,6 +6,7 @@ describe('module page route registry', () => {
       'administrators',
       'audit',
       'contracts',
+      'dashboard',
       'documents',
       'inspections',
       'notifications',
@@ -22,6 +23,7 @@ describe('module page route registry', () => {
     expect(getModulePageComponent('administrators')).toEqual(expect.any(Function))
     expect(getModulePageComponent('audit')).toEqual(expect.any(Function))
     expect(getModulePageComponent('contracts')).toEqual(expect.any(Function))
+    expect(getModulePageComponent('dashboard')).toEqual(expect.any(Function))
     expect(getModulePageComponent('documents')).toEqual(expect.any(Function))
     expect(getModulePageComponent('inspections')).toEqual(expect.any(Function))
     expect(getModulePageComponent('notifications')).toEqual(expect.any(Function))
@@ -36,7 +38,7 @@ describe('module page route registry', () => {
     expect(getModulePageComponent('vehicles')).toEqual(expect.any(Function))
   })
 
-  it('falls back to placeholders for menu items without implemented pages', () => {
-    expect(getModulePageComponent('dashboard')).toBeUndefined()
+  it('implements dashboard instead of falling back to a placeholder', () => {
+    expect(getModulePageComponent('dashboard')).toEqual(expect.any(Function))
   })
 })

@@ -143,7 +143,7 @@ function createQueryClient() {
   })
 }
 
-function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
+function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = ['/']) {
   const apiClient = new ApiClient({
     baseUrl: 'https://api.alsappan.test',
     fetchImpl,
@@ -152,7 +152,7 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <ApiClientContext.Provider value={apiClient}>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </ApiClientContext.Provider>
     </QueryClientProvider>,
   )
@@ -408,6 +408,34 @@ describe('contracts management UI', () => {
     expect(screen.getByRole('link', { name: 'Auditoria' })).toHaveAttribute(
       'href',
       `/auditoria?entityType=contract&entityId=${contractId}`,
+    )
+  })
+
+  it('applies dashboard and search route state to filters and details', async () => {
+    applyAuthSession(buildContractSession())
+    const fetchImpl = createContractsFetch()
+
+    renderWithApi(<ContractsListPage />, fetchImpl, [
+      `/contratos?endingSoon=true&contractId=${contractId}`,
+    ])
+
+    expect(await screen.findByText('Resumo do contrato')).toBeInTheDocument()
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input]) =>
+              String(input).includes('/v1/contracts?') &&
+              String(input).includes('endingSoonOnly=true'),
+          ),
+      ).toBe(true),
+    )
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      `https://api.alsappan.test/v1/contracts/${contractId}`,
+      expect.objectContaining({ method: 'GET' }),
     )
   })
 })

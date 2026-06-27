@@ -33,6 +33,7 @@ import {
   type ResidentStatusLabel,
 } from '../../lib/api/residents'
 import { useApiClient } from '../../lib/api/ApiClientContext'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -42,6 +43,15 @@ import { ResidentForm, type ResidentFormMode } from './ResidentForm'
 import { getResidentCopy } from './residentCopy'
 
 const residentFilterScope = 'residents.list'
+const residentDetailRouteParams = ['id', 'residentId'] as const
+
+const residentRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'status', params: ['status'] },
+  { filterKey: 'portalStatus', params: ['portalStatus'] },
+  { filterKey: 'hasPortalAccess', params: ['hasPortalAccess'], type: 'boolean' },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: ResidentListFilters = {
   hasPortalAccess: '',
@@ -299,6 +309,14 @@ export function ResidentsListPage() {
   )
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailResidentId, setDetailResidentId] = useState<string | null>(null)
+  useListRouteState({
+    detailParams: residentDetailRouteParams,
+    onDetailIdChange: setDetailResidentId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: residentRouteFilters,
+    scope: residentFilterScope,
+    setFilters: setStoredFilters,
+  })
   const residentsQuery = useQuery({
     queryFn: () => listResidents(apiClient, apiFilters),
     queryKey: getMutationKey(apiFilters),

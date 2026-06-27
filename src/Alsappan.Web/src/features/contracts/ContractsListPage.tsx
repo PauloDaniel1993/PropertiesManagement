@@ -44,6 +44,7 @@ import type { AppLocale } from '../../i18n'
 import { listProperties } from '../../lib/api/properties'
 import { listResidents } from '../../lib/api/residents'
 import { formatDate, formatMoney } from '../../lib/format'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -53,6 +54,20 @@ import { ContractForm, type ContractFormMode } from './ContractForm'
 import { getContractCopy } from './contractCopy'
 
 const contractFilterScope = 'contracts.list'
+const contractDetailRouteParams = ['id', 'contractId'] as const
+
+const contractRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'status', params: ['status'] },
+  { filterKey: 'propertyId', params: ['propertyId'] },
+  { filterKey: 'residentId', params: ['residentId'] },
+  { filterKey: 'startsFrom', params: ['startsFrom'] },
+  { filterKey: 'startsTo', params: ['startsTo'] },
+  { filterKey: 'endsFrom', params: ['endsFrom'] },
+  { filterKey: 'endsTo', params: ['endsTo'] },
+  { filterKey: 'endingSoonOnly', params: ['endingSoon', 'endingSoonOnly'], type: 'boolean' },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: ContractListFilters = {
   endingSoonOnly: false,
@@ -136,6 +151,7 @@ function normalizeContractFilters(filters: FilterSet | undefined): ContractListF
     endingSoonOnly: getBooleanFilter(filters?.endingSoonOnly),
     endsFrom: getStringFilter(filters?.endsFrom) || undefined,
     endsTo: getStringFilter(filters?.endsTo) || undefined,
+    includeArchived: getBooleanFilter(filters?.includeArchived),
     page: getPageFilter(filters?.page, defaultFilters.page ?? 1),
     pageSize: getPageFilter(filters?.pageSize, defaultFilters.pageSize ?? 10),
     propertyId: getStringFilter(filters?.propertyId),
@@ -160,6 +176,10 @@ function toFilterSet(filters: ContractListFilters): FilterSet {
 
   if (filters.endsTo) {
     nextFilters.endsTo = filters.endsTo
+  }
+
+  if (filters.includeArchived) {
+    nextFilters.includeArchived = filters.includeArchived
   }
 
   if (filters.propertyId) {
@@ -260,6 +280,14 @@ export function ContractsListPage() {
   )
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailContractId, setDetailContractId] = useState<string | null>(null)
+  useListRouteState({
+    detailParams: contractDetailRouteParams,
+    onDetailIdChange: setDetailContractId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: contractRouteFilters,
+    scope: contractFilterScope,
+    setFilters: setStoredFilters,
+  })
   const contractsQuery = useQuery({
     queryFn: () => listLeaseContracts(apiClient, apiFilters),
     queryKey: ['contracts', 'list', apiFilters],

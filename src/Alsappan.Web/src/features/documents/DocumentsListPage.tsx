@@ -30,6 +30,7 @@ import {
   type DocumentLinkedEntityType,
 } from '../../lib/api/documents'
 import { formatDateTime } from '../../lib/format'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -41,6 +42,18 @@ import { formatFileSize, getDocumentStatusTone } from './documentFormat'
 import { saveDownloadedDocument } from './downloadFile'
 
 const documentFilterScope = 'documents.list'
+const documentDetailRouteParams = ['id', 'documentId'] as const
+
+const documentRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'category', params: ['category'] },
+  { filterKey: 'linkedEntityType', params: ['linkedEntityType'] },
+  { filterKey: 'linkedEntityId', params: ['linkedEntityId'] },
+  { filterKey: 'uploadedByUserId', params: ['uploadedByUserId'] },
+  { filterKey: 'uploadedFrom', params: ['uploadedFrom'] },
+  { filterKey: 'uploadedTo', params: ['uploadedTo'] },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: DocumentListFilters = {
   category: '',
@@ -207,6 +220,12 @@ function getLinkedEntityRouteFilter(filters: URLSearchParams): Partial<DocumentL
     ['propertyId', 'property'],
     ['contractId', 'contract'],
     ['residentId', 'resident'],
+    ['paymentId', 'payment'],
+    ['utilityAccountId', 'utility-account'],
+    ['petId', 'pet'],
+    ['vehicleId', 'vehicle'],
+    ['occurrenceId', 'occurrence'],
+    ['inspectionId', 'inspection'],
   ] as const) {
     const shortcutValue = filters.get(shortcut)
     if (shortcutValue) {
@@ -227,17 +246,7 @@ export function DocumentsListPage() {
   const copy = getDocumentCopy(locale)
   const canWriteDocuments = hasAnyPermission(['documents.write'], authUser)
   const canArchiveDocuments = hasAnyPermission(['documents.archive'], authUser)
-  const filters = useMemo(() => {
-    const routeFilters =
-      typeof window === 'undefined'
-        ? {}
-        : getLinkedEntityRouteFilter(new URLSearchParams(window.location.search))
-
-    return {
-      ...normalizeDocumentFilters(storedFilters),
-      ...routeFilters,
-    }
-  }, [storedFilters])
+  const filters = useMemo(() => normalizeDocumentFilters(storedFilters), [storedFilters])
   const apiFilters = useMemo(
     () => ({
       ...filters,
@@ -248,6 +257,15 @@ export function DocumentsListPage() {
   )
   const [formState, setFormState] = useState<FormState | null>(null)
   const [detailDocumentId, setDetailDocumentId] = useState<string | null>(null)
+  useListRouteState({
+    detailParams: documentDetailRouteParams,
+    getAdditionalFilters: getLinkedEntityRouteFilter,
+    onDetailIdChange: setDetailDocumentId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: documentRouteFilters,
+    scope: documentFilterScope,
+    setFilters: setStoredFilters,
+  })
   const documentsQuery = useQuery({
     queryFn: () => listDocuments(apiClient, apiFilters),
     queryKey: ['documents', 'list', apiFilters],

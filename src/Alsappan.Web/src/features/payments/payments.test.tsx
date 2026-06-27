@@ -144,7 +144,7 @@ function createQueryClient() {
   })
 }
 
-function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
+function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch, initialEntries = ['/']) {
   const apiClient = new ApiClient({
     baseUrl: 'https://api.alsappan.test',
     fetchImpl,
@@ -153,7 +153,7 @@ function renderWithApi(ui: ReactNode, fetchImpl: typeof fetch) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <ApiClientContext.Provider value={apiClient}>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </ApiClientContext.Provider>
     </QueryClientProvider>,
   )
@@ -372,6 +372,33 @@ describe('payments management UI', () => {
               String(init.body).includes('"reconciliationStatus":"pending"'),
           ),
       ).toBe(true),
+    )
+  })
+
+  it('applies dashboard and search route state to filters and details', async () => {
+    applyAuthSession(buildPaymentSession())
+    const fetchImpl = createPaymentsFetch()
+
+    renderWithApi(<PaymentsListPage />, fetchImpl, [
+      `/pagamentos?overdueOnly=true&paymentId=${paymentId}`,
+    ])
+
+    expect(await screen.findByText('Resumo do pagamento')).toBeInTheDocument()
+
+    await waitFor(() =>
+      expect(
+        vi
+          .mocked(fetchImpl)
+          .mock.calls.some(
+            ([input]) =>
+              String(input).includes('/v1/payments?') && String(input).includes('overdueOnly=true'),
+          ),
+      ).toBe(true),
+    )
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      `https://api.alsappan.test/v1/payments/${paymentId}?locale=pt-BR`,
+      expect.objectContaining({ method: 'GET' }),
     )
   })
 })

@@ -38,6 +38,7 @@ import {
   type PaymentTransactionRequest,
 } from '../../lib/api/payments'
 import { formatDate, formatMoney } from '../../lib/format'
+import { useListRouteState, type RouteFilterDefinition } from '../../lib/routing/useListRouteState'
 import { useAppPreferencesStore } from '../../stores/useAppPreferencesStore'
 import { useAuthSessionStore } from '../../stores/useAuthSessionStore'
 import { type FilterSet, type FilterValue, useFiltersStore } from '../../stores/useFiltersStore'
@@ -49,6 +50,19 @@ import { PaymentSettlementDialog } from './PaymentSettlementDialog'
 import { getPaymentCopy } from './paymentCopy'
 
 const paymentFilterScope = 'payments.list'
+const paymentDetailRouteParams = ['id', 'paymentId'] as const
+
+const paymentRouteFilters = [
+  { filterKey: 'search', params: ['search'] },
+  { filterKey: 'status', params: ['status'] },
+  { filterKey: 'contractId', params: ['contractId'] },
+  { filterKey: 'propertyId', params: ['propertyId'] },
+  { filterKey: 'residentId', params: ['residentId'] },
+  { filterKey: 'dueFrom', params: ['dueFrom'] },
+  { filterKey: 'dueTo', params: ['dueTo'] },
+  { filterKey: 'overdueOnly', params: ['overdueOnly'], type: 'boolean' },
+  { filterKey: 'includeArchived', params: ['includeArchived'], type: 'boolean' },
+] as const satisfies readonly RouteFilterDefinition[]
 
 const defaultFilters: PaymentListFilters = {
   overdueOnly: false,
@@ -152,6 +166,7 @@ function normalizePaymentFilters(filters: FilterSet | undefined): PaymentListFil
     contractId: getStringFilter(filters?.contractId) || undefined,
     dueFrom: getStringFilter(filters?.dueFrom) || undefined,
     dueTo: getStringFilter(filters?.dueTo) || undefined,
+    includeArchived: getBooleanFilter(filters?.includeArchived),
     overdueOnly: getBooleanFilter(filters?.overdueOnly),
     page: getPageFilter(filters?.page, defaultFilters.page ?? 1),
     pageSize: getPageFilter(filters?.pageSize, defaultFilters.pageSize ?? 10),
@@ -187,6 +202,10 @@ function toFilterSet(filters: PaymentListFilters): FilterSet {
 
   if (filters.residentId) {
     nextFilters.residentId = filters.residentId
+  }
+
+  if (filters.includeArchived) {
+    nextFilters.includeArchived = filters.includeArchived
   }
 
   if (filters.search) {
@@ -250,6 +269,14 @@ export function PaymentsListPage() {
   const [detailPaymentId, setDetailPaymentId] = useState<string | null>(null)
   const [settlementPayment, setSettlementPayment] = useState<PaymentListItem | null>(null)
   const [instructionState, setInstructionState] = useState<InstructionState | null>(null)
+  useListRouteState({
+    detailParams: paymentDetailRouteParams,
+    onDetailIdChange: setDetailPaymentId,
+    pageSize: defaultFilters.pageSize ?? 10,
+    routeFilters: paymentRouteFilters,
+    scope: paymentFilterScope,
+    setFilters: setStoredFilters,
+  })
   const paymentsQuery = useQuery({
     queryFn: () => listPayments(apiClient, apiFilters),
     queryKey: ['payments', 'list', apiFilters],
