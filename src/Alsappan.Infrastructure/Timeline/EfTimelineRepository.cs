@@ -48,6 +48,11 @@ public sealed class EfTimelineRepository : ITimelineRepository
 
     if (HasRelatedEntityFilter(request.RelatedEntityType, request.RelatedEntityId))
     {
+      query = ApplyRelatedEntityJsonPrefilter(
+        query,
+        request.RelatedEntityType,
+        request.RelatedEntityId);
+
       return await MaterializeFilterAndPageAsync(
           query,
           listFilter,
@@ -95,6 +100,7 @@ public sealed class EfTimelineRepository : ITimelineRepository
       request.From,
       request.To,
       readableSubjectEntityTypes);
+    query = ApplyEntityJsonPrefilter(query, normalizedEntityType, normalizedEntityId);
 
     return await MaterializeFilterAndPageAsync(
         query,
@@ -213,6 +219,41 @@ public sealed class EfTimelineRepository : ITimelineRepository
     };
   }
 
+  private IQueryable<TimelineEntry> ApplyEntityJsonPrefilter(
+    IQueryable<TimelineEntry> query,
+    string entityType,
+    string entityId)
+  {
+    if (!SupportsPostgresJsonContains())
+    {
+      return query;
+    }
+
+    var relatedJsonFilter = BuildRelatedJsonFilter(entityType, entityId) ??
+      throw new InvalidOperationException("Entity timeline prefilter requires an entity type and id.");
+
+    return query.Where(entry =>
+      (entry.SubjectEntityType == entityType && entry.SubjectEntityId == entityId) ||
+      EF.Functions.JsonContains(entry.RelatedEntitiesJson, relatedJsonFilter));
+  }
+
+  private IQueryable<TimelineEntry> ApplyRelatedEntityJsonPrefilter(
+    IQueryable<TimelineEntry> query,
+    string? relatedEntityType,
+    string? relatedEntityId)
+  {
+    if (!SupportsPostgresJsonContains())
+    {
+      return query;
+    }
+
+    var relatedJsonFilter = BuildRelatedJsonFilter(relatedEntityType, relatedEntityId);
+
+    return relatedJsonFilter is null
+      ? query
+      : query.Where(entry => EF.Functions.JsonContains(entry.RelatedEntitiesJson, relatedJsonFilter));
+  }
+
   private static TimelineEntryRecord ToRecord(
     TimelineEntry entry,
     IReadOnlySet<string>? readableSubjectEntityTypes) =>
@@ -269,6 +310,28 @@ public sealed class EfTimelineRepository : ITimelineRepository
 
   private static bool HasRelatedEntityFilter(string? relatedEntityType, string? relatedEntityId) =>
     !string.IsNullOrWhiteSpace(relatedEntityType) || !string.IsNullOrWhiteSpace(relatedEntityId);
+
+  private bool SupportsPostgresJsonContains() =>
+    dbContext.Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true;
+
+  private static string? BuildRelatedJsonFilter(string? entityType, string? entityId)
+  {
+    var filter = new Dictionary<string, string>(StringComparer.Ordinal);
+
+    if (!string.IsNullOrWhiteSpace(entityType))
+    {
+      filter["entityType"] = TimelineCatalog.NormalizeEntityType(entityType);
+    }
+
+    if (!string.IsNullOrWhiteSpace(entityId))
+    {
+      filter["entityId"] = entityId.Trim();
+    }
+
+    return filter.Count == 0
+      ? null
+      : InfrastructureJsonSerializer.Serialize(new[] { filter });
+  }
 
   private static EntityReference[] DeserializeRelatedEntities(string json) =>
     InfrastructureJsonSerializer.Deserialize<EntityReference[]>(json);

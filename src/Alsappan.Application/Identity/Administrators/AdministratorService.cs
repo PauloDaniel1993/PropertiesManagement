@@ -1,6 +1,7 @@
 using Alsappan.Application.Common.Audit;
 using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
+using Alsappan.Application.Common.Events;
 using Alsappan.Application.Common.Tenancy;
 using Alsappan.Application.Common.Validation;
 using Alsappan.Application.Identity.Repositories;
@@ -22,6 +23,7 @@ public sealed class AdministratorService : IAdministratorService
   private readonly IActiveOrganizationContextResolver activeOrganizationContextResolver;
   private readonly IIdentitySessionInvalidator sessionInvalidator;
   private readonly IAuditWriter auditWriter;
+  private readonly IModuleEventOutboxWriter outboxWriter;
   private readonly TimeProvider timeProvider;
 
   public AdministratorService(
@@ -31,6 +33,7 @@ public sealed class AdministratorService : IAdministratorService
     IActiveOrganizationContextResolver activeOrganizationContextResolver,
     IIdentitySessionInvalidator sessionInvalidator,
     IAuditWriter auditWriter,
+    IModuleEventOutboxWriter outboxWriter,
     TimeProvider? timeProvider = null)
   {
     this.identityRepository = identityRepository ?? throw new ArgumentNullException(nameof(identityRepository));
@@ -40,6 +43,7 @@ public sealed class AdministratorService : IAdministratorService
       ?? throw new ArgumentNullException(nameof(activeOrganizationContextResolver));
     this.sessionInvalidator = sessionInvalidator ?? throw new ArgumentNullException(nameof(sessionInvalidator));
     this.auditWriter = auditWriter ?? throw new ArgumentNullException(nameof(auditWriter));
+    this.outboxWriter = outboxWriter ?? throw new ArgumentNullException(nameof(outboxWriter));
     this.timeProvider = timeProvider ?? TimeProvider.System;
   }
 
@@ -178,7 +182,7 @@ public sealed class AdministratorService : IAdministratorService
 
     await identityRepository.AddUserAsync(user, [membership], invitation, cancellationToken: cancellationToken)
       .ConfigureAwait(false);
-    await WriteAuditAsync("administrators.invited", context, user, cancellationToken)
+    await WriteSecuritySideEffectsAsync("administrators.invited", context, user, cancellationToken)
       .ConfigureAwait(false);
 
     var detail = await identityRepository.GetAdministratorAsync(user.Id, context.OrganizationId, cancellationToken)
@@ -247,7 +251,7 @@ public sealed class AdministratorService : IAdministratorService
     await identityRepository.UpdateMembershipAsync(membership, cancellationToken).ConfigureAwait(false);
     await sessionInvalidator.RevokeUserSessionsAsync(user.Id, now, "administrator-role-changed", cancellationToken)
       .ConfigureAwait(false);
-    await WriteAuditAsync("administrators.role.changed", context, user, cancellationToken)
+    await WriteSecuritySideEffectsAsync("administrators.role.changed", context, user, cancellationToken)
       .ConfigureAwait(false);
 
     var detail = await identityRepository.GetAdministratorAsync(user.Id, context.OrganizationId, cancellationToken)
@@ -312,7 +316,7 @@ public sealed class AdministratorService : IAdministratorService
     await identityRepository.UpdateMembershipAsync(membership, cancellationToken).ConfigureAwait(false);
     await sessionInvalidator.RevokeUserSessionsAsync(user.Id, now, "administrator-archived", cancellationToken)
       .ConfigureAwait(false);
-    await WriteAuditAsync("administrators.archived", context, user, cancellationToken)
+    await WriteSecuritySideEffectsAsync("administrators.archived", context, user, cancellationToken)
       .ConfigureAwait(false);
 
     return IdentityOperationResult.Success();
@@ -360,7 +364,7 @@ public sealed class AdministratorService : IAdministratorService
     await identityRepository.UpdateUserAsync(user, cancellationToken).ConfigureAwait(false);
     await sessionInvalidator.RevokeUserSessionsAsync(user.Id, now, revokeReason, cancellationToken)
       .ConfigureAwait(false);
-    await WriteAuditAsync(auditAction, context, user, cancellationToken).ConfigureAwait(false);
+    await WriteSecuritySideEffectsAsync(auditAction, context, user, cancellationToken).ConfigureAwait(false);
 
     var detail = await identityRepository.GetAdministratorAsync(user.Id, context.OrganizationId, cancellationToken)
       .ConfigureAwait(false);
@@ -383,22 +387,42 @@ public sealed class AdministratorService : IAdministratorService
     return context.Succeeded ? context.Context : null;
   }
 
-  private async Task WriteAuditAsync(
+  private async Task WriteSecuritySideEffectsAsync(
     string action,
     ActiveOrganizationContext context,
     IdentityUser targetUser,
     CancellationToken cancellationToken)
   {
+    var now = timeProvider.GetUtcNow();
+    var actor = EventActor.User(context.UserId, context.User.DisplayName);
+    var subject = EntityReference.FromGuid("identityUser", targetUser.Id.Value, targetUser.Email);
+    var data = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+      ["status"] = targetUser.Status.ToString(),
+      ["accountType"] = targetUser.AccountType.ToString()
+    };
+    var envelope = ModuleEventEnvelope.Create(
+      context.OrganizationId,
+      "administrators",
+      action,
+      now,
+      actor,
+      subject,
+      ModuleEventConsumer.Timeline | ModuleEventConsumer.Notifications,
+      data);
+
     await auditWriter.WriteAsync(
         new AuditEntryDraft(
           context.OrganizationId,
           action,
           AuditEntryCategory.Security,
-          EventActor.User(context.UserId, context.User.DisplayName),
-          EntityReference.FromGuid("identityUser", targetUser.Id.Value, targetUser.Email),
-          timeProvider.GetUtcNow()),
+          actor,
+          subject,
+          now,
+          data),
         cancellationToken)
       .ConfigureAwait(false);
+    await outboxWriter.EnqueueAsync(envelope, cancellationToken).ConfigureAwait(false);
   }
 
   private static IEnumerable<ValidationFailure> ValidateAdministratorRequest(
