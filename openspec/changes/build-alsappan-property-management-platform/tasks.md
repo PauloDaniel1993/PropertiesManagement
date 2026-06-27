@@ -252,14 +252,14 @@
 
 ## 17. Timeline Module
 
-- [ ] 17.1 Model timeline entries with event type, actor, target entity, related entities, occurred timestamp, localized display payload, and organization scope
-- [ ] 17.2 Add timeline migrations and indexes for entity type, entity ID, event type, actor, date, and organization scoping
-- [ ] 17.3 Implement timeline projection handlers for property, resident, contract, payment, utility, document, pet, vehicle, occurrence, inspection, and administrator events
-- [ ] 17.4 Implement global timeline API with filters for entity type, event type, actor, date range, and related entity
-- [ ] 17.5 Implement entity timeline API for detail pages with permission-aware filtering
-- [ ] 17.6 Build Timeline page with grouped chronological entries, filters, localized labels, and deep links
-- [ ] 17.7 Build reusable entity timeline panel for detail pages
-- [ ] 17.8 Add tests for projection creation, permission filtering, localization, entity panels, global filters, and deep links
+- [x] 17.1 Model timeline entries with event type, actor, target entity, related entities, occurred timestamp, localized display payload, and organization scope
+- [x] 17.2 Add timeline migrations and indexes for entity type, entity ID, event type, actor, date, and organization scoping
+- [x] 17.3 Implement timeline projection handlers for property, resident, contract, payment, utility, document, pet, vehicle, occurrence, inspection, and administrator events
+- [x] 17.4 Implement global timeline API with filters for entity type, event type, actor, date range, and related entity
+- [x] 17.5 Implement entity timeline API for detail pages with permission-aware filtering
+- [x] 17.6 Build Timeline page with grouped chronological entries, filters, localized labels, and deep links
+- [x] 17.7 Build reusable entity timeline panel for detail pages
+- [x] 17.8 Add tests for projection creation, permission filtering, localization, entity panels, global filters, and deep links
 
 ## 18. Auditoria Module
 
