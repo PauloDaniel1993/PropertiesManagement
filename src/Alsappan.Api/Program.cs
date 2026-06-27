@@ -3,6 +3,7 @@ using Alsappan.Api.Contracts;
 using Alsappan.Api.Errors;
 using Alsappan.Api.Identity;
 using Alsappan.Api.OpenApi;
+using Alsappan.Api.Properties;
 using Alsappan.Application.Common.Configuration;
 using Alsappan.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -87,6 +88,7 @@ v1.MapGet("/system/protected", () => Results.Ok(new ProtectedSystemResponse("aut
 
 v1.MapAuthEndpoints();
 v1.MapAdministratorEndpoints();
+v1.MapPropertyEndpoints();
 
 app.Run();
 
