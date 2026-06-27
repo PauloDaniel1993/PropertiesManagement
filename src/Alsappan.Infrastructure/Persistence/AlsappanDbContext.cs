@@ -9,6 +9,7 @@ using Alsappan.Domain.Identity;
 using Alsappan.Domain.Payments;
 using Alsappan.Domain.Properties;
 using Alsappan.Domain.Residents;
+using Alsappan.Domain.UtilityAccounts;
 using Alsappan.Infrastructure.Audit;
 using Alsappan.Infrastructure.Auth;
 using Alsappan.Infrastructure.Notifications;
@@ -120,6 +121,10 @@ public sealed class AlsappanDbContext : DbContext
   public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
 
   public DbSet<PaymentReceiptLink> PaymentReceiptLinks => Set<PaymentReceiptLink>();
+
+  public DbSet<UtilityAccount> UtilityAccounts => Set<UtilityAccount>();
+
+  public DbSet<UtilityDocumentLink> UtilityDocumentLinks => Set<UtilityDocumentLink>();
 
   public DbSet<SeedHistoryRecord> SeedHistoryRecords => Set<SeedHistoryRecord>();
 

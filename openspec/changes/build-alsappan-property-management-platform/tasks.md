@@ -167,17 +167,17 @@
 
 ## 11. Contas de Consumo Module
 
-- [ ] 11.1 Model utility accounts with type, billing period, amount, currency, due date, responsible party, linked property, linked contract, and status
-- [ ] 11.2 Add utility account type and responsibility catalogs with localized labels
-- [ ] 11.3 Add utility account migrations, indexes for type, property, contract, due date, status, and organization scoping
-- [ ] 11.4 Implement utility account create, list, detail, update, mark paid, cancel, archive, and restore use cases
-- [ ] 11.5 Implement utility payment metadata and document link use cases for bills and receipts
-- [ ] 11.6 Implement utility account API endpoints with filters for type, status, responsible party, property, contract, and billing period
-- [ ] 11.7 Emit utility audit, timeline, outbox, notification, and dashboard projection events
-- [ ] 11.8 Build Contas de Consumo list page with type, status, due date, property, and responsible party filters
+- [x] 11.1 Model utility accounts with type, billing period, amount, currency, due date, responsible party, linked property, linked contract, and status
+- [x] 11.2 Add utility account type and responsibility catalogs with localized labels
+- [x] 11.3 Add utility account migrations, indexes for type, property, contract, due date, status, and organization scoping
+- [x] 11.4 Implement utility account create, list, detail, update, mark paid, cancel, archive, and restore use cases
+- [x] 11.5 Implement utility payment metadata and document link use cases for bills and receipts
+- [x] 11.6 Implement utility account API endpoints with filters for type, status, responsible party, property, contract, and billing period
+- [x] 11.7 Emit utility audit, timeline, outbox, notification, and dashboard projection events
+- [x] 11.8 Build Contas de Consumo list page with type, status, due date, property, and responsible party filters
 - [ ] 11.9 Build utility account create/edit and mark-paid forms with bill/receipt document attachment
-- [ ] 11.10 Build utility account detail page with linked property, contract, responsible party, documents, timeline, and audit links
-- [ ] 11.11 Add tests for utility lifecycle, responsibility assignment, document links, overdue state, permissions, and localization
+- [x] 11.10 Build utility account detail page with linked property, contract, responsible party, documents, timeline, and audit links
+- [x] 11.11 Add tests for utility lifecycle, responsibility assignment, document links, overdue state, permissions, and localization
 
 ## 12. Pets Module
 
