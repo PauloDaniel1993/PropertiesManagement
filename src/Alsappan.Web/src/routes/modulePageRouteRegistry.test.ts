@@ -12,6 +12,7 @@ describe('module page route registry', () => {
       'properties',
       'residents',
       'timeline',
+      'utilityAccounts',
     ])
     expect(getModulePageComponent('administrators')).toEqual(expect.any(Function))
     expect(getModulePageComponent('audit')).toEqual(expect.any(Function))
@@ -22,6 +23,7 @@ describe('module page route registry', () => {
     expect(getModulePageComponent('properties')).toEqual(expect.any(Function))
     expect(getModulePageComponent('residents')).toEqual(expect.any(Function))
     expect(getModulePageComponent('timeline')).toEqual(expect.any(Function))
+    expect(getModulePageComponent('utilityAccounts')).toEqual(expect.any(Function))
   })
 
   it('falls back to placeholders for menu items without implemented pages', () => {
