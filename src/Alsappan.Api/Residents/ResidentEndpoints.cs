@@ -163,6 +163,148 @@ internal static class ResidentEndpoints
       .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
     residents.MapPost(
+        "/{id:guid}/portal-account/invite",
+        async (
+          Guid id,
+          ResidentAccountInviteRequestDto request,
+          string? locale,
+          IResidentAccountService residentAccountService,
+          HttpContext httpContext,
+          CancellationToken cancellationToken) =>
+        {
+          var result = await residentAccountService.InviteAsync(id, request, locale, cancellationToken)
+            .ConfigureAwait(false);
+
+          return ApplicationEndpointResults.FromOperationResult(httpContext, result);
+        })
+      .WithName("Residents_InvitePortalAccount")
+      .WithSummary("Invites a resident to activate portal access.")
+      .Produces<ResidentAccountAccessDto>()
+      .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+      .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+      .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+      .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+      .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+    residents.MapPost(
+        "/{id:guid}/portal-account/activate",
+        async (
+          Guid id,
+          ResidentAccountActivateRequestDto request,
+          string? locale,
+          IResidentAccountService residentAccountService,
+          HttpContext httpContext,
+          CancellationToken cancellationToken) =>
+        {
+          var result = await residentAccountService.ActivateAsync(id, request, locale, cancellationToken)
+            .ConfigureAwait(false);
+
+          return ApplicationEndpointResults.FromOperationResult(httpContext, result);
+        })
+      .WithName("Residents_ActivatePortalAccount")
+      .WithSummary("Activates a linked resident portal account.")
+      .Produces<ResidentAccountAccessDto>()
+      .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+      .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+      .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+      .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+      .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+    residents.MapPost(
+        "/{id:guid}/portal-account/deactivate",
+        async (
+          Guid id,
+          ResidentAccountLifecycleRequestDto request,
+          string? locale,
+          IResidentAccountService residentAccountService,
+          HttpContext httpContext,
+          CancellationToken cancellationToken) =>
+        {
+          var result = await residentAccountService.DeactivateAsync(id, request, locale, cancellationToken)
+            .ConfigureAwait(false);
+
+          return ApplicationEndpointResults.FromOperationResult(httpContext, result);
+        })
+      .WithName("Residents_DeactivatePortalAccount")
+      .WithSummary("Deactivates a resident portal account and revokes active sessions.")
+      .Produces<ResidentAccountAccessDto>()
+      .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+      .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+      .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+      .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+    residents.MapPost(
+        "/{id:guid}/portal-account/password-reset",
+        async (
+          Guid id,
+          ResidentAccountPasswordResetRequestDto request,
+          string? locale,
+          IResidentAccountService residentAccountService,
+          HttpContext httpContext,
+          CancellationToken cancellationToken) =>
+        {
+          var result = await residentAccountService.ResetPasswordAsync(id, request, locale, cancellationToken)
+            .ConfigureAwait(false);
+
+          return ApplicationEndpointResults.FromOperationResult(httpContext, result);
+        })
+      .WithName("Residents_ResetPortalAccountPassword")
+      .WithSummary("Resets a resident portal account password.")
+      .Produces<ResidentAccountAccessDto>()
+      .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+      .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+      .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+      .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+      .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+    residents.MapPost(
+        "/{id:guid}/portal-account/link",
+        async (
+          Guid id,
+          ResidentAccountLinkRequestDto request,
+          string? locale,
+          IResidentAccountService residentAccountService,
+          HttpContext httpContext,
+          CancellationToken cancellationToken) =>
+        {
+          var result = await residentAccountService.LinkAsync(id, request, locale, cancellationToken)
+            .ConfigureAwait(false);
+
+          return ApplicationEndpointResults.FromOperationResult(httpContext, result);
+        })
+      .WithName("Residents_LinkPortalAccount")
+      .WithSummary("Links an existing resident user account to a resident record.")
+      .Produces<ResidentAccountAccessDto>()
+      .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+      .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+      .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+      .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+      .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+    residents.MapPost(
+        "/{id:guid}/portal-account/unlink",
+        async (
+          Guid id,
+          ResidentAccountLifecycleRequestDto request,
+          string? locale,
+          IResidentAccountService residentAccountService,
+          HttpContext httpContext,
+          CancellationToken cancellationToken) =>
+        {
+          var result = await residentAccountService.UnlinkAsync(id, request, locale, cancellationToken)
+            .ConfigureAwait(false);
+
+          return ApplicationEndpointResults.FromOperationResult(httpContext, result);
+        })
+      .WithName("Residents_UnlinkPortalAccount")
+      .WithSummary("Unlinks resident portal access from a resident record.")
+      .Produces<ResidentAccountAccessDto>()
+      .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+      .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+      .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+      .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+    residents.MapPost(
         "",
         async (
           ResidentCreateRequestDto request,

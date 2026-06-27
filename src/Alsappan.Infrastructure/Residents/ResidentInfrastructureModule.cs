@@ -16,5 +16,6 @@ internal sealed class ResidentInfrastructureModule : IInfrastructureModule
 
     services.AddScoped<IResidentRepository, EfResidentRepository>();
     services.AddScoped<IResidentService, ResidentService>();
+    services.AddScoped<IResidentAccountService, ResidentAccountService>();
   }
 }

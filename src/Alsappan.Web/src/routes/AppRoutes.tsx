@@ -8,9 +8,22 @@ import {
   RequireAdminRoute,
   RequireAuthenticated,
   RequirePermission,
+  RequireResidentRoute,
 } from './guards'
 import { AdminShell } from '../shell/AdminShell'
 import { getModulePageComponent } from './modulePageRouteRegistry'
+import {
+  ResidentPortalContractsPage,
+  ResidentPortalDocumentsPage,
+  ResidentPortalInspectionsPage,
+  ResidentPortalNotificationsPage,
+  ResidentPortalOccurrencesPage,
+  ResidentPortalOverviewPage,
+  ResidentPortalPaymentsPage,
+  ResidentPortalProfilePage,
+  ResidentPortalPropertyPage,
+  ResidentPortalShell,
+} from '../features/residentPortal'
 
 function ProtectedRoute() {
   return (
@@ -24,11 +37,39 @@ function ProtectedRoute() {
   )
 }
 
+function ResidentPortalRoute() {
+  return (
+    <RequireAuthenticated redirectTo="/resident-login">
+      <RequireResidentRoute>
+        <RequireActiveOrganization>
+          <ResidentPortalShell />
+        </RequireActiveOrganization>
+      </RequireResidentRoute>
+    </RequireAuthenticated>
+  )
+}
+
 export function AppRoutes() {
   return (
     <AuthSessionBootstrap>
       <Routes>
         <Route element={<IdentityLoginPage />} path="/login" />
+        <Route
+          element={<IdentityLoginPage accountType="resident" defaultRedirectPath="/portal" />}
+          path="/resident-login"
+        />
+        <Route element={<ResidentPortalRoute />} path="/portal/*">
+          <Route index element={<ResidentPortalOverviewPage />} />
+          <Route element={<ResidentPortalProfilePage />} path="perfil" />
+          <Route element={<ResidentPortalPropertyPage />} path="imovel" />
+          <Route element={<ResidentPortalContractsPage />} path="contratos" />
+          <Route element={<ResidentPortalPaymentsPage />} path="pagamentos" />
+          <Route element={<ResidentPortalDocumentsPage />} path="documentos" />
+          <Route element={<ResidentPortalOccurrencesPage />} path="ocorrencias" />
+          <Route element={<ResidentPortalInspectionsPage />} path="vistorias" />
+          <Route element={<ResidentPortalNotificationsPage />} path="notificacoes" />
+          <Route element={<Navigate replace to="/portal" />} path="*" />
+        </Route>
         <Route element={<ProtectedRoute />}>
           <Route index element={<Navigate replace to={defaultAuthenticatedRoute} />} />
           {modulePageRoutes.map((route) => {

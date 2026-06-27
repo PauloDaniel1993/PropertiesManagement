@@ -3,9 +3,13 @@ import { create } from 'zustand'
 export type ResidentPortalSection =
   | 'contracts'
   | 'documents'
+  | 'inspections'
+  | 'notifications'
   | 'occurrences'
   | 'overview'
   | 'payments'
+  | 'profile'
+  | 'property'
 
 export type ResidentPortalState = {
   activeSection: ResidentPortalSection

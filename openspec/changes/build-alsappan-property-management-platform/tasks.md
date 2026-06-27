@@ -108,12 +108,12 @@
 - [x] 7.7 Build resident create/edit form with localized validation and duplicate warning flow
 - [x] 7.8 Build resident detail page with contracts, properties, payments, documents, pets, vehicles, occurrences, timeline, and audit links
 - [x] 7.9 Add tests for resident CRUD, duplicate detection, sensitive field masking, permissions, localization, and archived state
-- [ ] 7.10 Implement resident account invitation, activation, deactivation, password reset, and link/unlink use cases
-- [ ] 7.11 Implement resident portal summary APIs for profile, linked property, contracts, payments, documents, occurrences, inspections, and notifications
-- [ ] 7.12 Build resident portal shell with localized navigation, profile menu, notifications, theme, locale, and responsive layout
-- [ ] 7.13 Build resident portal pages for profile, property, contracts, payments, documents, occurrences, inspections, and notifications
-- [ ] 7.14 Implement resident-created occurrence and resident document upload flows controlled by organization settings
-- [ ] 7.15 Add tests for resident portal login, linked-record visibility, cross-resident denial, resident-created occurrence, resident upload permissions, and localization
+- [x] 7.10 Implement resident account invitation, activation, deactivation, password reset, and link/unlink use cases
+- [x] 7.11 Implement resident portal summary APIs for profile, linked property, contracts, payments, documents, occurrences, inspections, and notifications
+- [x] 7.12 Build resident portal shell with localized navigation, profile menu, notifications, theme, locale, and responsive layout
+- [x] 7.13 Build resident portal pages for profile, property, contracts, payments, documents, occurrences, inspections, and notifications
+- [x] 7.14 Implement resident-created occurrence and resident document upload flows controlled by organization settings
+- [x] 7.15 Add tests for resident portal login, linked-record visibility, cross-resident denial, resident-created occurrence, resident upload permissions, and localization
 
 ## 8. Contratos Module
 
@@ -162,8 +162,8 @@
 - [x] 10.15 Implement mocked Pix provider returning placeholder QR payload, copy-and-paste code, expiration, amount, payer summary, and provider reference
 - [x] 10.16 Implement mocked PayPal provider returning placeholder payment intent ID, approval URL, status, amount, payer summary, and provider reference
 - [x] 10.17 Add payment instruction endpoints and DTOs for boleto, Pix, and PayPal mock provider responses
-- [ ] 10.18 Add resident portal payment instruction display for mocked boleto, Pix, and PayPal
-- [ ] 10.19 Add tests for mocked provider instruction generation, mock event settlement mapping, tenant isolation, resident visibility, and future-provider contract stability
+- [x] 10.18 Add resident portal payment instruction display for mocked boleto, Pix, and PayPal
+- [x] 10.19 Add tests for mocked provider instruction generation, mock event settlement mapping, tenant isolation, resident visibility, and future-provider contract stability
 
 ## 11. Contas de Consumo Module
 
