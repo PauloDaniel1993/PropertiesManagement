@@ -3,7 +3,13 @@ import type { ApiClient } from './client'
 import type { ApiPagedResult } from './contracts'
 
 export type NotificationStatusTone =
-  'archived' | 'danger' | 'info' | 'neutral' | 'success' | 'warning' | string
+  | 'archived'
+  | 'danger'
+  | 'info'
+  | 'neutral'
+  | 'success'
+  | 'warning'
+  | string
 
 export type NotificationStatusLabel<TCode extends string = string> = {
   code: TCode

@@ -20,7 +20,13 @@ export const residentPrivacyFlags = [
 export type ResidentPrivacyFlag = (typeof residentPrivacyFlags)[number]
 
 export type ResidentStatusTone =
-  'archived' | 'danger' | 'info' | 'neutral' | 'success' | 'warning' | string
+  | 'archived'
+  | 'danger'
+  | 'info'
+  | 'neutral'
+  | 'success'
+  | 'warning'
+  | string
 
 export type ResidentStatusLabel<TCode extends string = string> = {
   code: TCode

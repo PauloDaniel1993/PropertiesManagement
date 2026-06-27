@@ -61,6 +61,12 @@ Alsappan is a multi-tenant property management platform with a React frontend an
 ```powershell
 ./scripts/build.ps1
 ./scripts/test.ps1
+npm run lint --workspace src/Alsappan.Web
+npm run typecheck --workspace src/Alsappan.Web
+npm run format:check --workspace src/Alsappan.Web
+dotnet format Alsappan.slnx --verify-no-changes --no-restore
+./scripts/validate-openapi.ps1
+./scripts/validate-migrations.ps1
 openspec validate build-alsappan-property-management-platform
 ```
 
