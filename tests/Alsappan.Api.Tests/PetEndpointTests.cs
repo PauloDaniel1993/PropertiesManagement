@@ -176,7 +176,9 @@ public sealed class PetEndpointTests
       claims:
       [
         new Claim(JwtRegisteredClaimNames.Sub, UserId.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, "admin@alsappan.local")
+        new Claim(JwtRegisteredClaimNames.Email, "admin@alsappan.local"),
+        new Claim("alsappan:active_organization_id", Guid.NewGuid().ToString()),
+        new Claim("alsappan:permission", "*")
       ],
       expires: DateTime.UtcNow.AddMinutes(15),
       signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));

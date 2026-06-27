@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Timeline;
 using Microsoft.AspNetCore.Mvc;
@@ -61,6 +63,7 @@ internal static class TimelineEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Timeline_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Timeline))
       .WithSummary("Lists timeline entries in the active organization.")
       .Produces<PagedResultDto<TimelineEntryDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

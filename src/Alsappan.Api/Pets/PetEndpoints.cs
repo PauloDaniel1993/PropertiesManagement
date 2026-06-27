@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Pets;
 using Microsoft.AspNetCore.Mvc;
@@ -61,6 +63,7 @@ internal static class PetEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Pets_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Pets))
       .WithSummary("Lists pets in the active organization.")
       .Produces<PagedResultDto<PetListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -114,6 +117,7 @@ internal static class PetEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Pets_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Pets))
       .WithSummary("Creates a pet.")
       .Produces<PetDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -160,6 +164,7 @@ internal static class PetEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Pets_Authorize")
+      .RequirePermission(PermissionCodes.Manage(PermissionModules.Pets))
       .WithSummary("Authorizes a pet.")
       .Produces<PetDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

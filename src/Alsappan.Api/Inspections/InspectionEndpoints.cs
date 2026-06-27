@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Inspections;
 using Microsoft.AspNetCore.Mvc;
@@ -68,6 +70,7 @@ internal static class InspectionEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Inspections_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Inspections))
       .WithSummary("Lists inspections in the active organization.")
       .Produces<PagedResultDto<InspectionListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -158,6 +161,7 @@ internal static class InspectionEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Inspections_Schedule")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Inspections))
       .WithSummary("Schedules an inspection.")
       .Produces<InspectionDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -319,6 +323,7 @@ internal static class InspectionEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Inspections_AddChecklistItem")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Inspections))
       .WithSummary("Adds an inspection checklist item.")
       .Produces<InspectionDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

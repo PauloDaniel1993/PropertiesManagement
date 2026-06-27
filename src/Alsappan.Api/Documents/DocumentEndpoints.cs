@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Common.Results;
 using Alsappan.Application.Common.Validation;
@@ -71,6 +73,7 @@ internal static class DocumentEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Documents_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Documents))
       .WithSummary("Lists documents in the active organization.")
       .Produces<PagedResultDto<DocumentListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -202,6 +205,7 @@ internal static class DocumentEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Documents_Upload")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Documents))
       .WithSummary("Uploads a document.")
       .WithMetadata(
         new RequestSizeLimitAttribute(MaxMultipartRequestBodyBytes),
@@ -369,6 +373,7 @@ internal static class DocumentEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Documents_Archive")
+      .RequirePermission(PermissionCodes.Archive(PermissionModules.Documents))
       .WithSummary("Archives a document.")
       .Produces(StatusCodes.Status204NoContent)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

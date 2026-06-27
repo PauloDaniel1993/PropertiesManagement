@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.OperationResults;
 using Alsappan.Api.Modules;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Properties;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +62,7 @@ internal static class PropertyEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Properties_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Properties))
       .WithSummary("Lists properties in the active organization.")
       .Produces<PagedResultDto<PropertyListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -136,6 +139,7 @@ internal static class PropertyEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Properties_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Properties))
       .WithSummary("Creates a property in the active organization.")
       .Produces<PropertyDetailDto>(StatusCodes.Status200OK)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -183,6 +187,7 @@ internal static class PropertyEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Properties_ChangeStatus")
+      .RequirePermission(PermissionCodes.Manage(PermissionModules.Properties))
       .WithSummary("Changes property lifecycle status.")
       .Produces<PropertyDetailDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

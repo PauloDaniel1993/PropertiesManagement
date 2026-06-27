@@ -238,7 +238,9 @@ public sealed class OccurrenceEndpointTests
     var claims = new List<Claim>
     {
       new(JwtRegisteredClaimNames.Sub, UserId.ToString()),
-      new(JwtRegisteredClaimNames.Email, "admin@alsappan.local")
+      new(JwtRegisteredClaimNames.Email, "admin@alsappan.local"),
+      new("alsappan:active_organization_id", Guid.NewGuid().ToString()),
+      new("alsappan:permission", "*")
     };
 
     if (!string.IsNullOrWhiteSpace(roleCode))

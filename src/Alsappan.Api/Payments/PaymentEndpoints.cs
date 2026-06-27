@@ -1,5 +1,7 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
+using Alsappan.Application.Common.Authorization;
 using Alsappan.Application.Common.Contracts;
 using Alsappan.Application.Payments;
 using Microsoft.AspNetCore.Mvc;
@@ -64,6 +66,7 @@ internal static class PaymentEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Payments_List")
+      .RequirePermission(PermissionCodes.Read(PermissionModules.Payments))
       .WithSummary("Lists payment charges in the active organization.")
       .Produces<PagedResultDto<PaymentListItemDto>>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -154,6 +157,7 @@ internal static class PaymentEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Payments_Create")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Payments))
       .WithSummary("Creates a payment charge.")
       .Produces<PaymentDetailDto>(StatusCodes.Status200OK)
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -315,6 +319,7 @@ internal static class PaymentEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Payments_CreateInstruction")
+      .RequirePermission(PermissionCodes.Write(PermissionModules.Payments))
       .WithSummary("Creates mocked boleto, Pix, or PayPal payment instructions.")
       .Produces<PaymentInstructionDto>()
       .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)

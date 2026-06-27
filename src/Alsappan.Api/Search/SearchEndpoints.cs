@@ -1,3 +1,4 @@
+using Alsappan.Api.Authorization;
 using Alsappan.Api.Modules;
 using Alsappan.Api.OperationResults;
 using Alsappan.Application.Search;
@@ -41,6 +42,7 @@ internal static class SearchEndpoints
           return ApplicationEndpointResults.FromOperationResult(httpContext, result);
         })
       .WithName("Search_Global")
+      .RequireAnyOrganizationPermission()
       .WithSummary("Searches readable records across global entity types.")
       .Produces<GlobalSearchResponseDto>()
       .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
